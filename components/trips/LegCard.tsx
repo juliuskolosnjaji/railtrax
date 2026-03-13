@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Pencil, Trash2, Clock, AlertTriangle } from 'lucide-react'
+import { ArrowRight, Pencil, Trash2, Clock, AlertTriangle, Loader2, CheckCircle2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LegEditorSheet } from './LegEditorSheet'
 import { useDeleteLeg, type Leg } from '@/hooks/useTrips'
+import { useTraewellingStatus, useTraewellingCheckin } from '@/hooks/useTraewelling'
 
 const OPERATOR_STYLES: Record<string, string> = {
   DB: 'bg-red-950 text-red-300 border-red-800',
@@ -32,6 +33,27 @@ function durationMinutes(dep: string, arr: string) {
 export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
   const [editOpen, setEditOpen] = useState(false)
   const deleteLeg = useDeleteLeg(tripId)
+
+  const { data: traewelling } = useTraewellingStatus()
+  const checkin = useTraewellingCheckin(tripId)
+  const [checkinError, setCheckinError] = useState<string | null>(null)
+
+  const now = new Date()
+  const depDateObj = new Date(leg.plannedDeparture)
+  const minsUntilDep = (depDateObj.getTime() - now.getTime()) / 60000
+  // Allow check-in from 2 hours before departure up to 24 hours in advance (very loose for testing)
+  const canCheckIn = minsUntilDep >= -120 && minsUntilDep <= 1440
+  const isCheckedIn = leg.status === 'checked_in' || leg.traewellingStatusId != null
+
+  async function handleCheckin() {
+    setCheckinError(null)
+    try {
+      await checkin.mutateAsync(leg.id)
+    } catch (err: any) {
+      setCheckinError(err.message)
+      setTimeout(() => setCheckinError(null), 5000)
+    }
+  }
 
   const depDate = formatDate(leg.plannedDeparture)
   const depTime = formatTime(leg.plannedDeparture)
@@ -109,6 +131,29 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 <span className="text-xs text-zinc-500">Seat: {leg.seat}</span>
               )}
             </div>
+
+            {traewelling?.connected && leg.status === 'planned' && canCheckIn && !isCheckedIn && (
+              <div className="pt-2 border-t border-zinc-800/80 mt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCheckin}
+                  disabled={checkin.isPending}
+                  className="w-full sm:w-auto bg-[#cc1f3a]/10 text-[#cc1f3a] hover:bg-[#cc1f3a]/20 hover:text-[#cc1f3a] border-[#cc1f3a]/30 h-8 font-medium transition-colors"
+                >
+                  {checkin.isPending ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-2" />}
+                  Check in to Träwelling
+                </Button>
+                {checkinError && (
+                  <p className="text-xs text-red-400 mt-2">{checkinError}</p>
+                )}
+              </div>
+            )}
+            {isCheckedIn && (
+               <div className="pt-2 border-t border-zinc-800/80 mt-1 flex items-center gap-1.5 text-emerald-400 text-sm font-medium">
+                  <CheckCircle2 className="h-4 w-4" /> Checked in
+               </div>
+            )}
           </div>
         </div>
       </div>

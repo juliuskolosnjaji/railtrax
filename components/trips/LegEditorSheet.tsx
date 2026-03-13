@@ -219,10 +219,16 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
   // ── Initialize board/alight when journey loads ─────────────────────────────
   useEffect(() => {
     if (activeJourney) {
-      setBoardIdx(0)
+      // Find the index of the searched station, otherwise default to 0
+      let bIdx = 0
+      if (tab === 'departures' && selectedStation?.id) {
+        const found = activeJourney.stopovers.findIndex(s => s.stationId === selectedStation.id)
+        if (found >= 0) bIdx = found
+      }
+      setBoardIdx(bIdx)
       setAlightIdx(activeJourney.stopovers.length - 1)
     }
-  }, [activeJourney?.tripId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeJourney?.tripId, selectedStation, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Close suggestions on outside click ────────────────────────────────────
   useEffect(() => {

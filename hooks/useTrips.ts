@@ -47,6 +47,7 @@ export interface Leg {
   polyline: [number, number][] | null
   seat: string | null
   notes: string | null
+  traewellingStatusId: string | null
 }
 
 export interface TripDetail extends TripSummary {
@@ -57,8 +58,21 @@ export interface TripDetail extends TripSummary {
 
 export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options)
-  const json = await res.json()
-  if (!res.ok) throw Object.assign(new Error(json.error ?? 'Request failed'), { status: res.status, json })
+  
+  let json
+  try {
+    json = await res.json()
+  } catch (err) {
+    if (!res.ok) {
+      throw Object.assign(new Error(`HTTP Error ${res.status}: ${res.statusText}`), { status: res.status })
+    }
+    throw new Error('Invalid JSON response from server')
+  }
+
+  if (!res.ok) {
+    const errorMsg = json.message || json.error || 'Request failed'
+    throw Object.assign(new Error(errorMsg), { status: res.status, json })
+  }
   return json.data as T
 }
 

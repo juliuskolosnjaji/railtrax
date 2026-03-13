@@ -110,7 +110,7 @@ export default function TripDetailPage() {
     <div className="flex flex-col h-full">
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-8 max-w-3xl">
+        <div className="p-8 max-w-7xl mx-auto w-full">
           {/* Back link */}
           <Link
             href="/dashboard"
@@ -136,7 +136,7 @@ export default function TripDetailPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <div className="flex items-center gap-3 mb-8 flex-wrap">
             <Badge className={`${STATUS_STYLES[trip.status ?? 'planned']} capitalize`}>
               {trip.status ?? 'planned'}
             </Badge>
@@ -152,60 +152,67 @@ export default function TripDetailPage() {
             )}
           </div>
 
-          {/* Map — always rendered, never conditionally mounted */}
-          <div className="rounded-xl overflow-hidden border border-zinc-800 h-[250px] md:h-[400px] mb-8">
-            <TripMap legs={trip.legs} />
-          </div>
-
-          {/* Legs section */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">
-              Legs
-              <span className="ml-2 text-sm font-normal text-zinc-500">
-                ({trip.legs.length})
-              </span>
-            </h2>
-            <Button
-              size="sm"
-              onClick={() => setAddLegOpen(true)}
-              className="bg-white text-zinc-900 hover:bg-zinc-100 gap-1.5"
-            >
-              <Plus className="h-4 w-4" />
-              Add leg
-            </Button>
-          </div>
-
-          {trip.legs.length === 0 ? (
-            <div className="text-center py-12 rounded-xl border border-dashed border-zinc-800">
-              <p className="text-zinc-500 text-sm mb-3">
-                No legs yet. Add the first train ride.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAddLegOpen(true)}
-                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1.5"
-              >
-                <Plus className="h-4 w-4" />
-                Add leg
-              </Button>
-            </div>
-          ) : (
-            <div>
-              {trip.legs.map((leg) => (
-                <LegCard key={leg.id} leg={leg} tripId={trip.id} />
-              ))}
-              {/* Final dot */}
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
-                </div>
-                <p className="text-sm text-zinc-600 pb-2">
-                  {trip.legs[trip.legs.length - 1]?.destName}
-                </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Left Column: Map */}
+            <div className="order-1 lg:order-1">
+              <div className="rounded-xl overflow-hidden border border-zinc-800 h-[300px] lg:h-[calc(100vh-16rem)] lg:sticky lg:top-8">
+                <TripMap legs={trip.legs} />
               </div>
             </div>
-          )}
+
+            {/* Right Column: Legs */}
+            <div className="order-2 lg:order-2">
+              {/* Legs section */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">
+                  Legs
+                  <span className="ml-2 text-sm font-normal text-zinc-500">
+                    ({trip.legs.length})
+                  </span>
+                </h2>
+                <Button
+                  size="sm"
+                  onClick={() => setAddLegOpen(true)}
+                  className="bg-white text-zinc-900 hover:bg-zinc-100 gap-1.5"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add leg
+                </Button>
+              </div>
+
+              {trip.legs.length === 0 ? (
+                <div className="text-center py-12 rounded-xl border border-dashed border-zinc-800">
+                  <p className="text-zinc-500 text-sm mb-3">
+                    No legs yet. Add the first train ride.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAddLegOpen(true)}
+                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1.5"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add leg
+                  </Button>
+                </div>
+              ) : (
+                <div className="pb-8">
+                  {trip.legs.map((leg) => (
+                    <LegCard key={leg.id} leg={leg} tripId={trip.id} />
+                  ))}
+                  {/* Final dot */}
+                  <div className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
+                    </div>
+                    <p className="text-sm text-zinc-600 pb-2">
+                      {trip.legs[trip.legs.length - 1]?.destName}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
