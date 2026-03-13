@@ -94,7 +94,7 @@ model Leg {
   seat                String?
   createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  trip                Trip      @relation(fields: [tripId], references: [id])
+  trip                Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
   ticket              Ticket?   @relation(fields: [ticketId], references: [id])
   routeReviews        RouteReview[]
   journalEntries      JournalEntry[]
@@ -145,7 +145,7 @@ model RouteReview {
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   user             User     @relation(fields: [userId], references: [id])
-  leg              Leg      @relation(fields: [legId], references: [id])
+  leg              Leg      @relation(fields: [legId], references: [id], onDelete: Cascade)
 
   @@map("route_reviews")
 }
@@ -163,7 +163,7 @@ model JournalEntry {
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   trip         Trip     @relation(fields: [tripId], references: [id])
-  leg          Leg?     @relation(fields: [legId], references: [id])
+  leg          Leg?     @relation(fields: [legId], references: [id], onDelete: SetNull)
   user         User     @relation(fields: [userId], references: [id])
   photos       JournalPhoto[]
 
@@ -328,7 +328,7 @@ model LegRollingStock {
   confirmed       Boolean @default(false)
   source          String?
 
-  leg             Leg          @relation(fields: [legId], references: [id])
+  leg             Leg          @relation(fields: [legId], references: [id], onDelete: Cascade)
   rollingStock    RollingStock @relation(fields: [rollingStockId], references: [id])
 
   @@map("leg_rolling_stock")
