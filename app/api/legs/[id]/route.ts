@@ -44,6 +44,18 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const existing = await getLegForUser(params.id, user.id)
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
+    // Handle status update separately
+    if (parsed.data.status !== undefined) {
+      if (!['planned', 'checked_in', 'completed'].includes(parsed.data.status)) {
+        return NextResponse.json({ error: 'invalid_status' }, { status: 400 })
+      }
+      const leg = await prisma.leg.update({
+        where: { id: params.id },
+        data: { status: parsed.data.status },
+      })
+      return NextResponse.json({ data: leg })
+    }
+
     const leg = await prisma.leg.update({
       where: { id: params.id },
       data: {

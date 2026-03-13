@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Pencil, Trash2, Clock, AlertTriangle, Loader2, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, Pencil, Trash2, Clock, AlertTriangle, Loader2, CheckCircle2, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LegEditorSheet } from './LegEditorSheet'
-import { useDeleteLeg, type Leg } from '@/hooks/useTrips'
+import { useDeleteLeg, useUpdateLeg, type Leg } from '@/hooks/useTrips'
 import { useTraewellingStatus, useTraewellingCheckin } from '@/hooks/useTraewelling'
+import { ReviewPrompt } from '@/components/reviews/ReviewPrompt'
 
 const OPERATOR_STYLES: Record<string, string> = {
   DB: 'bg-red-950 text-red-300 border-red-800',
@@ -32,7 +33,9 @@ function durationMinutes(dep: string, arr: string) {
 
 export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
   const [editOpen, setEditOpen] = useState(false)
+  const [reviewOpen, setReviewOpen] = useState(false)
   const deleteLeg = useDeleteLeg(tripId)
+  const updateLeg = useUpdateLeg(tripId)
 
   const { data: traewelling } = useTraewellingStatus()
   const checkin = useTraewellingCheckin(tripId)
@@ -44,14 +47,24 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
   // Allow check-in from 2 hours before departure up to 24 hours in advance (very loose for testing)
   const canCheckIn = minsUntilDep >= -120 && minsUntilDep <= 1440
   const isCheckedIn = leg.status === 'checked_in' || leg.traewellingStatusId != null
+  const isCompleted = leg.status === 'completed'
 
   async function handleCheckin() {
     setCheckinError(null)
     try {
       await checkin.mutateAsync(leg.id)
-    } catch (err: any) {
-      setCheckinError(err.message)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      setCheckinError(message)
       setTimeout(() => setCheckinError(null), 5000)
+    }
+  }
+
+  async function handleComplete() {
+    try {
+      await updateLeg.mutateAsync({ id: leg.id, data: { status: 'completed' } })
+    } catch (err) {
+      console.error('Failed to complete leg:', err)
     }
   }
 
@@ -149,9 +162,37 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 )}
               </div>
             )}
-            {isCheckedIn && (
-               <div className="pt-2 border-t border-zinc-800/80 mt-1 flex items-center gap-1.5 text-emerald-400 text-sm font-medium">
-                  <CheckCircle2 className="h-4 w-4" /> Checked in
+            {isCheckedIn && !isCompleted && (
+               <div className="pt-2 border-t border-zinc-800/80 mt-1 flex flex-col gap-2">
+                  <div className="flex items-center gap-1.5 text-emerald-400 text-sm font-medium">
+                     <CheckCircle2 className="h-4 w-4" /> Checked in
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleComplete}
+                    disabled={updateLeg.isPending}
+                    className="w-full sm:w-auto bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/40 border-emerald-800/50 h-8 font-medium transition-colors"
+                  >
+                    {updateLeg.isPending ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-2" />}
+                    Mark complete
+                  </Button>
+               </div>
+            )}
+            {isCompleted && (
+               <div className="pt-2 border-t border-zinc-800/80 mt-1 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-emerald-400 text-sm font-medium">
+                     <CheckCircle2 className="h-4 w-4" /> Completed
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setReviewOpen(true)}
+                    className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-950/30"
+                  >
+                    <Star className="h-3.5 w-3.5 mr-1.5" />
+                    Review
+                  </Button>
                </div>
             )}
           </div>
@@ -163,6 +204,21 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
         open={editOpen}
         onOpenChange={setEditOpen}
         leg={leg}
+      />
+
+      <ReviewPrompt
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        leg={{
+          id: leg.id,
+          originName: leg.originName,
+          destName: leg.destName,
+          originIbnr: leg.originIbnr,
+          destIbnr: leg.destIbnr,
+          operator: leg.operator,
+          trainType: leg.trainType,
+        }}
+        onComplete={() => {}}
       />
     </>
   )

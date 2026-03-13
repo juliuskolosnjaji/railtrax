@@ -279,6 +279,7 @@ export async function searchJourneys(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (result.journeys as any[])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((j: any) => !j.legs?.every((l: any) => l.walking))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((j: any): Journey => ({

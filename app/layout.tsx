@@ -17,6 +17,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#E32228" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </head>
       <body className={inter.className}>
         <QueryProvider>{children}</QueryProvider>
       </body>

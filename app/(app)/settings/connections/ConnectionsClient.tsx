@@ -41,8 +41,9 @@ export function ConnectionsClient({
       setUsername(json.data.username)
       setToken('')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      setError(message)
     } finally {
       setIsLoading(false)
     }

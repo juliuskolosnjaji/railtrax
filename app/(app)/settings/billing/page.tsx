@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getPlan, getLimit } from '@/lib/entitlements'
 import { getCustomerPortalUrl } from '@/lib/lemonsqueezy'
 import { BillingClient } from './BillingClient'
+import { DevPlanSwitcher } from '@/components/dev/DevPlanSwitcher'
 
 export default async function BillingPage({
   searchParams,
@@ -51,15 +52,22 @@ export default async function BillingPage({
   const maxStorageMb = getLimit(plan, 'maxPhotosMb')
 
   return (
-    <BillingClient
-      plan={plan}
-      subscription={subscription ?? null}
-      portalUrl={portalUrl}
-      tripsCount={tripsCount}
-      maxTrips={maxTrips}
-      storageMbUsed={storageMbUsed}
-      maxStorageMb={maxStorageMb}
-      showSuccess={searchParams.success === 'true'}
-    />
+    <>
+      {process.env.NODE_ENV === 'development' && (
+        <div className="p-6 pb-0">
+          <DevPlanSwitcher currentPlan={plan} />
+        </div>
+      )}
+      <BillingClient
+        plan={plan}
+        subscription={subscription ?? null}
+        portalUrl={portalUrl}
+        tripsCount={tripsCount}
+        maxTrips={maxTrips}
+        storageMbUsed={storageMbUsed}
+        maxStorageMb={maxStorageMb}
+        showSuccess={searchParams.success === 'true'}
+      />
+    </>
   )
 }

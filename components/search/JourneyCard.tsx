@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useState } from 'react'
-import { ChevronDown, ChevronUp, Plus } from 'lucide-react'
+import { ChevronDown, ChevronUp, Plus, Star } from 'lucide-react'
 import { useQueries } from '@tanstack/react-query'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -72,6 +72,32 @@ export function JourneyCard({ journey, onAddToTrip }: JourneyCardProps) {
       : [],
   })
 
+  // Fetch review aggregates for each leg (only legs with IBNRs)
+  const legsWithIbnr = legs.filter((l) => l.originIbnr && l.destinationIbnr)
+  const reviewQueries = useQueries({
+    queries: legsWithIbnr.map((l) => ({
+      queryKey: ['reviews', l.originIbnr, l.destinationIbnr],
+      queryFn: async () => {
+        const res = await fetch(
+          `/api/reviews?origin=${encodeURIComponent(l.originIbnr!)}&destination=${encodeURIComponent(l.destinationIbnr!)}`
+        )
+        return res.json()
+      },
+      staleTime: 300_000,
+    })),
+  })
+
+  const getReviewScore = (leg: typeof legs[0]): { avg: number; count: number } | null => {
+    if (!leg.originIbnr || !leg.destinationIbnr) return null
+    const legIndex = legsWithIbnr.findIndex(
+      (l) => l.originIbnr === leg.originIbnr && l.destinationIbnr === leg.destinationIbnr
+    )
+    if (legIndex === -1) return null
+    const data = reviewQueries[legIndex]?.data?.data
+    if (!data?.aggregate || data.count < 1) return null
+    return { avg: data.aggregate.avgOverall, count: data.count }
+  }
+
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
       <div className="p-4">
@@ -134,6 +160,16 @@ export function JourneyCard({ journey, onAddToTrip }: JourneyCardProps) {
                 {leg.platform && (
                   <span className="text-[10px] text-zinc-600 mt-0.5">Gl.&nbsp;{leg.platform}</span>
                 )}
+                {(() => {
+                  const review = getReviewScore(leg)
+                  if (!review) return null
+                  return (
+                    <span className="flex items-center gap-0.5 text-[10px] text-yellow-400 mt-0.5">
+                      <Star className="h-2.5 w-2.5 fill-yellow-400" />
+                      {review.avg.toFixed(1)} ({review.count})
+                    </span>
+                  )
+                })()}
               </div>
             </Fragment>
           ))}

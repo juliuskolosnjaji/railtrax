@@ -15,6 +15,7 @@ import type { CreateLegInput } from '@/lib/validators/leg'
 
 // ─── Operator mapping ──────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const OPERATORS = ['DB', 'SBB', 'ÖBB', 'SNCF', 'Eurostar', 'NS', 'Renfe', 'other'] as const
 
 function toOperatorEnum(op: string | null): typeof OPERATORS[number] | undefined {

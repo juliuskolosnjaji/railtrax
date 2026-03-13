@@ -35,6 +35,7 @@ Full product spec is in `SPEC.md` at the root of this repo.
 | AI | Anthropic Claude API (server-side only) | Never expose API key to client |
 | Deployment | Vercel Hobby (free) | No Railway, no Fly.io |
 | Background jobs | Supabase Edge Functions + pg_cron | No separate worker process |
+| PDF generation | @react-pdf/renderer (Node.js only) | No client-side PDF libraries |
 
 ---
 
@@ -317,8 +318,26 @@ ANTHROPIC_API_KEY               ← server only
 - [x] prisma/schema.prisma — idx_trips_user_status_created, idx_legs_trip_departure, idx_legs_status_departure
 - [x] supabase/migrations/20260313000002_performance_indexes.sql — same indexes as raw SQL for Supabase SQL editor
 
+- [x] app/api/stats/route.ts — GET (auth required): sums distance_km + counts completed legs/trips, derives total_hours from departure/arrival diff, extracts country codes from IBNRs (80=DE 85=AT 88=CH 87=FR); free plan gets base stats + upgradeRequired:true; plus/pro also get co2_saved_kg = total_km × 0.22
+- [x] app/(app)/stats/page.tsx — 4 stat cards (Total distance, Completed trips, Time on trains, Countries visited), CO2 card (Plus only, locked with UpgradeModal for free), placeholder heatmap + chart cards locked for free
+- [x] public/manifest.json — PWA manifest: name "Railtripper", theme_color "#E32228", display "standalone", start_url "/dashboard", icons at 192px and 512px
+- [x] @ducanh2912/next-pwa installed; next.config.mjs wrapped with withPWA: NetworkFirst /api/*, CacheFirst _next/static/*, CacheFirst OpenFreeMap tiles (max 500, 30d TTL), StaleWhileRevalidate for page navigations; disabled in development
+- [x] app/layout.tsx — added <link rel="manifest">, <meta name="theme-color" content="#E32228">, <meta name="apple-mobile-web-app-capable">
+
+- [x] app/api/journal/route.ts — GET ?tripId= (list entries with photos) + POST (Plus/Pro gate, trip ownership check, optional leg validation)
+- [x] app/api/journal/[id]/route.ts — GET, PUT, DELETE (ownership enforced)
+- [x] app/api/journal/[id]/photos/route.ts — POST multipart: sharp resize to max 2000px → JPEG 85%, upload to journal-photos/{userId}/{entryId}/{uuid}.jpg, increment usage_counters
+- [x] app/api/stats/heatmap/route.ts — GET (Plus/Pro gate): returns GeoJSON FeatureCollection of all leg polylines (falls back to straight line); consumed by HeatmapMap on stats page
+- [x] @tiptap/react @tiptap/starter-kit @tiptap/extension-image @tiptap/extension-link @tiptap/extension-placeholder @tiptap/html installed; sharp + yet-another-react-lightbox installed
+- [x] lib/validators/journal.ts — createJournalEntrySchema + updateJournalEntrySchema (Zod)
+- [x] hooks/useJournal.ts — useJournalEntries, useCreateJournalEntry, useUpdateJournalEntry, useDeleteJournalEntry (TanStack Query with invalidation)
+- [x] components/journal/JournalEditor.tsx — Tiptap editor (StarterKit + Image + Link + Placeholder); toolbar (Bold/Italic/BulletList/Link/ImageUpload); mood emoji picker; 30s autosave (debounced); creates entry on first save (POST), updates on subsequent saves (PUT); image upload creates entry first if needed
+- [x] components/journal/JournalEntryCard.tsx — read-only; generateHTML from @tiptap/html; mood + timestamp + location header; photo grid (3-col); yet-another-react-lightbox on photo click; edit/delete on hover
+- [x] app/(app)/trips/[id]/page.tsx — reworked timeline: leg-linked entries appear indented below their leg; floating entries in "General entries" section; "Add entry" button (gated behind Plus via UpgradeModal); "add journal entry for this leg" inline link per leg; journal editor rendered as fixed modal overlay
+- [x] Trip export (PDF + image) — @react-pdf/renderer for PDF, @vercel/og for image; static map from OpenStreetMap staticmap API; Export button in trip detail header (DropdownMenu with PDF/Image options); available to all users
+
 ### 🚧 In progress
-- (nothing — Session 8 complete)
+- (nothing — Session 10 complete)
 
 ### ⏳ Not started
 - Fill .env.local with real Supabase/LS/Upstash credentials, then run `npx prisma db push`
@@ -346,3 +365,4 @@ ANTHROPIC_API_KEY               ← server only
 - 2026-03-13 — Added trip_id_vendo to legs table (migration 20260313000004). LegEditorSheet and AddToTripSheet now save the Vendo tripId on leg creation. polylines/route.ts uses it directly via getTripById() (fast path) instead of re-scanning the departure board (slow path). RouteLayer draws a dashed straight line between origin/dest coords when the real polyline hasn't been fetched yet — ensures something is always visible on the map.
 - 2026-03-13 — Switched map tiles from Stadia Maps to OpenFreeMap (tiles.openfreemap.org). Completely free with no API key or tile limits. Works directly with existing MapLibre setup. Using positron style (clean light/grey — coloured route lines stand out clearly).
 - 2026-03-13 — Replaced db-hafas with db-vendo-client (dbnav profile). Old DB HAFAS API shut down permanently 2025. Vendo wraps DB Navigator + bahn.de APIs. Rate limits stricter than HAFAS — Redis caching is critical. lib/vendo.ts centralises all transit lookups with Redis TTLs (stations 24h, departures 2min, trip 5min, journeys 5min). API routes under /api/search/* and /api/stations/search all enforce 30 req/user/min via Upstash Ratelimit (slidingWindow); HafasError or any vendo error → 503 { error: 'service_unavailable', retryAfter: 30 }.
+- 2026-03-13 — Implemented trip export (PDF + image) using @react-pdf/renderer for PDF and @vercel/og (ImageResponse) for image. Static map tiles from OpenStreetMap staticmap API (no key needed). No files stored in Supabase. Export available to all users (free included).

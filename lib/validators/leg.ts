@@ -26,7 +26,9 @@ export const createLegSchema = z.object({
   notes: z.string().max(2000).optional(),
 })
 
-export const updateLegSchema = createLegSchema.omit({ tripId: true }).partial()
+export const updateLegSchema = createLegSchema.omit({ tripId: true }).partial().extend({
+  status: z.enum(LEG_STATUSES).optional(),
+})
 
 export type CreateLegInput = z.infer<typeof createLegSchema>
 export type UpdateLegInput = z.infer<typeof updateLegSchema>
