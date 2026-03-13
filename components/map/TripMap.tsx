@@ -1,0 +1,123 @@
+'use client'
+
+import { useRef, useEffect, useState } from 'react'
+import Map, { NavigationControl, Source, Layer } from 'react-map-gl/maplibre'
+import type { MapRef } from 'react-map-gl/maplibre'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import type { Leg } from '@/hooks/useTrips'
+import { RouteLayer } from './RouteLayer'
+import { StationMarker } from './StationMarker'
+
+const STADIA_STYLE = `https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json?api_key=${process.env.NEXT_PUBLIC_STADIA_API_KEY}`
+
+interface TripMapProps {
+  legs: Leg[]
+}
+
+export function TripMap({ legs }: TripMapProps) {
+  const mapRef = useRef<MapRef>(null)
+  const [showRailway, setShowRailway] = useState(false)
+  const [mapLoaded, setMapLoaded] = useState(false)
+
+  // Fit bounds whenever legs with coordinates change, but only after map has loaded
+  useEffect(() => {
+    if (!mapLoaded) return
+    const map = mapRef.current
+    if (!map) return
+
+    const lons: number[] = []
+    const lats: number[] = []
+
+    for (const leg of legs) {
+      if (leg.polyline && leg.polyline.length >= 2) {
+        for (const [lon, lat] of leg.polyline) {
+          lons.push(lon)
+          lats.push(lat)
+        }
+      } else {
+        if (leg.originLon != null && leg.originLat != null) {
+          lons.push(leg.originLon)
+          lats.push(leg.originLat)
+        }
+        if (leg.destLon != null && leg.destLat != null) {
+          lons.push(leg.destLon)
+          lats.push(leg.destLat)
+        }
+      }
+    }
+
+    if (lons.length >= 2) {
+      map.fitBounds(
+        [
+          [Math.min(...lons), Math.min(...lats)],
+          [Math.max(...lons), Math.max(...lats)],
+        ],
+        { padding: 64, duration: 800, maxZoom: 12 },
+      )
+    }
+  }, [legs, mapLoaded])
+
+  // Unique stations for markers:
+  // Show origin of every leg + destination of the final leg only
+  // (intermediate stations are shared — they appear as leg N's dest = leg N+1's origin)
+  const originLegs = legs
+  const finalLeg = legs[legs.length - 1]
+
+  return (
+    <div className="relative w-full h-full">
+      {/*
+        The Map is NEVER conditionally rendered — the instance must persist.
+        Content (Sources, Layers, Markers) is conditionally rendered inside it.
+      */}
+      <Map
+        ref={mapRef}
+        mapStyle={STADIA_STYLE}
+        initialViewState={{ longitude: 10, latitude: 51, zoom: 4 }}
+        style={{ width: '100%', height: '100%' }}
+        onLoad={() => setMapLoaded(true)}
+      >
+        <NavigationControl position="top-right" />
+
+        {/* Route lines */}
+        {legs.map((leg) => (
+          <RouteLayer key={leg.id} leg={leg} />
+        ))}
+
+        {/* Station markers — origin of each leg */}
+        {originLegs.map((leg) => (
+          <StationMarker key={`orig-${leg.id}`} leg={leg} type="origin" />
+        ))}
+
+        {/* Final destination */}
+        {finalLeg && (
+          <StationMarker key={`dest-${finalLeg.id}`} leg={finalLeg} type="destination" />
+        )}
+
+        {/* OpenRailwayMap overlay (toggled) */}
+        {showRailway && (
+          <Source
+            id="openrailwaymap-src"
+            type="raster"
+            tiles={['https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png']}
+            tileSize={256}
+            attribution="© OpenRailwayMap contributors"
+          >
+            <Layer id="openrailwaymap" type="raster" paint={{ 'raster-opacity': 0.7 }} />
+          </Source>
+        )}
+      </Map>
+
+      {/* Railway overlay toggle */}
+      <button
+        onClick={() => setShowRailway((prev) => !prev)}
+        className={`absolute bottom-8 left-3 rounded-md px-3 py-1.5 text-xs font-medium shadow transition-colors ${
+          showRailway
+            ? 'bg-white text-zinc-900'
+            : 'bg-zinc-900/80 backdrop-blur text-zinc-300 border border-zinc-700 hover:bg-zinc-800'
+        }`}
+      >
+        🛤 Railway overlay
+      </button>
+    </div>
+  )
+}

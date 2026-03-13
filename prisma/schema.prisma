@@ -1,13 +1,335 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+
+model User {
+  id               String   @id @default(uuid()) @db.Uuid
+  email            String   @unique
+  username         String   @unique
+  displayName      String?  @map("display_name")
+  avatarUrl        String?  @map("avatar_url")
+  homeStation      String?  @map("home_station")
+  traewellingToken String?  @map("traewelling_token")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  trips           Trip[]
+  tickets         Ticket[]
+  journalEntries  JournalEntry[]
+  routeReviews    RouteReview[]
+  interrailPasses InterrailPass[]
+  userAchievements UserAchievement[]
+  apiKeys         ApiKey[]
+  subscriptions   Subscription[]
+  usageCounter    UsageCounter?
+  customRoutes    CustomRoute[]
+
+  @@map("users")
+}
+
+model Trip {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  title           String
+  description     String?
+  status          String?  @default("planned")
+  startDate       DateTime? @map("start_date") @db.Date
+  endDate         DateTime? @map("end_date") @db.Date
+  isPublic        Boolean  @default(false) @map("is_public")
+  shareToken      String?  @unique @map("share_token")
+  interrailPassId String?  @map("interrail_pass_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user            User     @relation(fields: [userId], references: [id])
+  legs            Leg[]
+  journalEntries  JournalEntry[]
+  interrailPass   InterrailPass? @relation(fields: [interrailPassId], references: [id])
+
+  // Dashboard list query: filter by user, sort by most recent
+  @@index([userId, status, createdAt(sort: Desc)], name: "idx_trips_user_status_created")
+  @@map("trips")
+}
+
+model Leg {
+  id                  String    @id @default(uuid()) @db.Uuid
+  tripId              String    @map("trip_id") @db.Uuid
+  position            Int
+
+  originName          String    @map("origin_name")
+  originIbnr          String?   @map("origin_ibnr")
+  originLat           Float?    @map("origin_lat")
+  originLon           Float?    @map("origin_lon")
+  plannedDeparture    DateTime  @map("planned_departure") @db.Timestamptz
+  actualDeparture     DateTime? @map("actual_departure") @db.Timestamptz
+
+  destName            String    @map("dest_name")
+  destIbnr            String?   @map("dest_ibnr")
+  destLat             Float?    @map("dest_lat")
+  destLon             Float?    @map("dest_lon")
+  plannedArrival      DateTime  @map("planned_arrival") @db.Timestamptz
+  actualArrival       DateTime? @map("actual_arrival") @db.Timestamptz
+
+  operator            String?
+  lineName            String?   @map("line_name")
+  trainType           String?   @map("train_type")
+  trainNumber         String?   @map("train_number")
+  platformPlanned     String?   @map("platform_planned")
+  platformActual      String?   @map("platform_actual")
+
+  status              String?   @default("planned")
+  delayMinutes        Int       @default(0) @map("delay_minutes")
+  cancelled           Boolean   @default(false)
+
+  tripIdVendo         String?   @map("trip_id_vendo")  // HAFAS/Vendo trip ID for direct polyline fetch
+  polyline            Json?
+  distanceKm          Float?    @map("distance_km")
+
+  ticketId            String?   @map("ticket_id") @db.Uuid
+  traewellingStatusId String?   @map("traewelling_status_id")
+  notes               String?
+  seat                String?
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  trip                Trip      @relation(fields: [tripId], references: [id])
+  ticket              Ticket?   @relation(fields: [ticketId], references: [id])
+  routeReviews        RouteReview[]
+  journalEntries      JournalEntry[]
+  rollingStock        LegRollingStock?
+
+  // Trip detail query: all legs for a trip ordered by departure time
+  @@index([tripId, plannedDeparture], name: "idx_legs_trip_departure")
+  // Delay poller: find upcoming active legs across all users
+  @@index([status, plannedDeparture], name: "idx_legs_status_departure")
+  @@map("legs")
+}
+
+model Ticket {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  title       String?
+  operator    String?
+  validFrom   DateTime? @map("valid_from") @db.Timestamptz
+  validUntil  DateTime? @map("valid_until") @db.Timestamptz
+  fileUrl     String?   @map("file_url")
+  barcode     String?
+  rawText     String?   @map("raw_text")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user        User      @relation(fields: [userId], references: [id])
+  legs        Leg[]
+
+  @@map("tickets")
+}
+
+model RouteReview {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  legId            String   @map("leg_id") @db.Uuid
+
+  originIbnr       String   @map("origin_ibnr")
+  destIbnr         String   @map("dest_ibnr")
+  operator         String?
+  trainType        String?  @map("train_type")
+
+  scoreOverall     Int?     @map("score_overall")
+  scoreScenery     Int?     @map("score_scenery")
+  scoreComfort     Int?     @map("score_comfort")
+  scorePunctuality Int?     @map("score_punctuality")
+  scoreWifi        Int?     @map("score_wifi")
+
+  text             String?
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user             User     @relation(fields: [userId], references: [id])
+  leg              Leg      @relation(fields: [legId], references: [id])
+
+  @@map("route_reviews")
+}
+
+model JournalEntry {
+  id           String   @id @default(uuid()) @db.Uuid
+  tripId       String   @map("trip_id") @db.Uuid
+  legId        String?  @map("leg_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  body         String?
+  mood         String?
+  locationName String?  @map("location_name")
+  lat          Float?
+  lon          Float?
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  trip         Trip     @relation(fields: [tripId], references: [id])
+  leg          Leg?     @relation(fields: [legId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
+  photos       JournalPhoto[]
+
+  @@map("journal_entries")
+}
+
+model JournalPhoto {
+  id       String  @id @default(uuid()) @db.Uuid
+  entryId  String  @map("entry_id") @db.Uuid
+  url      String
+  caption  String?
+  position Int?
+
+  entry    JournalEntry @relation(fields: [entryId], references: [id])
+
+  @@map("journal_photos")
+}
+
+model InterrailPass {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  passType      String?   @map("pass_type")
+  travelClass   Int?      @map("travel_class")
+  totalDays     Int?      @map("total_days")
+  usedDays      Int       @default(0) @map("used_days")
+  startDate     DateTime? @map("start_date") @db.Date
+  endDate       DateTime? @map("end_date") @db.Date
+  countries     String[]
+  pricePaidEur  Decimal?  @map("price_paid_eur") @db.Decimal(8, 2)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user          User      @relation(fields: [userId], references: [id])
+  trips         Trip[]
+
+  @@map("interrail_passes")
+}
+
+model Achievement {
+  id          String  @id
+  title       String?
+  description String?
+  icon        String?
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  userId        String   @map("user_id") @db.Uuid
+  achievementId String   @map("achievement_id")
+  unlockedAt    DateTime @default(now()) @map("unlocked_at") @db.Timestamptz
+
+  user          User        @relation(fields: [userId], references: [id])
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+
+  @@id([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model ApiKey {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  name      String?
+  keyHash   String    @unique @map("key_hash")
+  scopes    String[]
+  lastUsed  DateTime? @map("last_used") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@map("api_keys")
+}
+
+model Subscription {
+  id                  String    @id @default(uuid()) @db.Uuid
+  userId              String    @map("user_id") @db.Uuid
+  lsSubscriptionId    String?   @unique @map("ls_subscription_id")
+  lsCustomerId        String?   @map("ls_customer_id")
+  lsVariantId         String?   @map("ls_variant_id")
+  lsOrderId           String?   @map("ls_order_id")
+  plan                String
+  status              String
+  billingInterval     String?   @map("billing_interval")
+  currentPeriodStart  DateTime? @map("current_period_start") @db.Timestamptz
+  currentPeriodEnd    DateTime? @map("current_period_end") @db.Timestamptz
+  cancelAtPeriodEnd   Boolean   @default(false) @map("cancel_at_period_end")
+  cancelledAt         DateTime? @map("cancelled_at") @db.Timestamptz
+  trialEndsAt         DateTime? @map("trial_ends_at") @db.Timestamptz
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_subscriptions_user_id")
+  @@index([lsSubscriptionId], name: "idx_subscriptions_ls_id")
+  @@map("subscriptions")
+}
+
+model UsageCounter {
+  userId             String   @id @map("user_id") @db.Uuid
+  tripsCount         Int      @default(0) @map("trips_count")
+  legsCount          Int      @default(0) @map("legs_count")
+  photosCount        Int      @default(0) @map("photos_count")
+  storageBytes       BigInt   @default(0) @map("storage_bytes")
+  apiCallsThisMonth  Int      @default(0) @map("api_calls_this_month")
+  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("usage_counters")
+}
+
+model CustomRoute {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  title       String
+  description String?
+  color       String?  @default("#e63946")
+  isPublic    Boolean  @default(false) @map("is_public")
+  waypoints   Json
+  polyline    Json?
+  distanceKm  Float?   @map("distance_km")
+  tags        String[]
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("custom_routes")
+}
+
+model RollingStock {
+  id              String  @id
+  operator        String
+  series          String
+  uicClass        String? @map("uic_class")
+  manufacturer    String?
+  introducedYear  Int?    @map("introduced_year")
+  maxSpeedKmh     Int?    @map("max_speed_kmh")
+  seats1st        Int?    @map("seats_1st")
+  seats2nd        Int?    @map("seats_2nd")
+  hasBistro       Boolean? @map("has_bistro")
+  hasWifi         Boolean? @map("has_wifi")
+  hasWheelchair   Boolean? @map("has_wheelchair")
+  hasBikeSpace    Boolean? @map("has_bike_space")
+  powerSystem     String? @map("power_system")
+  traction        String?
+  description     String?
+  photoUrl        String? @map("photo_url")
+  wikiUrl         String? @map("wiki_url")
+  dataSource      String? @map("data_source")
+
+  legs            LegRollingStock[]
+
+  @@map("rolling_stock")
+}
+
+model LegRollingStock {
+  legId           String  @id @map("leg_id") @db.Uuid
+  rollingStockId  String  @map("rolling_stock_id")
+  setNumber       String? @map("set_number")
+  confirmed       Boolean @default(false)
+  source          String?
+
+  leg             Leg          @relation(fields: [legId], references: [id])
+  rollingStock    RollingStock @relation(fields: [rollingStockId], references: [id])
+
+  @@map("leg_rolling_stock")
 }

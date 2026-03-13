@@ -254,13 +254,79 @@ ANTHROPIC_API_KEY               ← server only
 ## What has been built (update this as you go)
 
 ### ✅ Done
-- [ ] (nothing yet — update as you complete sessions)
+- [x] Next.js 14 App Router scaffold (TypeScript, Tailwind CSS, ESLint)
+- [x] shadcn/ui configured (zinc base, CSS variables, default theme)
+- [x] Prisma schema — all 16 models (users, trips, legs, tickets, journal_entries, journal_photos, route_reviews, interrail_passes, achievements, user_achievements, api_keys, subscriptions, usage_counters, custom_routes, rolling_stock, leg_rolling_stock)
+- [x] lib/supabase/client.ts, server.ts, admin.ts created
+- [x] app/api/health/route.ts created
+- [x] supabase/migrations/20260312000000_storage_and_triggers.sql — storage buckets (tickets, journal-photos, avatars) + RLS policies + usage_counter triggers
+- [x] Dependencies installed: @supabase/supabase-js, @supabase/ssr, prisma, zod, react-hook-form, @tanstack/react-query v5, zustand, @upstash/redis, @upstash/ratelimit, resend
+- [x] Root layout and placeholder homepage with RailPlanner branding
+- [x] Auth pages: /login (email+password + Google OAuth), /signup (email+password+username), /forgot-password
+- [x] app/auth/callback/route.ts — OAuth code exchange handler
+- [x] middleware.ts — session refresh on every request; redirects unauthenticated → /login, authenticated away from auth routes → /dashboard
+- [x] hooks/useUser.ts — { user, plan, isLoading } using onAuthStateChange
+- [x] lib/entitlements.ts — PLAN_LIMITS, getPlan, can, getLimit
+- [x] app/(app)/layout.tsx — sidebar with nav (Dashboard, Search, Stats, Settings), user avatar, sign-out
+- [x] app/(app)/dashboard/page.tsx — placeholder dashboard
+- [x] supabase/migrations/20260313000000_handle_new_user.sql — trigger creates public.users + usage_counters on auth.users INSERT
+- [x] components/shared/SignOutButton.tsx
+- [x] hooks/useEntitlements.ts — { plan, can, getLimit } client hook
+- [x] lib/lemonsqueezy.ts — createCheckoutUrl(), getCustomerPortalUrl()
+- [x] app/api/billing/checkout/route.ts — POST, creates LS checkout URL
+- [x] app/api/billing/webhook/route.ts — handles subscription_created/updated/resumed/cancelled/expired/payment_failed; raw body, HMAC verification
+- [x] components/billing/UpgradeModal.tsx — dialog with monthly/yearly toggle, upgrades to Plus or Pro
+- [x] app/(app)/settings/billing/page.tsx + BillingClient.tsx — plan badge, usage bars, upgrade cards, portal link, cancellation warning
+- [x] app/api/trips/route.ts — GET list, POST create (auth + usage limit check)
+- [x] app/api/trips/[id]/route.ts — GET, PUT, DELETE (ownership enforced)
+- [x] app/api/legs/route.ts — POST create (auth + trip ownership + per-trip leg limit)
+- [x] app/api/legs/[id]/route.ts — GET, PUT, DELETE (ownership via trip relation)
+- [x] hooks/useTrips.ts — useTrips, useTrip, useCreateTrip, useUpdateTrip, useDeleteTrip, useCreateLeg, useUpdateLeg, useDeleteLeg (all with query invalidation)
+- [x] components/trips/TripCard.tsx — card with status badge, date range, leg count
+- [x] components/trips/NewTripSheet.tsx — RHF + Zod form, creates trip, navigates to detail
+- [x] components/trips/LegEditorSheet.tsx — RHF + Zod form, dual create/edit, all leg fields
+- [x] components/trips/LegCard.tsx — timeline item with operator badge, delay badge, edit/delete
+- [x] app/(app)/dashboard/page.tsx — trip grid, New trip button with UpgradeModal gate
+- [x] app/(app)/trips/[id]/page.tsx — trip header, leg timeline, Add leg button; wired to TripMap
+- [x] maplibre-gl + react-map-gl installed; db-vendo-client installed (replaced db-hafas — DB shut down old HAFAS API permanently)
+- [x] next.config.mjs — serverExternalPackages: ['db-vendo-client']
+- [x] lib/hafas.ts — getHafas() singleton, fetchPolyline() with Hafas departure search + fallback
+- [x] hooks/useTrips.ts Leg type — added originLat/Lon, destLat/Lon, polyline: [number, number][] | null
+- [x] components/map/TripMap.tsx — react-map-gl Map with Stadia style, useRef<MapRef>, fitBounds on load, OpenRailwayMap overlay toggle (70% opacity), NavigationControl
+- [x] components/map/RouteLayer.tsx — GeoJSON LineString per leg; uses polyline if stored, else straight line; colours per operator
+- [x] components/map/StationMarker.tsx — circle Marker + Popup with station name, planned/actual time, delay
+- [x] app/api/trips/[id]/polylines/route.ts — lazily fetches Hafas polylines for legs that have IBNR + trainNumber; falls back silently
+- [x] lib/hafas-types.ts — shared types: HafasStation, HafasDeparture, HafasStopover, HafasJourney (used by API routes and client components)
+- [x] lib/hafas.ts — added searchStations(), getDepartures(), getJourney(), getJourneyByTrainNumber() (searches major German hubs by full-day departures)
+- [x] hooks/useDebounce.ts — generic useDebounce<T> hook
+- [x] hooks/useTrips.ts — apiFetch exported (was private)
+- [x] app/api/stations/search/route.ts — GET ?q=… → HafasStation[]
+- [x] app/api/departures/route.ts — GET ?ibnr=…&when=… → HafasDeparture[]
+- [x] app/api/journey/route.ts — GET ?tripId=… → HafasJourney
+- [x] app/api/trains/route.ts — GET ?number=…&date=… → HafasJourney or 404
+- [x] components/trips/LegEditorSheet.tsx — full redesign: 3-tab sheet (Departures / Train / Manual); Departures tab: station autocomplete + datetime picker → departure list → journey confirm; Train tab: train number + date + find button → journey confirm; journey confirm: board/alight selects with preview, seat/notes, submit; Manual tab: existing RHF form preserved
+
+- [x] app/(app)/search/page.tsx — connection search: station autocomplete (StationInput, debounce 300ms), swap button, date/time pickers, 1st/2nd class toggle, TanStack Query search (enabled by searchParams state), recent searches in localStorage (max 5, chip quick-picks), 3 skeleton loading cards, 503/empty/error states
+- [x] components/search/StationInput.tsx — controlled station autocomplete, /api/stations/search, dropdown with 6 results, debounce 300ms
+- [x] components/search/JourneyCard.tsx — result card: departure→arrival + duration + transfers, route strip (station dots + coloured segments + train labels per leg type), operator badges, expand chevron → intermediate stops via /api/search/trip (useQueries, lazy fetch per leg, Skeleton loading)
+- [x] components/search/AddToTripSheet.tsx — sheet: list user trips + inline "create new trip" form; posts each JourneyLeg to /api/legs sequentially; redirects to /trips/[id] on success
+- [x] app/(app)/search/loading.tsx — Suspense skeleton for search page
+
+- [x] app/(app)/dashboard/loading.tsx, trips/[id]/loading.tsx, settings/billing/loading.tsx — Suspense streaming skeletons matching each page's layout
+- [x] trips/[id]/page.tsx — TripMap dynamic() loading prop prevents CLS while maplibre bundle downloads
+- [x] app/layout.tsx — Inter font display:'swap' prevents invisible text during load
+- [x] prisma/schema.prisma — idx_trips_user_status_created, idx_legs_trip_departure, idx_legs_status_departure
+- [x] supabase/migrations/20260313000002_performance_indexes.sql — same indexes as raw SQL for Supabase SQL editor
 
 ### 🚧 In progress
-- [ ] (update as you start sessions)
+- (nothing — Session 8 complete)
 
 ### ⏳ Not started
-- Everything in SPEC.md §12 Phase 1–4
+- Fill .env.local with real Supabase/LS/Upstash credentials, then run `npx prisma db push`
+- Run storage bucket + trigger SQL in Supabase SQL editor
+- Run supabase/migrations/20260313000000_handle_new_user.sql in Supabase SQL editor
+- Enable Google OAuth in Supabase dashboard (Authentication → Providers → Google)
+- Everything in SPEC.md §12 Phase 1 beyond auth (trips CRUD, connection search, map)
 
 ---
 
@@ -271,3 +337,12 @@ ANTHROPIC_API_KEY               ← server only
 - 2026-03-12 — Chose Lemon Squeezy over Stripe — handles EU VAT automatically as Merchant of Record, no VAT registration needed in each country
 - 2026-03-12 — Chose Upstash Redis over Vercel KV — better free tier limits (10k commands/day vs Vercel KV's 3k/day)
 - 2026-03-12 — Using `db-hafas` npm package for DB connection search — community-maintained Hafas client, more reliable than scraping DB Navigator
+- 2026-03-13 — shadcn/ui re-initialised with style=default, zinc base — initial scaffold had picked up "base-nova" style which lacks the form component
+- 2026-03-13 — New user trigger (handle_new_user) derives username from raw_user_meta_data.username at signup; falls back to email-prefix + UUID suffix for OAuth signups where no username is set
+- 2026-03-13 — db-hafas is ESM-only; added to serverExternalPackages in next.config.mjs so Next.js doesn't bundle it (Node.js loads it natively via dynamic import in the API route)
+- 2026-03-13 — Migrated from db-hafas to db-vendo-client — old HAFAS API was shut down by DB permanently; db-vendo-client uses the DB Navigator API (dbnav profile) with withRetrying() wrapper; p-retry installed as required peer; types/db-vendo-client.d.ts added since the package ships no TypeScript declarations
+- 2026-03-13 — Polyline stored as [[lon, lat], [lon, lat], ...] (GeoJSON coordinate pairs) in the `polyline Json?` Prisma field; RouteLayer reads this directly as GeoJSON LineString coordinates
+- 2026-03-13 — TripMap is dynamically imported (next/dynamic, ssr: false) in the trip detail page to avoid SSR issues with maplibre-gl; the Map component itself is never conditionally rendered inside TripMap
+- 2026-03-13 — Performance audit: added loading.tsx for dashboard, trips/[id], settings/billing (Suspense streaming); added loading prop to TripMap dynamic() to prevent CLS during bundle download; added display:'swap' to Inter font; added 3 DB indexes (trips user+status+created, legs trip+departure, legs status+departure); verified no Supabase data queries run in client components
+- 2026-03-13 — Added trip_id_vendo to legs table (migration 20260313000004). LegEditorSheet and AddToTripSheet now save the Vendo tripId on leg creation. polylines/route.ts uses it directly via getTripById() (fast path) instead of re-scanning the departure board (slow path). RouteLayer draws a dashed straight line between origin/dest coords when the real polyline hasn't been fetched yet — ensures something is always visible on the map.
+- 2026-03-13 — Replaced db-hafas with db-vendo-client (dbnav profile). Old DB HAFAS API shut down permanently 2025. Vendo wraps DB Navigator + bahn.de APIs. Rate limits stricter than HAFAS — Redis caching is critical. lib/vendo.ts centralises all transit lookups with Redis TTLs (stations 24h, departures 2min, trip 5min, journeys 5min). API routes under /api/search/* and /api/stations/search all enforce 30 req/user/min via Upstash Ratelimit (slidingWindow); HafasError or any vendo error → 503 { error: 'service_unavailable', retryAfter: 30 }.
