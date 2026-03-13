@@ -5,11 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, Plus, Trash2, BookOpen, X, Download, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { LegCard } from '@/components/trips/LegCard'
 import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
 import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
@@ -133,37 +132,32 @@ export default function TripDetailPage() {
           <div className="flex items-start justify-between gap-4 mb-2">
             <h1 className="text-3xl font-bold text-white">{trip.title}</h1>
             <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost" size="icon"
-                    className="text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 shrink-0"
-                    disabled={isExporting}
-                  >
-                    {isExporting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
-                  <DropdownMenuItem 
-                    onClick={handleExportPdf}
-                    className="text-zinc-300 focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Download PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={handleExportImage}
-                    className="text-zinc-300 focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Download Image
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="ghost" size="sm"
+                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                disabled={isExporting}
+                onClick={handleExportPdf}
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-2" />
+                )}
+                PDF
+              </Button>
+              <Button
+                variant="ghost" size="sm"
+                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                disabled={isExporting}
+                onClick={handleExportImage}
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                )}
+                Image
+              </Button>
               <Button
                 variant="ghost" size="icon"
                 className="text-zinc-500 hover:text-red-400 hover:bg-zinc-800 shrink-0"
