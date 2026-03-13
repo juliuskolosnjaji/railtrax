@@ -23,7 +23,7 @@ Full product spec is in `SPEC.md` at the root of this repo.
 | Auth | Supabase Auth | No NextAuth, no Clerk |
 | Styling | Tailwind CSS + shadcn/ui | No MUI, no Chakra |
 | Map | Maplibre GL JS + react-map-gl | No Google Maps, no Leaflet |
-| Map tiles | Stadia Maps (free tier) | Key in env: NEXT_PUBLIC_STADIA_API_KEY |
+| Map tiles | OpenFreeMap (tiles.openfreemap.org) | No API key needed — completely free |
 | Billing | Lemon Squeezy | No Stripe — LS handles EU VAT |
 | Cache / rate limit | Upstash Redis | No self-hosted Redis |
 | Email (outbound) | Resend | No SendGrid, no Nodemailer |
@@ -216,7 +216,6 @@ LS_VARIANT_PLUS_MONTHLY
 LS_VARIANT_PLUS_YEARLY
 LS_VARIANT_PRO_MONTHLY
 LS_VARIANT_PRO_YEARLY
-NEXT_PUBLIC_STADIA_API_KEY
 NEXT_PUBLIC_URL                 ← e.g. https://railplanner.app
 ```
 
@@ -345,4 +344,5 @@ ANTHROPIC_API_KEY               ← server only
 - 2026-03-13 — TripMap is dynamically imported (next/dynamic, ssr: false) in the trip detail page to avoid SSR issues with maplibre-gl; the Map component itself is never conditionally rendered inside TripMap
 - 2026-03-13 — Performance audit: added loading.tsx for dashboard, trips/[id], settings/billing (Suspense streaming); added loading prop to TripMap dynamic() to prevent CLS during bundle download; added display:'swap' to Inter font; added 3 DB indexes (trips user+status+created, legs trip+departure, legs status+departure); verified no Supabase data queries run in client components
 - 2026-03-13 — Added trip_id_vendo to legs table (migration 20260313000004). LegEditorSheet and AddToTripSheet now save the Vendo tripId on leg creation. polylines/route.ts uses it directly via getTripById() (fast path) instead of re-scanning the departure board (slow path). RouteLayer draws a dashed straight line between origin/dest coords when the real polyline hasn't been fetched yet — ensures something is always visible on the map.
+- 2026-03-13 — Switched map tiles from Stadia Maps to OpenFreeMap (tiles.openfreemap.org). Completely free with no API key or tile limits. Works directly with existing MapLibre setup. Using positron style (clean light/grey — coloured route lines stand out clearly).
 - 2026-03-13 — Replaced db-hafas with db-vendo-client (dbnav profile). Old DB HAFAS API shut down permanently 2025. Vendo wraps DB Navigator + bahn.de APIs. Rate limits stricter than HAFAS — Redis caching is critical. lib/vendo.ts centralises all transit lookups with Redis TTLs (stations 24h, departures 2min, trip 5min, journeys 5min). API routes under /api/search/* and /api/stations/search all enforce 30 req/user/min via Upstash Ratelimit (slidingWindow); HafasError or any vendo error → 503 { error: 'service_unavailable', retryAfter: 30 }.

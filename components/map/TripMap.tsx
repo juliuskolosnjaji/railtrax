@@ -8,7 +8,7 @@ import type { Leg } from '@/hooks/useTrips'
 import { RouteLayer } from './RouteLayer'
 import { StationMarker } from './StationMarker'
 
-const STADIA_STYLE = `https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json?api_key=${process.env.NEXT_PUBLIC_STADIA_API_KEY}`
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron'
 
 interface TripMapProps {
   legs: Leg[]
@@ -71,7 +71,7 @@ export function TripMap({ legs }: TripMapProps) {
       */}
       <Map
         ref={mapRef}
-        mapStyle={STADIA_STYLE}
+        mapStyle={MAP_STYLE}
         initialViewState={{ longitude: 10, latitude: 51, zoom: 4 }}
         style={{ width: '100%', height: '100%' }}
         onLoad={() => setMapLoaded(true)}
