@@ -7,7 +7,7 @@ interface RollingStockSelectorSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   operator?: string
-  onSelect: (rollingStock: any, setNumber?: string) => void
+  onSelect: (rollingStock: { id: string; series: string; operator: string; [key: string]: unknown }, setNumber?: string) => void
   currentSelection?: {
     rollingStockId: string
     setNumber?: string
@@ -24,7 +24,7 @@ export function RollingStockSelectorSheet({
   const [showManualInput, setShowManualInput] = useState(false)
   const [manualSetNumber, setManualSetNumber] = useState('')
 
-  const handleSelect = (rollingStock: any) => {
+  const handleSelect = (rollingStock: { id: string; series: string; operator: string; [key: string]: unknown }) => {
     onSelect(rollingStock, manualSetNumber || undefined)
     onOpenChange(false)
     setManualSetNumber('')
@@ -35,7 +35,7 @@ export function RollingStockSelectorSheet({
     if (currentSelection?.rollingStockId && manualSetNumber) {
       // Update existing selection with new set number
       onSelect(
-        { id: currentSelection.rollingStockId }, 
+        { id: currentSelection.rollingStockId, series: '', operator: '' },
         manualSetNumber
       )
       onOpenChange(false)

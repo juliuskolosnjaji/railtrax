@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { RollingStockChip } from '@/components/rolling-stock/RollingStockChip'
 import { Wifi, Utensils, Bike, Zap, Calendar, Factory, Gauge, Users, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

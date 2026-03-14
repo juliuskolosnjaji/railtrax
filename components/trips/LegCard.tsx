@@ -100,7 +100,7 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
     }
   }
 
-  async function handleLinkRollingStock(rollingStock: any, setNumber?: string) {
+  async function handleLinkRollingStock(rollingStock: { id: string; series: string; operator: string; [key: string]: unknown }, setNumber?: string) {
     try {
       await linkRollingStock.mutateAsync({
         rollingStockId: rollingStock.id,

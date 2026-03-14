@@ -46,7 +46,7 @@ export async function detectRollingStock(
   // Score candidates based on match quality
   const scored = candidates.map(stock => {
     let score = 0
-    let reasons: string[] = []
+    const reasons: string[] = []
 
     // Operator match (high weight)
     if (normalizedOperator && stock.operator.toUpperCase().includes(normalizedOperator)) {

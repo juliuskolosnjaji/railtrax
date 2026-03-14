@@ -78,12 +78,13 @@ export default async function PublicTripPage({ params }: PageProps) {
     notFound()
   }
 
-  const legs = (trip.legs as any[]).sort((a: any, b: any) => 
+  type TripLeg = { id: string; planned_departure: string; planned_arrival: string; distance_km?: number; origin_name?: string; dest_name?: string; train_type?: string; train_number?: string; operator?: string }
+  const legs = (trip.legs as TripLeg[]).sort((a, b) =>
     new Date(a.planned_departure).getTime() - new Date(b.planned_departure).getTime()
   )
 
-  const totalDistance = legs.reduce((sum: number, leg: any) => sum + (leg.distance_km || 0), 0)
-  const totalDuration = legs.reduce((sum: number, leg: any) => {
+  const totalDistance = legs.reduce((sum: number, leg: TripLeg) => sum + (leg.distance_km || 0), 0)
+  const totalDuration = legs.reduce((sum: number, leg: TripLeg) => {
     const duration = new Date(leg.planned_arrival).getTime() - new Date(leg.planned_departure).getTime()
     return sum + duration
   }, 0)
@@ -189,7 +190,8 @@ export default async function PublicTripPage({ params }: PageProps) {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
               <div className="h-96 relative">
-                <TripMap legs={legs} />
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                <TripMap legs={legs as any} />
               </div>
             </div>
           </div>
@@ -203,7 +205,7 @@ export default async function PublicTripPage({ params }: PageProps) {
             </div>
             <div className="p-6">
               <div className="space-y-6">
-                {legs.map((leg: any, index: number) => (
+                {legs.map((leg: TripLeg, index: number) => (
                   <div key={leg.id} className="relative">
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-semibold text-sm">

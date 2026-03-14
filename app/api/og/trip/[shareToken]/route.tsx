@@ -20,7 +20,7 @@ export async function GET(
     return new Response('Trip not found', { status: 404 })
   }
 
-  const totalDistance = (trip.legs as any[]).reduce((sum: number, leg: any) => sum + (leg.distance_km || 0), 0)
+  const totalDistance = (trip.legs as { distance_km?: number }[]).reduce((sum: number, leg: { distance_km?: number }) => sum + (leg.distance_km || 0), 0)
   const legCount = trip.legs.length
 
   return new ImageResponse(

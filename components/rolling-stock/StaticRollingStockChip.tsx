@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Wifi, Utensils, Bike, ExternalLink, Gauge, Train, X, WifiOff, UtensilsCrossed, AlertCircle } from 'lucide-react'
+import { Wifi, Utensils, Bike, ExternalLink, Gauge, Train, X, WifiOff, UtensilsCrossed } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { FormationResult } from '@/lib/formation'
 

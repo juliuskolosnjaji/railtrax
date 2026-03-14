@@ -6,9 +6,25 @@ import { RollingStockChip } from './RollingStockChip'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
+interface RollingStockRecord {
+  id: string
+  series: string
+  operator: string
+  manufacturer?: string | null
+  description?: string | null
+  maxSpeedKmh?: number | null
+  hasWifi?: boolean | null
+  hasBistro?: boolean | null
+  hasWheelchair?: boolean | null
+  hasBikeSpace?: boolean | null
+  powerSystem?: string | null
+  photoUrl?: string | null
+  [key: string]: unknown
+}
+
 interface RollingStockSearchProps {
   operator?: string
-  onSelect: (rollingStock: any) => void
+  onSelect: (rollingStock: RollingStockRecord) => void
   onClose?: () => void
   className?: string
 }
@@ -20,7 +36,7 @@ export function RollingStockSearch({
   className 
 }: RollingStockSearchProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedOperator, setSelectedOperator] = useState(operator)
+  const [selectedOperator] = useState(operator)
 
   const { data: rollingStock, isLoading } = useQuery({
     queryKey: ['rolling-stock', searchQuery, selectedOperator],
@@ -80,7 +96,7 @@ export function RollingStockSearch({
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
         ) : rollingStock && rollingStock.length > 0 ? (
-          rollingStock.map((stock: any) => (
+          rollingStock.map((stock: RollingStockRecord) => (
             <button
               key={stock.id}
               onClick={() => onSelect(stock)}
@@ -103,7 +119,7 @@ export function RollingStockSearch({
           ))
         ) : searchQuery ? (
           <div className="text-center py-8 text-slate-500">
-            No rolling stock found matching "{searchQuery}"
+            No rolling stock found matching &quot;{searchQuery}&quot;
           </div>
         ) : (
           <div className="text-center py-8 text-slate-500">

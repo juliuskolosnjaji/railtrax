@@ -48,7 +48,7 @@ export async function getMarudorTrainInfo(
   const key = cacheKey(trainNumber, dateStr)
 
   // Check cache
-  const cached = await redis.get<MarudorTrainInfo>(key)
+  const cached = await redis?.get<MarudorTrainInfo>(key)
   if (cached) return cached
 
   try {
@@ -78,7 +78,7 @@ export async function getMarudorTrainInfo(
     const result: MarudorTrainInfo = { displayName, trainType, trainName }
 
     // Cache result (don't cache on error, already handled above)
-    await redis.set(key, result, { ex: CACHE_TTL })
+    await redis?.set(key, result, { ex: CACHE_TTL })
 
     return result
   } catch (err) {

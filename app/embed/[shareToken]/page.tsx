@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import dynamic from 'next/dynamic'
-
 const TripMap = dynamic(
   () => import('@/components/map/TripMap').then((m) => m.TripMap),
   { ssr: false, loading: () => <div className="h-full w-full bg-gray-200 animate-pulse" /> },
@@ -28,7 +27,8 @@ export default async function EmbedPage({ params }: PageProps) {
     notFound()
   }
 
-  const legs = (trip.legs as any[]).sort((a: any, b: any) => 
+  type EmbedLeg = { id: string; planned_departure: string; planned_arrival: string; origin_name?: string; dest_name?: string; train_type?: string; train_number?: string; operator?: string; [key: string]: unknown }
+  const legs = (trip.legs as EmbedLeg[]).sort((a, b) =>
     new Date(a.planned_departure).getTime() - new Date(b.planned_departure).getTime()
   )
 
@@ -43,7 +43,8 @@ export default async function EmbedPage({ params }: PageProps) {
     <div className="h-screen flex flex-col bg-white">
       {/* Map */}
       <div className="flex-1 relative">
-        <TripMap legs={legs} />
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <TripMap legs={legs as any} />
       </div>
       
       {/* Leg List */}
@@ -51,7 +52,7 @@ export default async function EmbedPage({ params }: PageProps) {
         <div className="p-4">
           <h3 className="text-lg font-semibold mb-4">{trip.title}</h3>
           <div className="space-y-3">
-            {legs.map((leg: any, index: number) => (
+            {legs.map((leg: EmbedLeg, index: number) => (
               <div key={leg.id} className="flex items-start gap-3">
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-semibold text-xs">
                   {index + 1}

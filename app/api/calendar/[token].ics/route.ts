@@ -50,7 +50,8 @@ export async function GET(
   const calendar = ical({ name: `Railtripper - ${user.username}'s Trips` })
 
   // Add events for each leg
-  legs.forEach((leg: any) => {
+  type CalLeg = { train_type?: string; train_number?: string; origin_name?: string; dest_name?: string; planned_departure: string; planned_arrival: string; operator?: string; seat?: string; notes?: string; trip?: { title?: string }; [key: string]: unknown }
+  legs.forEach((leg: CalLeg) => {
     const summary = leg.train_type && leg.train_number
       ? `${leg.train_type} ${leg.train_number}: ${leg.origin_name} → ${leg.dest_name}`
       : `${leg.origin_name} → ${leg.dest_name}`

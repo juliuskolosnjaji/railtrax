@@ -45,7 +45,7 @@ export async function getFormation(leg: FormationLeg): Promise<FormationResult |
   const cacheKey = buildCacheKey(leg)
 
   // 1. Cache check
-  const cached = await redis.get<FormationResult>(cacheKey)
+  const cached = await redis?.get<FormationResult>(cacheKey)
   if (cached) return cached
 
   const prefix = linePrefix(leg)
@@ -91,7 +91,7 @@ let result: FormationResult | null = null
 
   // 4. Cache and return
   if (result) {
-    await redis.set(cacheKey, result, { ex: CACHE_TTL })
+    await redis?.set(cacheKey, result, { ex: CACHE_TTL })
   }
 
   return result

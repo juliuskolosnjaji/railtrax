@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Share2, Link, Code, X, Copy, Check, Globe, Calendar } from 'lucide-react'
+import { Share2, Link, Code, Copy, Check, Globe, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
