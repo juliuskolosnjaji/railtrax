@@ -2,9 +2,9 @@
 
 import dynamic from 'next/dynamic'
 
-// Dynamically import TripMapPreview with SSR disabled
-const TripMapPreview = dynamic(
-  () => import('@/components/map/TripMapPreview').then((m) => m.TripMapPreview),
+// Dynamically import TripMap with SSR disabled
+const TripMap = dynamic(
+  () => import('@/components/map/TripMap').then((m) => m.TripMap),
   { ssr: false }
 )
 
@@ -134,11 +134,11 @@ export function TripRouteCard({ legs, stats, originLabel, destLabel }: TripRoute
         )}
       </div>
 
-      {/* ── Maplibre mini-map ── */}
-      <div className="p-6 relative overflow-hidden min-h-[220px]">
+      {/* ── Maplibre map ── */}
+      <div className="p-6 relative overflow-hidden min-h-[280px] md:min-h-[400px]">
         {hasCoords ? (
-          <div className="h-[220px] w-full">
-            <TripMapPreview legs={tripLegs} className="h-full w-full" />
+          <div className="h-[280px] md:h-[400px] w-full">
+            <TripMap legs={tripLegs} preview={false} className="h-full w-full" />
           </div>
         ) : (
           // No coords — show placeholder message

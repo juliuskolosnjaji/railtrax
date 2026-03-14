@@ -13,9 +13,10 @@ const MAP_STYLE = 'https://tiles.openfreemap.org/styles/fiord'
 interface TripMapProps {
   legs: Leg[]
   preview?: boolean
+  className?: string
 }
 
-export function TripMap({ legs, preview = false }: TripMapProps) {
+export function TripMap({ legs, preview = false, className = '' }: TripMapProps) {
   const mapRef = useRef<MapRef>(null)
   const [showRailway, setShowRailway] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
@@ -69,7 +70,7 @@ export function TripMap({ legs, preview = false }: TripMapProps) {
   const finalLeg = legs[legs.length - 1]
 
   return (
-    <div className="relative w-full h-full">
+    <div className={`relative w-full h-full ${className}`}>
       {/*
         The Map is NEVER conditionally rendered — the instance must persist.
         Content (Sources, Layers, Markers) is conditionally rendered inside it.
