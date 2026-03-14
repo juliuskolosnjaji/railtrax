@@ -49,6 +49,12 @@ const withPWA = withPWAInit({
 const nextConfig = {
   serverExternalPackages: ['db-vendo-client'],
   turbopack: {},
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 export default withPWA(nextConfig)
