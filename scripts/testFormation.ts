@@ -44,7 +44,7 @@ async function probe(
 ): Promise<{ ok: boolean; status: number; text: string } | null> {
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Railtripper/1.0-test', ...headers },
+      headers: { 'User-Agent': 'Railtrax/1.0-test', ...headers },
       signal: AbortSignal.timeout(8000),
     })
     const text = await res.text()

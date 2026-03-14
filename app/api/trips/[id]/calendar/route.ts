@@ -43,7 +43,7 @@ export async function GET(
     }
 
     // Create calendar for this specific trip
-    const calendar = ical({ name: `Railtripper - ${trip.title}` })
+    const calendar = ical({ name: `Railtrax - ${trip.title}` })
 
     // Add events for each leg
     trip.legs.forEach((leg: Leg) => {
@@ -73,7 +73,7 @@ export async function GET(
     return new NextResponse(icsContent, {
       headers: {
         'Content-Type': 'text/calendar; charset=utf-8',
-        'Content-Disposition': `inline; filename="railtripper-${trip.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.ics"`,
+        'Content-Disposition': `inline; filename="railtrax-${trip.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.ics"`,
         'Cache-Control': 'private, max-age=0',
       },
     })

@@ -17,7 +17,7 @@ type RecentSearch = {
   destination: { id: string; name: string }
 }
 
-const RECENT_KEY = 'railtripper:recent-searches'
+const RECENT_KEY = 'railtrax:recent-searches'
 const MAX_RECENT = 5
 
 function loadRecent(): RecentSearch[] {

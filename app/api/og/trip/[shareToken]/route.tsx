@@ -83,7 +83,7 @@ export async function GET(
                 color: '#1f2937',
               }}
             >
-              Railtripper
+              Railtrax
             </span>
           </div>
 

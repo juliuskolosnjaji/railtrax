@@ -22,7 +22,7 @@ async function getClient(): Promise<any> {
     const { createClient } = await import('db-vendo-client')
     const { withRetrying } = await import('db-vendo-client/retry.js')
     const { profile: dbnavProfile } = await import('db-vendo-client/p/dbnav/index.js')
-    _client = createClient(withRetrying(dbnavProfile), 'railtripper/1.0')
+    _client = createClient(withRetrying(dbnavProfile), 'railtrax/1.0')
   }
   return _client
 }
@@ -33,7 +33,7 @@ async function getScanClient(): Promise<any> {
   if (!_scanClient) {
     const { createClient } = await import('db-vendo-client')
     const { profile: dbnavProfile } = await import('db-vendo-client/p/dbnav/index.js')
-    _scanClient = createClient(dbnavProfile, 'railtripper/1.0')
+    _scanClient = createClient(dbnavProfile, 'railtrax/1.0')
   }
   return _scanClient
 }

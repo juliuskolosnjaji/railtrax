@@ -73,7 +73,7 @@ export async function swissOtdLookup(leg: FormationLeg): Promise<FormationResult
   const res = await fetch(url.toString(), {
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      'User-Agent': 'Railtripper/1.0',
+      'User-Agent': 'Railtrax/1.0',
       accept: 'application/json',
     },
     signal: AbortSignal.timeout(5000),

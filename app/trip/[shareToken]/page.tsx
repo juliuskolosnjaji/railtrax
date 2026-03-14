@@ -7,16 +7,17 @@ import { Calendar, MapPin, Train, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 interface PageProps {
-  params: { shareToken: string }
+  params: Promise<{ shareToken: string }>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { shareToken } = await params
   const supabase = await createClient()
-  
+
   const { data: trip } = await supabase
     .from('trips')
     .select('title, description, start_date, end_date, user_id')
-    .eq('share_token', params.shareToken)
+    .eq('share_token', shareToken)
     .eq('is_public', true)
     .single()
 
@@ -38,26 +39,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     : ''
 
   return {
-    title: `${trip.title} - Railtripper`,
+    title: `${trip.title} - Railtrax`,
     description: trip.description || `A train journey by ${user?.username || 'a traveler'}${dateRange ? ` from ${dateRange}` : ''}`,
     openGraph: {
       title: trip.title,
       description: trip.description || `A train journey by ${user?.username || 'a traveler'}${dateRange ? ` from ${dateRange}` : ''}`,
-      images: [`/api/og/trip/${params.shareToken}`],
+      images: [`/api/og/trip/${shareToken}`],
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
       title: trip.title,
       description: trip.description || `A train journey by ${user?.username || 'a traveler'}${dateRange ? ` from ${dateRange}` : ''}`,
-      images: [`/api/og/trip/${params.shareToken}`],
+      images: [`/api/og/trip/${shareToken}`],
     },
   }
 }
 
 export default async function PublicTripPage({ params }: PageProps) {
+  const { shareToken } = await params
   const supabase = await createClient()
-  
+
   const { data: trip } = await supabase
     .from('trips')
     .select(`
@@ -65,7 +67,7 @@ export default async function PublicTripPage({ params }: PageProps) {
       legs(*),
       user:users(username, display_name)
     `)
-    .eq('share_token', params.shareToken)
+    .eq('share_token', shareToken)
     .eq('is_public', true)
     .single()
 
@@ -114,7 +116,7 @@ export default async function PublicTripPage({ params }: PageProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/" className="text-2xl font-bold text-red-600">
-                Railtripper
+                Railtrax
               </Link>
               <span className="text-gray-400">|</span>
               <span className="text-gray-600">Shared Trip</span>

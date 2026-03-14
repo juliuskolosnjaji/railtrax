@@ -58,7 +58,7 @@ export async function nsLookup(leg: FormationLeg): Promise<FormationResult | nul
   const res = await fetch(url, {
     headers: {
       'Ocp-Apim-Subscription-Key': apiKey,
-      'User-Agent': 'Railtripper/1.0',
+      'User-Agent': 'Railtrax/1.0',
     },
     signal: AbortSignal.timeout(4000),
   })

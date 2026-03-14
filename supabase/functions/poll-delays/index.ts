@@ -22,7 +22,7 @@ async function getDepartures(ibnr: string, when: Date): Promise<Departure[]> {
   const { createClient } = await import('https://esm.sh/db-vendo-client@1')
   const { profile: dbnavProfile } = await import('https://esm.sh/db-vendo-client/p/dbnav/index.js')
   
-  const client = createClient(dbnavProfile, 'railtripper-poll-delays/1.0')
+  const client = createClient(dbnavProfile, 'railtrax-poll-delays/1.0')
   
   const { departures } = await client.departures(ibnr, {
     when,

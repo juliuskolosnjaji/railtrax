@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Railtripper Deployment Script
+# Railtrax Deployment Script
 # This script helps prepare the project for Vercel deployment
 
 set -e
 
-echo "🚀 Starting Railtripper deployment preparation..."
+echo "🚀 Starting Railtrax deployment preparation..."
 
 # Check if required environment variables are set
 echo "🔍 Checking environment variables..."
@@ -70,7 +70,7 @@ else
   echo "✅ Database setup completed!"
 fi
 
-echo "🎉 Railtripper is ready for deployment!"
+echo "🎉 Railtrax is ready for deployment!"
 echo ""
 echo "Next steps:"
 echo "1. Connect your repository to Vercel"

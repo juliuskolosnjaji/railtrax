@@ -56,7 +56,7 @@ export async function rttLookup(leg: FormationLeg): Promise<FormationResult | nu
   // Step 1: find service UID
   const searchUrl = `${BASE}/search/${crs}/${dateStr}/${timeStr}`
   const searchRes = await fetch(searchUrl, {
-    headers: { Authorization: `Basic ${auth}`, 'User-Agent': 'Railtripper/1.0' },
+    headers: { Authorization: `Basic ${auth}`, 'User-Agent': 'Railtrax/1.0' },
     signal: AbortSignal.timeout(5000),
   })
   if (!searchRes.ok) return null
@@ -74,7 +74,7 @@ export async function rttLookup(leg: FormationLeg): Promise<FormationResult | nu
   // Step 2: fetch service details
   const svcUrl = `${BASE}/service/${match.serviceUid}/${dateStr}`
   const svcRes = await fetch(svcUrl, {
-    headers: { Authorization: `Basic ${auth}`, 'User-Agent': 'Railtripper/1.0' },
+    headers: { Authorization: `Basic ${auth}`, 'User-Agent': 'Railtrax/1.0' },
     signal: AbortSignal.timeout(5000),
   })
   if (!svcRes.ok) return null

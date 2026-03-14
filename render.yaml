@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: railtripper
+    name: railtrax
     env: node
     buildCommand: npm run build
     startCommand: npm start

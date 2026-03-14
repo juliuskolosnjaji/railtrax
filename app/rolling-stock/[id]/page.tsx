@@ -26,12 +26,13 @@ interface RollingStockLeg {
 }
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function RollingStockPage({ params }: PageProps) {
+  const { id } = await params
   const rollingStock = await prisma().rollingStock.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       legs: {
         select: {
@@ -268,14 +269,12 @@ export default async function RollingStockPage({ params }: PageProps) {
         {/* Wikipedia Link */}
         {rollingStock.wikiUrl && (
           <div className="flex justify-center mt-6">
-            <Button
-              variant="outline"
-              onClick={() => rollingStock.wikiUrl && window.open(rollingStock.wikiUrl, '_blank')}
-              className="gap-2"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Learn more on Wikipedia
-            </Button>
+            <a href={rollingStock.wikiUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Learn more on Wikipedia
+              </Button>
+            </a>
           </div>
         )}
       </div>

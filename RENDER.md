@@ -10,13 +10,13 @@
 1. Click **"New +"** → **"Web Service"**
 2. **Connect to GitHub**: 
    - Authorize Render to access your GitHub
-   - Select your repository: `juliuskolosnjaji/railtripper`
+   - Select your repository: `juliuskolosnjaji/railtrax`
    - Select the `main` branch
 
 ### 3. Configure Service
 
 **Basic Configuration:**
-- **Name**: `railtripper`
+- **Name**: `railtrax`
 - **Region**: Choose closest to your users
 - **Branch**: `main`
 - **Runtime**: **Node** (should auto-detect)
@@ -37,7 +37,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmdWpsd2NuZnNkeGJpbXFycGd2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzM1MzQzMSwiZXhwIjoyMDg4OTI5NDMxfQ.IwRNAVtm54ocV4Pei3DhaQS_wtTLqwiml1zyI2n7xD4
 
 # App URL (important!)
-NEXT_PUBLIC_URL=https://railtripper.onrender.com
+NEXT_PUBLIC_URL=https://railtrax.onrender.com
 
 # Add other variables from your .env.local file
 UPSTASH_REDIS_REST_URL=https://boss-manatee-69910.upstash.io
@@ -60,7 +60,7 @@ RESEND_API_KEY=re_PSDWFrYt_Bb35xoSyhZ4a5aiRfQ7Y7gf1
 2. Run: `npx prisma db seed` (you can do this locally since the database is external)
 
 **Test the Application:**
-- Visit your Render URL (e.g., `https://railtripper.onrender.com`)
+- Visit your Render URL (e.g., `https://railtrax.onrender.com`)
 - Test all features work correctly
 
 ## Troubleshooting
@@ -98,7 +98,7 @@ Since you're using Supabase, you don't need Render's PostgreSQL. This keeps your
 
 Once deployed, you can:
 1. **Custom Domain**: In Render dashboard → Settings → Domain
-2. **Add your domain**: e.g., `railtripper.yourdomain.com`
+2. **Add your domain**: e.g., `railtrax.yourdomain.com`
 3. **Update DNS**: Point CNAME to `onrender.com`
 
 ## Monitoring

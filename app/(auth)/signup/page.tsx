@@ -28,6 +28,7 @@ type SignupFormValues = z.infer<typeof signupSchema>
 export default function SignupPage() {
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
   const {
     register,

@@ -54,7 +54,7 @@ export async function getMarudorTrainInfo(
   try {
     const url = `${MARUDOR_BASE}/reihung/v4/trainInfo/${encodeURIComponent(trainNumber)}?datetime=${dateStr}`
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Railtripper/1.0 (contact: hi@railtripper.app)' },
+      headers: { 'User-Agent': 'Railtrax/1.0 (contact: hi@railtrax.app)' },
       next: { revalidate: 0 },
     })
 

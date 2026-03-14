@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { TripMap } from '@/components/map/TripMapClient'
 
 interface PageProps {
-  params: { shareToken: string }
+  params: Promise<{ shareToken: string }>
 }
 
 export default async function EmbedPage({ params }: PageProps) {

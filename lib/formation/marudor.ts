@@ -40,7 +40,7 @@ export async function marudorLookup(leg: FormationLeg): Promise<FormationResult 
   const url = `${BASE}/formation/${encodeURIComponent(num)}/${timestampMs}`
 
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'Railtripper/1.0' },
+    headers: { 'User-Agent': 'Railtrax/1.0' },
     signal: AbortSignal.timeout(4000),
   })
 

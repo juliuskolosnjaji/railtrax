@@ -1,4 +1,4 @@
-# Railtripper
+# Railtrax
 
 A full-stack web app for planning, visualizing, and documenting European train journeys. Built with Next.js 14, Supabase, and Tailwind CSS.
 

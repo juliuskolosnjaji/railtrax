@@ -69,7 +69,7 @@ export async function sncfLookup(leg: FormationLeg): Promise<FormationResult | n
   const res = await fetch(url.toString(), {
     headers: {
       Authorization: `Basic ${basicAuth}`,
-      'User-Agent': 'Railtripper/1.0',
+      'User-Agent': 'Railtrax/1.0',
     },
     signal: AbortSignal.timeout(5000),
   })

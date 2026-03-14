@@ -49,7 +49,7 @@ export async function GET(
   }
 
   // Create calendar
-  const calendar = ical({ name: `Railtripper - ${user.username}'s Trips` })
+  const calendar = ical({ name: `Railtrax - ${user.username}'s Trips` })
 
   // Add events for each leg
   type CalLeg = { train_type?: string; train_number?: string; origin_name?: string; dest_name?: string; planned_departure: string; planned_arrival: string; operator?: string; seat?: string; notes?: string; trip?: { title?: string }; [key: string]: unknown }
@@ -81,7 +81,7 @@ export async function GET(
   return new NextResponse(icsContent, {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': 'inline; filename="railtripper-trips.ics"',
+      'Content-Disposition': 'inline; filename="railtrax-trips.ics"',
       'Cache-Control': 'public, max-age=3600',
     },
   })

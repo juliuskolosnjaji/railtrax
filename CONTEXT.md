@@ -326,7 +326,7 @@ NAVITIA_API_KEY                 ← Basic auth (token:), navitia.io, 3000 req/da
 
 - [x] app/api/stats/route.ts — GET (auth required): sums distance_km + counts completed legs/trips, derives total_hours from departure/arrival diff, extracts country codes from IBNRs (80=DE 85=AT 88=CH 87=FR); free plan gets base stats + upgradeRequired:true; plus/pro also get co2_saved_kg = total_km × 0.22
 - [x] app/(app)/stats/page.tsx — 4 stat cards (Total distance, Completed trips, Time on trains, Countries visited), CO2 card (Plus only, locked with UpgradeModal for free), placeholder heatmap + chart cards locked for free
-- [x] public/manifest.json — PWA manifest: name "Railtripper", theme_color "#E32228", display "standalone", start_url "/dashboard", icons at 192px and 512px
+- [x] public/manifest.json — PWA manifest: name "Railtrax", theme_color "#E32228", display "standalone", start_url "/dashboard", icons at 192px and 512px
 - [x] @ducanh2912/next-pwa installed; next.config.mjs wrapped with withPWA: NetworkFirst /api/*, CacheFirst _next/static/*, CacheFirst OpenFreeMap tiles (max 500, 30d TTL), StaleWhileRevalidate for page navigations; disabled in development
 - [x] app/layout.tsx — added <link rel="manifest">, <meta name="theme-color" content="#E32228">, <meta name="apple-mobile-web-app-capable">
 

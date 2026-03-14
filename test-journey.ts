@@ -2,7 +2,7 @@ import { createClient } from 'db-vendo-client'
 import { profile } from 'db-vendo-client/p/dbnav/index.js'
 
 async function run() {
-  const client = createClient(profile, 'railtripper/1.0')
+  const client = createClient(profile, 'railtrax/1.0')
   const deps = await client.departures('8000044', { results: 200, duration: 200 })
   console.log("total departures:", deps.departures.length)
   const ic = deps.departures.find(d => d.line?.name?.includes('IC') || d.line?.name?.includes('RE'))
