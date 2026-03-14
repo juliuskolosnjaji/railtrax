@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: railtripper
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: data
+      mountPath: /opt/render/project/.next
+      sizeGB: 1
