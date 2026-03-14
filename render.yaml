@@ -62,6 +62,10 @@ services:
       - key: NAVITIA_API_KEY
         sync: false
       
+      # Static map export
+      - key: GEOAPIFY_API_KEY
+        sync: false
+
       # App URL
       - key: NEXT_PUBLIC_URL
         fromService:

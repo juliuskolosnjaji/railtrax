@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { RollingStockChip } from '@/components/rolling-stock/RollingStockChip'
 import { Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { BackButton } from '@/components/ui/BackButton'
 
 interface RollingStockWithCount {
   id: string
@@ -71,40 +71,71 @@ export default async function RollingStockDirectoryPage({ searchParams }: PagePr
   })
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <div style={{ minHeight: '100vh', background: '#080d1a' }}>
+      <div style={{ maxWidth: 1152, margin: '0 auto', padding: '32px 16px' }}>
+
+        <BackButton />
+
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">
-            Rolling Stock Directory
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 700, color: '#ffffff', marginBottom: 8 }}>
+            Zugtypen
           </h1>
-          <p className="text-lg text-slate-600">
-            Explore European train types and specifications
+          <p style={{ fontSize: 16, color: '#4a6a9a' }}>
+            Entdecke europäische Züge und ihre Ausstattung
           </p>
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search by series, operator, or manufacturer..."
-                defaultValue={searchQuery}
-                className="pl-10"
+        <div style={{ background: '#0a1628', border: '1px solid #1e2d4a', borderRadius: 12, padding: 24, marginBottom: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Search input */}
+            <form action="/rolling-stock" method="GET" style={{ position: 'relative' }}>
+              <Search
+                style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#4a6a9a', pointerEvents: 'none' }}
               />
-            </div>
-            
-            <div className="flex gap-2">
+              <input
+                name="q"
+                placeholder="Suche nach Baureihe, Betreiber oder Hersteller..."
+                defaultValue={searchQuery}
+                style={{
+                  width: '100%', paddingLeft: 40, paddingRight: 16, paddingTop: 10, paddingBottom: 10,
+                  background: '#080d1a', border: '1px solid #1e2d4a', borderRadius: 8,
+                  color: '#ffffff', fontSize: 14, outline: 'none', boxSizing: 'border-box',
+                }}
+                onFocus={undefined}
+              />
+              {operatorFilter && (
+                <input type="hidden" name="operator" value={operatorFilter} />
+              )}
+            </form>
+
+            {/* Operator filter chips */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {operatorFilter && (
+                <Link
+                  href={searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : '?'}
+                  style={{
+                    padding: '6px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500,
+                    background: '#0d1f3c', border: '1px solid #1e3a6e', color: '#4a6a9a',
+                    textDecoration: 'none', transition: 'all 0.15s',
+                  }}
+                >
+                  Alle
+                </Link>
+              )}
               {operators.map(({ operator }) => (
                 <Link
                   key={operator}
-                  href={`?operator=${encodeURIComponent(operator)}`}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    operatorFilter === operator
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
+                  href={`?operator=${encodeURIComponent(operator)}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ''}`}
+                  style={{
+                    padding: '6px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500,
+                    textDecoration: 'none', transition: 'all 0.15s',
+                    ...(operatorFilter === operator
+                      ? { background: '#4f8ef7', border: '1px solid #4f8ef7', color: '#ffffff' }
+                      : { background: '#0d1f3c', border: '1px solid #1e3a6e', color: '#4a6a9a' }
+                    ),
+                  }}
                 >
                   {operator}
                 </Link>
@@ -113,58 +144,65 @@ export default async function RollingStockDirectoryPage({ searchParams }: PagePr
           </div>
         </div>
 
-        {/* Results */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Results grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
           {rollingStock.map((stock: RollingStockWithCount) => (
             <Link
               key={stock.id}
               href={`/rolling-stock/${stock.id}`}
-              className="block"
+              style={{ textDecoration: 'none', display: 'block' }}
             >
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:border-slate-300 transition-all">
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
+              <div style={{
+                background: '#0a1628', border: '1px solid #1e2d4a', borderRadius: 12,
+                padding: 24, transition: 'border-color 0.15s',
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* Card header */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <div>
-                      <div className="text-sm text-slate-500 mb-1">{stock.operator}</div>
-                      <h3 className="text-lg font-semibold text-slate-900">
+                      <div style={{ fontSize: 12, color: '#4f8ef7', marginBottom: 4, fontWeight: 500 }}>
+                        {stock.operator}
+                      </div>
+                      <h3 style={{ fontSize: 16, fontWeight: 500, color: '#ffffff', margin: 0 }}>
                         {stock.series}
                       </h3>
                     </div>
                     {stock.photoUrl && (
-                      <img 
-                        src={stock.photoUrl} 
+                      <img
+                        src={stock.photoUrl}
                         alt={`${stock.operator} ${stock.series}`}
-                        className="w-16 h-12 object-cover rounded border border-slate-200"
+                        style={{ width: 64, height: 48, objectFit: 'cover', borderRadius: 6, border: '1px solid #1e2d4a' }}
                       />
                     )}
                   </div>
 
-                  <RollingStockChip 
-                    rollingStock={stock} 
+                  <RollingStockChip
+                    rollingStock={stock}
                     className="!bg-transparent !border-none !p-0"
                   />
 
                   {stock.description && (
-                    <p className="text-sm text-slate-600 line-clamp-2">
+                    <p style={{ fontSize: 13, color: '#8ba3c7', margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {stock.description}
                     </p>
                   )}
 
                   {stock.manufacturer && (
-                    <p className="text-sm text-slate-500">
-                      Made by {stock.manufacturer}
+                    <p style={{ fontSize: 13, margin: 0 }}>
+                      <span style={{ color: '#4a6a9a' }}>Hersteller: </span>
+                      <span style={{ color: '#8ba3c7' }}>{stock.manufacturer}</span>
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-                    {stock.maxSpeedKmh && (
-                      <div className="text-sm text-slate-600">
-                        <span className="font-medium">{stock.maxSpeedKmh}</span> km/h
+                  {/* Footer */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid #1e2d4a' }}>
+                    {stock.maxSpeedKmh ? (
+                      <div style={{ fontSize: 13, color: '#4a6a9a' }}>
+                        <span style={{ fontWeight: 600, color: '#8ba3c7' }}>{stock.maxSpeedKmh}</span> km/h
                       </div>
-                    )}
-                    
-                    <div className="text-sm text-slate-500">
-                      {stock._count.legs} sightings
+                    ) : <div />}
+                    <div style={{ fontSize: 13, color: '#4a6a9a' }}>
+                      {stock._count.legs} Fahrten
                     </div>
                   </div>
                 </div>
@@ -174,12 +212,10 @@ export default async function RollingStockDirectoryPage({ searchParams }: PagePr
         </div>
 
         {rollingStock.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-slate-500 text-lg">
-              No rolling stock found
-            </div>
-            <p className="text-slate-400 mt-2">
-              Try adjusting your search terms or filters
+          <div style={{ textAlign: 'center', padding: '48px 0' }}>
+            <p style={{ color: '#4a6a9a', fontSize: 16 }}>Keine Zugtypen gefunden</p>
+            <p style={{ color: '#1e3a6e', fontSize: 14, marginTop: 8 }}>
+              Suchbegriff oder Filter anpassen
             </p>
           </div>
         )}

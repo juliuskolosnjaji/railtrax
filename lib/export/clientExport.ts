@@ -64,9 +64,21 @@ function roundRect(
 
 export async function exportTripAsImage(
   trip: TripDetail,
-  mapContainer: HTMLElement,
+  _mapContainer: HTMLElement,
 ): Promise<void> {
   const legs = trip.legs
+
+  // Step 1: fetch Geoapify static map (dark-matter style)
+  let mapImageSrc: string | null = null
+  try {
+    const res = await fetch(`/api/trips/${trip.id}/map-preview`)
+    if (res.ok) {
+      const data = await res.json() as { mapBase64?: string | null }
+      mapImageSrc = data.mapBase64 ?? null
+    }
+  } catch {
+    mapImageSrc = null
+  }
 
   const canvas = document.createElement('canvas')
   canvas.width = 1200
@@ -76,38 +88,46 @@ export async function exportTripAsImage(
   const MAP_W = 660
   const PANEL_X = MAP_W
   const PANEL_W = 540
-  const BG = '#0f172a'
-  const RED = '#E32228'
+  const PAD = 36
 
-  // ── Left: map ───────────────────────────────────────────────────────────────
-  const mapCanvas = getMapCanvas(mapContainer)
-  if (mapCanvas) {
-    ctx.drawImage(mapCanvas, 0, 0, MAP_W, 630)
+  // ── Background ──────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#080d1a'
+  ctx.fillRect(0, 0, 1200, 630)
+
+  // ── Left: Geoapify map image ─────────────────────────────────────────────────
+  if (mapImageSrc) {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    await new Promise<void>((resolve) => {
+      img.onload = () => resolve()
+      img.onerror = () => resolve()
+      img.src = mapImageSrc!
+    })
+    ctx.drawImage(img, 0, 0, MAP_W, 630)
   } else {
-    ctx.fillStyle = '#13132a'
+    // Fallback: dark panel
+    ctx.fillStyle = '#0a1628'
     ctx.fillRect(0, 0, MAP_W, 630)
-    ctx.fillStyle = 'rgba(255,255,255,0.15)'
-    ctx.font = '16px sans-serif'
+    ctx.fillStyle = '#1e3a6e'
+    ctx.font = '14px system-ui, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillText('Map unavailable', MAP_W / 2, 315)
+    ctx.fillText('Karte nicht verfügbar', MAP_W / 2, 315)
   }
 
-  // Red vertical divider
-  ctx.fillStyle = RED
+  // ── Divider ──────────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#4f8ef7'
   ctx.fillRect(MAP_W, 0, 2, 630)
 
   // ── Right: dark info panel ───────────────────────────────────────────────────
-  ctx.fillStyle = BG
+  ctx.fillStyle = '#080d1a'
   ctx.fillRect(PANEL_X + 2, 0, PANEL_W - 2, 630)
 
-  const PAD = 36
   let cy = 52
 
   // Trip title
   ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 28px system-ui, -apple-system, sans-serif'
+  ctx.font = '500 28px system-ui, -apple-system, sans-serif'
   ctx.textAlign = 'left'
-  // Truncate title to fit
   let title = trip.title
   while (ctx.measureText(title).width > PANEL_W - PAD * 2 - 10 && title.length > 4) {
     title = title.slice(0, -1)
@@ -119,11 +139,11 @@ export async function exportTripAsImage(
   // Status badge
   const status = trip.status ?? 'planned'
   const sc = STATUS_COLORS[status] ?? STATUS_COLORS.planned
-  ctx.font = 'bold 12px system-ui, -apple-system, sans-serif'
+  ctx.font = '500 11px system-ui, -apple-system, sans-serif'
   const badgeText = status.toUpperCase()
   const badgeW = ctx.measureText(badgeText).width + 20
   ctx.fillStyle = sc.bg
-  roundRect(ctx, PANEL_X + PAD, cy, badgeW, 22, 5)
+  roundRect(ctx, PANEL_X + PAD, cy, badgeW, 22, 11)
   ctx.fill()
   ctx.fillStyle = sc.text
   ctx.textAlign = 'left'
@@ -136,22 +156,22 @@ export async function exportTripAsImage(
   const dateRange = startDate !== '-' && endDate !== '-' && startDate !== endDate
     ? `${startDate} – ${endDate}` : startDate !== '-' ? startDate : endDate
   if (dateRange && dateRange !== '-') {
-    ctx.fillStyle = '#94a3b8'
-    ctx.font = '16px system-ui, -apple-system, sans-serif'
+    ctx.fillStyle = '#4a6a9a'
+    ctx.font = '400 15px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'left'
     ctx.fillText(dateRange, PANEL_X + PAD, cy)
     cy += 28
   }
 
-  cy += 14
+  cy += 12
 
   // Divider
-  ctx.fillStyle = '#1e293b'
+  ctx.fillStyle = '#1e2d4a'
   ctx.fillRect(PANEL_X + PAD, cy, PANEL_W - PAD * 2, 1)
   cy += 16
 
-  // Legs (up to 4)
-  const visibleLegs = legs.slice(0, 4)
+  // Legs (up to 5)
+  const visibleLegs = legs.slice(0, 5)
   const extraLegs = legs.length - visibleLegs.length
 
   for (const leg of visibleLegs) {
@@ -163,82 +183,82 @@ export async function exportTripAsImage(
     // Operator colour dot
     ctx.fillStyle = opColor
     ctx.beginPath()
-    ctx.arc(PANEL_X + PAD + 6, cy + 7, 5, 0, Math.PI * 2)
+    ctx.arc(PANEL_X + PAD + 6, cy + 7, 4, 0, Math.PI * 2)
     ctx.fill()
 
     // Train label badge
-    ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+    ctx.font = '500 11px system-ui, -apple-system, sans-serif'
     const trainW = ctx.measureText(trainLabel).width + 14
-    ctx.fillStyle = opColor + '33' // 20% opacity
+    ctx.fillStyle = '#0d1f3c'
     roundRect(ctx, PANEL_X + PAD + 16, cy - 1, trainW, 18, 4)
     ctx.fill()
-    ctx.fillStyle = opColor
+    ctx.fillStyle = '#4f8ef7'
     ctx.textAlign = 'left'
     ctx.fillText(trainLabel, PANEL_X + PAD + 23, cy + 13)
 
     // Time range
     const timeStr = `${depTime} → ${arrTime}`
-    ctx.fillStyle = '#cbd5e1'
-    ctx.font = '13px system-ui, -apple-system, sans-serif'
+    ctx.fillStyle = '#8ba3c7'
+    ctx.font = '400 12px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'right'
     ctx.fillText(timeStr, PANEL_X + PANEL_W - PAD, cy + 13)
 
     cy += 22
 
     // Origin → Dest
-    ctx.fillStyle = '#64748b'
-    ctx.font = '12px system-ui, -apple-system, sans-serif'
+    ctx.fillStyle = '#8ba3c7'
+    ctx.font = '400 12px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'left'
     const routeText = `${leg.originName} → ${leg.destName}`
     let rt = routeText
-    while (ctx.measureText(rt).width > PANEL_W - PAD * 2 - 10 && rt.length > 4) {
+    while (ctx.measureText(rt).width > PANEL_W - PAD * 2 - 20 && rt.length > 4) {
       rt = rt.slice(0, -1)
     }
     if (rt !== routeText) rt = rt.trimEnd() + '…'
     ctx.fillText(rt, PANEL_X + PAD + 16, cy)
 
-    cy += 24
+    cy += 20
 
     // Separator
-    ctx.fillStyle = '#1e293b'
+    ctx.fillStyle = '#1e2d4a'
     ctx.fillRect(PANEL_X + PAD, cy, PANEL_W - PAD * 2, 1)
-    cy += 12
+    cy += 10
   }
 
   if (extraLegs > 0) {
-    ctx.fillStyle = '#475569'
-    ctx.font = '13px system-ui, -apple-system, sans-serif'
+    ctx.fillStyle = '#4a6a9a'
+    ctx.font = '400 12px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'left'
-    ctx.fillText(`+ ${extraLegs} more leg${extraLegs > 1 ? 's' : ''}`, PANEL_X + PAD, cy + 12)
-    cy += 28
+    ctx.fillText(`+ ${extraLegs} weitere Abschnitte`, PANEL_X + PAD, cy + 12)
   }
 
-  // Stats row near bottom
+  // ── Stats bar ────────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#0a1628'
+  ctx.fillRect(PANEL_X + 2, 555, PANEL_W - 2, 75)
+  ctx.fillStyle = '#1e2d4a'
+  ctx.fillRect(PANEL_X + 2, 555, PANEL_W - 2, 1)
+
   const totalKm = Math.round(legs.reduce((s, l) => s + (l.distanceKm ?? 0), 0))
-  const statsY = 575
-  const stats = [
-    { v: String(legs.length), l: legs.length === 1 ? 'leg' : 'legs' },
-    ...(totalKm > 0 ? [{ v: totalKm.toLocaleString('en'), l: 'km' }] : []),
+  const statItems = [
+    { label: 'ZÜGE', value: String(legs.length) },
+    ...(totalKm > 0 ? [{ label: 'STRECKE', value: `${totalKm.toLocaleString('de-DE')} km` }] : []),
   ]
-  let pillX = PANEL_X + PAD
-  ctx.font = 'bold 13px system-ui, -apple-system, sans-serif'
-  for (const s of stats) {
-    const text = `${s.v} ${s.l}`
-    const pw = ctx.measureText(text).width + 20
-    ctx.fillStyle = 'rgba(255,255,255,0.07)'
-    roundRect(ctx, pillX, statsY - 16, pw, 24, 6)
-    ctx.fill()
-    ctx.fillStyle = '#94a3b8'
+  statItems.forEach((s, i) => {
+    const x = PANEL_X + PAD + i * 160
+    ctx.fillStyle = '#4a6a9a'
+    ctx.font = '400 10px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'left'
-    ctx.fillText(text, pillX + 10, statsY)
-    pillX += pw + 8
-  }
+    ctx.fillText(s.label, x, 578)
+    ctx.fillStyle = '#ffffff'
+    ctx.font = '500 17px system-ui, -apple-system, sans-serif'
+    ctx.fillText(s.value, x, 604)
+  })
 
   // Branding
-  ctx.fillStyle = 'rgba(255,255,255,0.18)'
-  ctx.font = 'bold 11px system-ui, -apple-system, sans-serif'
+  ctx.fillStyle = '#1e3a6e'
+  ctx.font = '500 12px system-ui, -apple-system, sans-serif'
   ctx.textAlign = 'right'
-  ctx.fillText('RAILTRAX', PANEL_X + PANEL_W - PAD, 614)
+  ctx.fillText('RAILTRAX', PANEL_X + PANEL_W - PAD, 604)
 
   // Download
   const link = document.createElement('a')

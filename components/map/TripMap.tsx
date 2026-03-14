@@ -8,13 +8,14 @@ import type { Leg } from '@/hooks/useTrips'
 import { RouteLayer } from './RouteLayer'
 import { StationMarker } from './StationMarker'
 
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron'
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/fiord'
 
 interface TripMapProps {
   legs: Leg[]
+  preview?: boolean
 }
 
-export function TripMap({ legs }: TripMapProps) {
+export function TripMap({ legs, preview = false }: TripMapProps) {
   const mapRef = useRef<MapRef>(null)
   const [showRailway, setShowRailway] = useState(false)
   const [mapLoaded, setMapLoaded] = useState(false)
@@ -52,10 +53,14 @@ export function TripMap({ legs }: TripMapProps) {
           [Math.min(...lons), Math.min(...lats)],
           [Math.max(...lons), Math.max(...lats)],
         ],
-        { padding: 64, duration: 800, maxZoom: 12 },
+        { 
+          padding: preview ? { top: 40, bottom: 40, left: 40, right: 40 } : 64, 
+          duration: 800, 
+          maxZoom: preview ? 14 : 12 
+        },
       )
     }
-  }, [legs, mapLoaded])
+  }, [legs, mapLoaded, preview])
 
   // Unique stations for markers:
   // Show origin of every leg + destination of the final leg only
@@ -75,8 +80,14 @@ export function TripMap({ legs }: TripMapProps) {
         initialViewState={{ longitude: 10, latitude: 51, zoom: 4 }}
         style={{ width: '100%', height: '100%' }}
         onLoad={() => setMapLoaded(true)}
+        scrollZoom={preview ? false : undefined}
+        dragPan={preview ? false : undefined}
+        dragRotate={preview ? false : undefined}
+        touchZoomRotate={preview ? false : undefined}
+        attributionControl={preview ? false : undefined}
       >
-        <NavigationControl position="top-right" />
+        {/* NavigationControl - only in full map mode */}
+        {!preview && <NavigationControl position="top-right" />}
 
         {/* Route lines */}
         {legs.map((leg) => (
@@ -93,8 +104,8 @@ export function TripMap({ legs }: TripMapProps) {
           <StationMarker key={`dest-${finalLeg.id}`} leg={finalLeg} type="destination" />
         )}
 
-        {/* OpenRailwayMap overlay (toggled) */}
-        {showRailway && (
+        {/* OpenRailwayMap overlay (toggled) - only in full map mode */}
+        {!preview && showRailway && (
           <Source
             id="openrailwaymap-src"
             type="raster"
@@ -107,17 +118,19 @@ export function TripMap({ legs }: TripMapProps) {
         )}
       </Map>
 
-      {/* Railway overlay toggle */}
-      <button
-        onClick={() => setShowRailway((prev) => !prev)}
-        className={`absolute bottom-8 left-3 rounded-md px-3 py-1.5 text-xs font-medium shadow transition-colors ${
-          showRailway
-            ? 'bg-white text-zinc-900'
-            : 'bg-zinc-900/80 backdrop-blur text-zinc-300 border border-zinc-700 hover:bg-zinc-800'
-        }`}
-      >
-        🛤 Railway overlay
-      </button>
+      {/* Railway overlay toggle - only in full map mode */}
+      {!preview && (
+        <button
+          onClick={() => setShowRailway((prev) => !prev)}
+          className={`absolute bottom-8 left-3 rounded-md px-3 py-1.5 text-xs font-medium shadow transition-colors ${
+            showRailway
+              ? 'bg-white text-zinc-900'
+              : 'bg-zinc-900/80 backdrop-blur text-zinc-300 border border-zinc-700 hover:bg-zinc-800'
+          }`}
+        >
+          🛤 Railway overlay
+        </button>
+      )}
     </div>
   )
 }

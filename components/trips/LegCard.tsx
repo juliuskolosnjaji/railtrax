@@ -134,20 +134,20 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
       <div className="flex gap-4 group">
         {/* Timeline dot + line */}
         <div className="flex flex-col items-center">
-          <div className="w-2.5 h-2.5 rounded-full bg-zinc-500 mt-1.5 shrink-0" />
-          <div className="w-px flex-1 bg-zinc-800 my-1" />
+          <div className="w-3 h-3 rounded-full bg-[#1e3a6e] border-2 border-[#4f8ef7] mt-1 shrink-0" />
+          <div className="w-px flex-1 border-l border-[#1e2d4a] my-1" />
         </div>
 
         {/* Card */}
         <div className="flex-1 pb-4">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 space-y-3">
+          <div className="rounded-xl border border-[#1e2d4a] bg-[#0a1628] p-4 space-y-3">
             {/* Header row */}
             <div className="flex items-start justify-between gap-2">
               <div className="space-y-0.5">
-                <p className="text-xs text-zinc-500">{depDate}</p>
+                <p className="text-xs text-[#4a6a9a]">{depDate}</p>
                 <div className="flex items-center gap-2 text-sm font-medium text-white">
                   <span>{depTime} {leg.originName}</span>
-                  <ArrowRight className="h-3.5 w-3.5 text-zinc-600 shrink-0" />
+                  <ArrowRight className="h-3.5 w-3.5 text-[#1e3a6e] shrink-0" />
                   <span>{arrTime} {leg.destName}</span>
                 </div>
               </div>
@@ -155,7 +155,7 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-zinc-500 hover:text-white hover:bg-zinc-800"
+                  className="h-7 w-7 text-[#4a6a9a] hover:text-white hover:bg-[#0d1f3c]"
                   onClick={() => setEditOpen(true)}
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -163,7 +163,7 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-zinc-500 hover:text-red-400 hover:bg-zinc-800"
+                  className="h-7 w-7 text-[#4a6a9a] hover:text-[#e25555] hover:bg-[#0d1f3c]"
                   onClick={() => deleteLeg.mutate(leg.id)}
                   disabled={deleteLeg.isPending}
                 >
@@ -180,23 +180,23 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 </Badge>
               )}
               {leg.trainNumber && (
-                <span className="text-xs text-zinc-400">{leg.trainNumber}</span>
+                <span className="text-xs text-[#8ba3c7]">{leg.trainNumber}</span>
               )}
               {displayFormation && (
                 <StaticRollingStockChip formation={displayFormation} />
               )}
-              <span className="flex items-center gap-1 text-xs text-zinc-500">
+              <span className="flex items-center gap-1 text-xs text-[#4a6a9a]">
                 <Clock className="h-3 w-3" />
                 {durationStr}
               </span>
               {leg.delayMinutes > 0 && (
-                <span className="flex items-center gap-1 text-xs text-amber-400">
+                <span className="flex items-center gap-1 text-xs bg-[#1f0d0d] text-[#e25555] px-2 py-0.5 rounded">
                   <AlertTriangle className="h-3 w-3" />
                   +{leg.delayMinutes} min
                 </span>
               )}
               {leg.seat && (
-                <span className="text-xs text-zinc-500">Seat: {leg.seat}</span>
+                <span className="text-xs text-[#4a6a9a]">Platz: {leg.seat}</span>
               )}
             </div>
 
@@ -214,7 +214,7 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                   size="sm"
                   onClick={handleUnlinkRollingStock}
                   disabled={unlinkRollingStock.isPending}
-                  className="text-zinc-400 hover:text-zinc-300"
+                  className="text-[#4a6a9a] hover:text-[#e25555]"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -224,51 +224,51 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 variant="outline"
                 size="sm"
                 onClick={() => setRollingStockOpen(true)}
-                className="w-fit bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800 hover:text-white border-zinc-700"
+                className="w-fit bg-[#0d1f3c] text-[#4a6a9a] hover:text-white border-[#1e3a6e] rounded-lg"
               >
                 <Plus className="h-3.5 w-3.5 mr-2" />
-                Link Rolling Stock
+                Zugtyp verknüpfen
               </Button>
             )}
 
             {traewelling?.connected && leg.status === 'planned' && canCheckIn && !isCheckedIn && (
-              <div className="pt-2 border-t border-zinc-800/80 mt-1">
+              <div className="pt-2 border-t border-[#1e2d4a] mt-1">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={handleCheckin}
                   disabled={checkin.isPending}
-                  className="w-full sm:w-auto bg-[#cc1f3a]/10 text-[#cc1f3a] hover:bg-[#cc1f3a]/20 hover:text-[#cc1f3a] border-[#cc1f3a]/30 h-8 font-medium transition-colors"
+                  className="w-full sm:w-auto bg-transparent text-[#e25555] hover:bg-[#1f0d0d] border-[#e25555] rounded-lg h-8 font-medium transition-colors"
                 >
                   {checkin.isPending ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-2" />}
-                  Check in to Träwelling
+                  Bei Träwelling einchecken
                 </Button>
                 {checkinError && (
-                  <p className="text-xs text-red-400 mt-2">{checkinError}</p>
+                  <p className="text-xs text-[#e25555] mt-2">{checkinError}</p>
                 )}
               </div>
             )}
             {isCheckedIn && !isCompleted && (
-               <div className="pt-2 border-t border-zinc-800/80 mt-1 flex flex-col gap-2">
-                  <div className="flex items-center gap-1.5 text-emerald-400 text-sm font-medium">
-                     <CheckCircle2 className="h-4 w-4" /> Checked in
+               <div className="pt-2 border-t border-[#1e2d4a] mt-1 flex flex-col gap-2">
+                  <div className="flex items-center gap-1.5 text-[#3ecf6e] text-sm font-medium">
+                     <CheckCircle2 className="h-4 w-4" /> Eingecheckt
                   </div>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={handleComplete}
                     disabled={updateLeg.isPending}
-                    className="w-full sm:w-auto bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/40 border-emerald-800/50 h-8 font-medium transition-colors"
+                    className="w-full sm:w-auto bg-[#0d2618] text-[#3ecf6e] hover:bg-[#133520] border-[#1a4a2e] h-8 font-medium transition-colors"
                   >
                     {updateLeg.isPending ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-2" />}
-                    Mark complete
+                    Als abgeschlossen markieren
                   </Button>
                </div>
             )}
             {isCompleted && (
-               <div className="pt-2 border-t border-zinc-800/80 mt-1 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-emerald-400 text-sm font-medium">
-                     <CheckCircle2 className="h-4 w-4" /> Completed
+               <div className="pt-2 border-t border-[#1e2d4a] mt-1 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[#3ecf6e] text-sm font-medium">
+                     <CheckCircle2 className="h-4 w-4" /> Abgeschlossen
                   </div>
                   <Button
                     size="sm"
@@ -277,7 +277,7 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                     className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-950/30"
                   >
                     <Star className="h-3.5 w-3.5 mr-1.5" />
-                    Review
+                    Bewerten
                   </Button>
                </div>
             )}

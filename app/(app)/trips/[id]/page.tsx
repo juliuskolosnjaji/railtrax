@@ -6,7 +6,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
@@ -25,11 +24,11 @@ const TripMap = dynamic(
   { ssr: false, loading: () => <div className="h-full w-full bg-zinc-800 animate-pulse" /> },
 )
 
-const STATUS_STYLES: Record<string, string> = {
-  planned: 'bg-zinc-700 text-zinc-300',
-  active: 'bg-blue-900 text-blue-200',
-  completed: 'bg-emerald-900 text-emerald-200',
-  cancelled: 'bg-red-900 text-red-300',
+const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
+  planned:   { bg: '#0d1f3c', color: '#4f8ef7',  border: '#1e3a6e' },
+  active:    { bg: '#0d2618', color: '#3ecf6e',  border: '#1a4a2e' },
+  completed: { bg: '#0d2618', color: '#3ecf6e',  border: '#1a4a2e' },
+  cancelled: { bg: '#1f0d0d', color: '#e25555',  border: '#3a1515' },
 }
 
 function formatDate(dateStr: string | null) {
@@ -123,12 +122,12 @@ export default function TripDetailPage() {
   if (isLoading) {
     return (
       <div className="p-8 space-y-4">
-        <Skeleton className="h-8 w-64 bg-zinc-800" />
-        <Skeleton className="h-4 w-40 bg-zinc-800" />
-        <Skeleton className="h-[400px] rounded-xl bg-zinc-800 mt-6" />
+        <Skeleton className="h-8 w-64 bg-[#0d1f3c]" />
+        <Skeleton className="h-4 w-40 bg-[#0d1f3c]" />
+        <Skeleton className="h-[400px] rounded-xl bg-[#0d1f3c] mt-6" />
         <div className="mt-4 space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl bg-zinc-800" />
+            <Skeleton key={i} className="h-24 rounded-xl bg-[#0d1f3c]" />
           ))}
         </div>
       </div>
@@ -138,8 +137,8 @@ export default function TripDetailPage() {
   if (!trip) {
     return (
       <div className="p-8 text-center">
-        <p className="text-zinc-400">Trip not found.</p>
-        <Link href="/dashboard" className="text-zinc-300 hover:text-white text-sm mt-2 inline-block">← Back to dashboard</Link>
+        <p className="text-[#4a6a9a]">Reise nicht gefunden.</p>
+        <Link href="/dashboard" className="text-[#8ba3c7] hover:text-white text-sm mt-2 inline-block">← Zum Dashboard</Link>
       </div>
     )
   }
@@ -152,16 +151,16 @@ export default function TripDetailPage() {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto">
         <div className="p-8 max-w-7xl mx-auto w-full">
-          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors mb-6">
-            <ArrowLeft className="h-4 w-4" /> All trips
+          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-[#4a6a9a] hover:text-[#8ba3c7] transition-colors mb-6">
+            <ArrowLeft className="h-4 w-4" /> Alle Reisen
           </Link>
 
           <div className="flex items-start justify-between gap-4 mb-2">
-            <h1 className="text-3xl font-bold text-white">{trip.title}</h1>
+            <h1 className="text-2xl font-medium text-white">{trip.title}</h1>
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost" size="sm"
-                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                className="bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white hover:border-[#4f8ef7] rounded-lg px-3 py-2 h-auto"
                 disabled={isExporting}
                 onClick={handleExportPdf}
               >
@@ -174,7 +173,7 @@ export default function TripDetailPage() {
               </Button>
               <Button
                 variant="ghost" size="sm"
-                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                className="bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white hover:border-[#4f8ef7] rounded-lg px-3 py-2 h-auto"
                 disabled={isExporting}
                 onClick={handleExportImage}
               >
@@ -183,7 +182,7 @@ export default function TripDetailPage() {
                 ) : (
                   <ImageIcon className="h-4 w-4 mr-2" />
                 )}
-                Image
+                Bild
               </Button>
               {trip && (
                 <SharingSheet
@@ -196,7 +195,7 @@ export default function TripDetailPage() {
               )}
               <Button
                 variant="ghost" size="icon"
-                className="text-zinc-500 hover:text-red-400 hover:bg-zinc-800 shrink-0"
+                className="bg-[#0a1628] border border-[#1e2d4a] text-[#4a6a9a] hover:text-[#e25555] hover:border-[#e25555] rounded-lg shrink-0"
                 onClick={handleDeleteTrip}
                 disabled={deleteTrip.isPending}
               >
@@ -206,13 +205,21 @@ export default function TripDetailPage() {
           </div>
 
           <div className="flex items-center gap-3 mb-8 flex-wrap">
-            <Badge className={`${STATUS_STYLES[trip.status ?? 'planned']} capitalize`}>{trip.status ?? 'planned'}</Badge>
+            {(() => {
+              const s = STATUS_STYLES[trip.status ?? 'planned'] ?? STATUS_STYLES.planned
+              return (
+                <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
+                  className="rounded-full px-3 py-1 text-xs font-medium capitalize">
+                  {trip.status ?? 'planned'}
+                </span>
+              )
+            })()}
             {(startDate || endDate) && (
-              <span className="text-sm text-zinc-400">
+              <span className="text-sm text-[#4a6a9a]">
                 {startDate && endDate ? `${startDate} → ${endDate}` : startDate ?? endDate}
               </span>
             )}
-            {trip?.description && <p className="w-full text-sm text-zinc-400 mt-1">{trip.description}</p>}
+            {trip?.description && <p className="w-full text-sm text-[#8ba3c7] mt-1">{trip.description}</p>}
           </div>
 
           {trip.legs.length > 0 && (
@@ -248,7 +255,7 @@ export default function TripDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Map */}
             <div className="order-1">
-              <div ref={mapContainerRef} className="rounded-xl overflow-hidden border border-zinc-800 h-[300px] lg:h-[calc(100vh-16rem)] lg:sticky lg:top-8">
+              <div ref={mapContainerRef} className="rounded-xl overflow-hidden border border-[#1e2d4a] h-[300px] lg:h-[calc(100vh-16rem)] lg:sticky lg:top-8">
                 <TripMap legs={trip.legs} />
               </div>
             </div>
@@ -256,39 +263,39 @@ export default function TripDetailPage() {
             {/* Timeline */}
             <div className="order-2">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white">
-                  Timeline
-                  <span className="ml-2 text-sm font-normal text-zinc-500">
-                    ({trip.legs.length} legs · {entries.length} {entries.length === 1 ? 'entry' : 'entries'})
+                <h2 className="font-medium text-white flex items-center gap-2">
+                  Zeitlinie
+                  <span className="bg-[#0d1f3c] text-[#4a6a9a] text-xs px-2 py-1 rounded">
+                    {trip.legs.length} Abschnitte · {entries.length} {entries.length === 1 ? 'Eintrag' : 'Einträge'}
                   </span>
                 </h2>
                 <div className="flex gap-2">
                   <Button
                     size="sm" variant="ghost"
                     onClick={() => openNewEntry()}
-                    className="text-zinc-400 hover:text-white hover:bg-zinc-800 gap-1.5"
+                    className="bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white rounded-lg gap-1.5 h-auto py-2"
                   >
-                    <BookOpen className="h-4 w-4" /> Add entry
+                    <BookOpen className="h-4 w-4" /> Eintrag
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => setAddLegOpen(true)}
-                    className="bg-white text-zinc-900 hover:bg-zinc-100 gap-1.5"
+                    className="bg-[#4f8ef7] text-white hover:bg-[#3a7de6] rounded-lg gap-1.5 h-auto py-2"
                   >
-                    <Plus className="h-4 w-4" /> Add leg
+                    <Plus className="h-4 w-4" /> Abschnitt
                   </Button>
                 </div>
               </div>
 
               {trip.legs.length === 0 && entries.length === 0 ? (
-                <div className="text-center py-12 rounded-xl border border-dashed border-zinc-800">
-                  <p className="text-zinc-500 text-sm mb-3">No legs yet. Add the first train ride.</p>
+                <div className="text-center py-12 rounded-xl border border-dashed border-[#1e2d4a]">
+                  <p className="text-[#4a6a9a] text-sm mb-3">Noch keine Abschnitte. Erste Zugfahrt hinzufügen.</p>
                   <Button
                     variant="outline" size="sm"
                     onClick={() => setAddLegOpen(true)}
-                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1.5"
+                    className="border-[#1e2d4a] text-[#8ba3c7] hover:bg-[#0d1f3c] gap-1.5"
                   >
-                    <Plus className="h-4 w-4" /> Add leg
+                    <Plus className="h-4 w-4" /> Abschnitt hinzufügen
                   </Button>
                 </div>
               ) : (
@@ -306,9 +313,9 @@ export default function TripDetailPage() {
                         <div className="ml-6 mb-1">
                           <button
                             onClick={() => openNewEntry(leg.id)}
-                            className="text-xs text-zinc-700 hover:text-zinc-400 transition-colors py-1"
+                            className="text-xs text-[#4a6a9a] hover:text-[#4f8ef7] transition-colors py-1"
                           >
-                            + add journal entry for this leg
+                            + Journaleintrag für diesen Abschnitt
                           </button>
                         </div>
                       </div>
@@ -318,9 +325,9 @@ export default function TripDetailPage() {
                   {trip.legs.length > 0 && (
                     <div className="flex gap-4">
                       <div className="flex flex-col items-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-zinc-600" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#1e3a6e]" />
                       </div>
-                      <p className="text-sm text-zinc-600 pb-2">{trip.legs[trip.legs.length - 1]?.destName}</p>
+                      <p className="text-sm text-[#4a6a9a] pb-2">{trip.legs[trip.legs.length - 1]?.destName}</p>
                     </div>
                   )}
 
@@ -343,13 +350,13 @@ export default function TripDetailPage() {
       {editorOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/70" onClick={() => setEditorOpen(false)} />
-          <div className="relative z-10 w-full sm:max-w-2xl sm:rounded-xl bg-zinc-950 border border-zinc-800 flex flex-col h-[80vh] sm:h-[70vh]">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+          <div className="relative z-10 w-full sm:max-w-2xl sm:rounded-xl bg-[#080d1a] border border-[#1e2d4a] flex flex-col h-[80vh] sm:h-[70vh]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2d4a]">
               <h3 className="text-sm font-medium text-white">
-                {editingEntry ? 'Edit entry' : 'New journal entry'}
-                {editorLegId && <span className="ml-2 text-zinc-500 font-normal">· linked to leg</span>}
+                {editingEntry ? 'Eintrag bearbeiten' : 'Neuer Journaleintrag'}
+                {editorLegId && <span className="ml-2 text-[#4a6a9a] font-normal">· Abschnitt verknüpft</span>}
               </h3>
-              <button onClick={() => setEditorOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
+              <button onClick={() => setEditorOpen(false)} className="text-[#4a6a9a] hover:text-white transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
