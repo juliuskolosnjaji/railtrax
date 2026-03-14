@@ -5,6 +5,26 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
+interface LegWithTrip {
+  id: string
+  tripId: string
+  trainNumber?: string | null
+  plannedDeparture: Date
+  originName: string
+  destName: string
+  trip: {
+    title: string
+    userId: string
+  }
+}
+
+interface RollingStockLeg {
+  leg: LegWithTrip
+  setNumber?: string | null
+  confirmed: boolean
+  source: string | null
+}
+
 interface PageProps {
   params: { id: string }
 }
@@ -212,7 +232,7 @@ export default async function RollingStockPage({ params }: PageProps) {
             </div>
             
             <div className="space-y-3">
-              {rollingStock.legs.map((link) => (
+              {rollingStock.legs.map((link: RollingStockLeg) => (
                 <div key={link.leg.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
