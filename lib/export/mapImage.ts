@@ -10,6 +10,11 @@ export async function fetchRouteMapImage(
   width: number,
   height: number
 ): Promise<string | null> {
+  console.log('=== MAP IMAGE DEBUG ===')
+  console.log('Valid legs count:', legs.filter(l => l.origin_lat && l.destination_lat).length)
+  console.log('Total legs count:', legs.length)
+  console.log('Geoapify API key exists:', !!process.env.GEOAPIFY_API_KEY)
+
   const geometries = legs
     .filter(l => l.origin_lat && l.destination_lat)
     .map(leg => {
@@ -41,11 +46,22 @@ export async function fetchRouteMapImage(
       }
     })
 
-  if (geometries.length === 0) return null
+  console.log('Geometries count:', geometries.length)
+  if (geometries.length === 0) {
+    console.log('No valid geometries for map')
+    return null
+  }
 
   try {
+    const apiKey = process.env.GEOAPIFY_API_KEY
+    if (!apiKey) {
+      console.error('GEOAPIFY_API_KEY not set')
+      return null
+    }
+
+    console.log('Fetching map from Geoapify...')
     const res = await fetch(
-      `https://maps.geoapify.com/v1/staticmap?apiKey=${process.env.GEOAPIFY_API_KEY}`,
+      `https://maps.geoapify.com/v1/staticmap?apiKey=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,10 +74,21 @@ export async function fetchRouteMapImage(
         signal: AbortSignal.timeout(8000),
       }
     )
-    if (!res.ok) return null
+    
+    console.log('Geoapify response status:', res.status)
+    if (!res.ok) {
+      const errorText = await res.text()
+      console.error('Geoapify error:', res.status, errorText)
+      return null
+    }
+    
     const buf = await res.arrayBuffer()
+    console.log('Map image fetched successfully, size:', buf.byteLength, 'bytes')
     return `data:image/png;base64,${Buffer.from(buf).toString('base64')}`
-  } catch {
+  } catch (error) {
+    console.error('Map image fetch failed:', error)
     return null
+  } finally {
+    console.log('=== END MAP IMAGE DEBUG ===')
   }
 }

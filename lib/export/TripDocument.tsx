@@ -156,19 +156,38 @@ export function TripDocument({ trip, legs, mapImageBase64, qrBase64, totalKm, to
 
 function formatTime(iso: string | null) {
   if (!iso) return '–'
-  return new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '–'
+  return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
 }
 
 function formatDateRange(legs: any[]) {
-  if (!legs.length) return ''
-  const first = new Date(legs[0].planned_departure)
-  const last = new Date(legs[legs.length-1].planned_arrival)
-  const fmt = (d: Date) => d.toLocaleDateString('de-DE', { day:'numeric', month:'long', year:'numeric' })
-  return first.toDateString() === last.toDateString() ? fmt(first) : `${fmt(first)} — ${fmt(last)}`
+  // Filter legs that actually have a departure time
+  const legsWithDates = legs.filter(l => 
+    l.plannedDeparture && !isNaN(new Date(l.plannedDeparture).getTime())
+  )
+  if (!legsWithDates.length) return 'Datum unbekannt'
+  
+  const first = new Date(legsWithDates[0].plannedDeparture)
+  const last = new Date(legsWithDates[legsWithDates.length-1].plannedArrival 
+    ?? legsWithDates[legsWithDates.length-1].plannedDeparture)
+  
+  if (isNaN(first.getTime())) return 'Datum unbekannt'
+  
+  const fmt = (d: Date) => d.toLocaleDateString('de-DE', { 
+    day: 'numeric', month: 'long', year: 'numeric' 
+  })
+  
+  return first.toDateString() === last.toDateString() 
+    ? fmt(first) 
+    : `${fmt(first)} — ${fmt(last)}`
 }
 
 function calcDuration(dep: string | null, arr: string | null) {
   if (!dep || !arr) return ''
-  const mins = Math.round((new Date(arr).getTime() - new Date(dep).getTime()) / 60000)
+  const d1 = new Date(dep), d2 = new Date(arr)
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return ''
+  const mins = Math.round((d2.getTime() - d1.getTime()) / 60000)
+  if (mins <= 0) return ''
   return `${Math.floor(mins/60)}h ${mins%60}m`
 }

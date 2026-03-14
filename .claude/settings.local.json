@@ -49,10 +49,16 @@
       "Bash(git push:*)",
       "Bash(git commit:*)",
       "Bash(xargs sed:*)",
-      "Bash(grep -r \"railtripper\\\\|Railtripper\\\\|RAILTRIPPER\" . --include=*.ts --include=*.tsx --include=*.json --include=*.md --include=*.toml --include=*.yaml --include=*.sh)"
+      "Bash(grep -r \"railtripper\\\\|Railtripper\\\\|RAILTRIPPER\" . --include=*.ts --include=*.tsx --include=*.json --include=*.md --include=*.toml --include=*.yaml --include=*.sh)",
+      "Bash(ls /home/julius/Dokumente/railtripper/app/api/trips/[id]/)",
+      "Bash(ls /home/julius/Dokumente/railtripper/app/api/trips/[id]/export/)",
+      "Bash(ls /home/julius/Dokumente/railtripper/app/api/trips/[id]/export/image/)",
+      "Bash(find /home/julius/Dokumente/railtripper/app/api/trips/[id]/export -name \"*.ts\" -o -name \"*.tsx\")",
+      "Bash(grep -rn \"onrender\\\\.com\\\\|railtrax-web\\\\|railtrax\\\\.app\\\\|support@\\\\|mailto:\" /home/julius/Dokumente/railtripper --include=*.ts --include=*.tsx --include=*.json --include=*.yaml --include=*.md)"
     ],
     "additionalDirectories": [
-      "/home/julius/Dokumente/railtrax/app/api/trips/[id]/export/pdf"
+      "/home/julius/Dokumente/railtrax/app/api/trips/[id]/export/pdf",
+      "/home/julius/Dokumente/railtripper/app/api/trips/[id]"
     ]
   }
 }
