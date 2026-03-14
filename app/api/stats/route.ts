@@ -69,7 +69,7 @@ export async function GET() {
       }
     }
 
-    const totalLegs = trips.reduce((sum: number, t) => sum + t.legs.length, 0)
+    const totalLegs = trips.reduce((sum, trip) => sum + trip.legs.length, 0)
 
     const base = {
       total_km: Math.round(totalKm),
