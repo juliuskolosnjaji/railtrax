@@ -30,12 +30,13 @@ interface RollingStockWithCount {
 }
 
 interface PageProps {
-  searchParams?: { q?: string; operator?: string }
+  searchParams?: Promise<{ q?: string; operator?: string }>
 }
 
 export default async function RollingStockDirectoryPage({ searchParams }: PageProps) {
-  const searchQuery = searchParams?.q
-  const operatorFilter = searchParams?.operator
+  const params = await searchParams
+  const searchQuery = params?.q
+  const operatorFilter = params?.operator
 
   const where = {
     ...(searchQuery && {
