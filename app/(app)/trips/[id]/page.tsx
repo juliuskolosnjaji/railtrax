@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, Plus, Trash2, BookOpen, X } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
@@ -127,6 +127,23 @@ export default function TripDetailPage() {
           <div className="flex items-start justify-between gap-4 mb-2">
             <h1 className="text-2xl font-medium text-white">{trip.title}</h1>
             <div className="flex items-center gap-2">
+              <a
+                href={`/api/trips/${id}/export/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white hover:border-[#4f8ef7] text-sm"
+              >
+                <FileText className="h-4 w-4" /> PDF
+              </a>
+              <button
+                onClick={async () => {
+                  const { exportTripAsImage } = await import('@/lib/export/clientExport')
+                  await exportTripAsImage(trip, null as unknown as HTMLElement)
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white hover:border-[#4f8ef7] text-sm"
+              >
+                <ImageIcon className="h-4 w-4" /> Bild
+              </button>
               {trip && (
                 <SharingSheet
                   tripId={id}

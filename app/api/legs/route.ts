@@ -4,6 +4,15 @@ import { prisma } from '@/lib/prisma'
 import { getPlan, getLimit } from '@/lib/entitlements'
 import { createLegSchema } from '@/lib/validators/leg'
 
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.asin(Math.sqrt(a))
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -46,6 +55,17 @@ export async function POST(req: NextRequest) {
   })
   const position = (lastLeg?.position ?? -1) + 1
 
+  // Calculate distance using Haversine formula
+  let distanceKm: number | null = null
+  if (parsed.data.originLat && parsed.data.originLon && parsed.data.destLat && parsed.data.destLon) {
+    distanceKm = Math.round(haversineKm(
+      parsed.data.originLat,
+      parsed.data.originLon,
+      parsed.data.destLat,
+      parsed.data.destLon
+    ) * 10) / 10
+  }
+
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const leg = await (prisma().leg.create as any)({
@@ -70,6 +90,7 @@ export async function POST(req: NextRequest) {
         seat: parsed.data.seat,
         notes: parsed.data.notes,
         status: 'planned',
+        distanceKm: distanceKm,
       },
     })
     return NextResponse.json({ data: leg }, { status: 201 })
