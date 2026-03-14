@@ -63,14 +63,8 @@ export function TripMap({ legs, preview = false, className = '' }: TripMapProps)
     }
   }, [legs, mapLoaded, preview])
 
-  // Unique stations for markers:
-  // Show origin of every leg + destination of the final leg only
-  // (intermediate stations are shared — they appear as leg N's dest = leg N+1's origin)
-  const originLegs = legs
-  const finalLeg = legs[legs.length - 1]
-
   return (
-    <div className={`relative w-full h-full ${className}`}>
+    <div className={`relative w-full h-full ${className}`} style={{ pointerEvents: 'auto' }}>
       {/*
         The Map is NEVER conditionally rendered — the instance must persist.
         Content (Sources, Layers, Markers) is conditionally rendered inside it.
@@ -81,12 +75,13 @@ export function TripMap({ legs, preview = false, className = '' }: TripMapProps)
         initialViewState={{ longitude: 10, latitude: 51, zoom: 4 }}
         style={{ width: '100%', height: '100%' }}
         onLoad={() => setMapLoaded(true)}
-        scrollZoom={preview ? false : undefined}
-        dragPan={preview ? false : undefined}
-        dragRotate={preview ? false : undefined}
-        touchZoomRotate={preview ? false : undefined}
-        keyboard={preview ? false : undefined}
+        scrollZoom={preview ? false : true}
+        dragPan={preview ? false : true}
+        dragRotate={preview ? false : true}
+        touchZoomRotate={preview ? false : true}
+        keyboard={preview ? false : true}
         attributionControl={preview ? false : undefined}
+        interactiveLayerIds={['demo-route-line']}
       >
         {/* NavigationControl - only in full map mode */}
         {!preview && <NavigationControl position="top-right" />}
@@ -96,15 +91,24 @@ export function TripMap({ legs, preview = false, className = '' }: TripMapProps)
           <RouteLayer key={leg.id} leg={leg} />
         ))}
 
-        {/* Station markers — origin of each leg */}
-        {originLegs.map((leg) => (
-          <StationMarker key={`orig-${leg.id}`} leg={leg} type="origin" />
+        {/* Station markers — user boarding/alighting stations */}
+        {legs.map((leg, idx) => (
+          <StationMarker 
+            key={`boarding-${leg.id}`} 
+            leg={leg} 
+            type="boarding" 
+            isFirst={idx === 0}
+          />
         ))}
-
-        {/* Final destination */}
-        {finalLeg && (
-          <StationMarker key={`dest-${finalLeg.id}`} leg={finalLeg} type="destination" />
-        )}
+        {/* Alighting stations */}
+        {legs.map((leg, idx) => (
+          <StationMarker 
+            key={`alighting-${leg.id}`} 
+            leg={leg} 
+            type="alighting" 
+            isLast={idx === legs.length - 1}
+          />
+        ))}
 
         {/* OpenRailwayMap overlay (toggled) - only in full map mode */}
         {!preview && showRailway && (

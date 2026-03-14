@@ -6,8 +6,9 @@ import type { Leg } from '@/hooks/useTrips'
 
 interface StationMarkerProps {
   leg: Leg
-  type: 'origin' | 'destination'
-  isTransfer?: boolean
+  type: 'boarding' | 'alighting'
+  isFirst?: boolean
+  isLast?: boolean
 }
 
 function formatTime(iso: string | null) {
@@ -15,23 +16,20 @@ function formatTime(iso: string | null) {
   return new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
 }
 
-export function StationMarker({ leg, type, isTransfer = false }: StationMarkerProps) {
+export function StationMarker({ leg, type, isFirst = false, isLast = false }: StationMarkerProps) {
   const [showPopup, setShowPopup] = useState(false)
 
-  const lon = type === 'origin' ? leg.originLon : leg.destLon
-  const lat = type === 'origin' ? leg.originLat : leg.destLat
-  const name = type === 'origin' ? leg.originName : leg.destName
-  const time = type === 'origin' ? leg.plannedDeparture : leg.plannedArrival
-  const actualTime = type === 'origin' ? leg.actualDeparture : leg.actualArrival
-  const label = type === 'origin' ? 'Abfahrt' : 'Ankunft'
+  const lon = type === 'boarding' ? leg.originLon : leg.destLon
+  const lat = type === 'boarding' ? leg.originLat : leg.destLat
+  const name = type === 'boarding' ? leg.originName : leg.destName
+  const time = type === 'boarding' ? leg.plannedDeparture : leg.plannedArrival
+  const actualTime = type === 'boarding' ? leg.actualDeparture : leg.actualArrival
+  const label = type === 'boarding' ? 'Abfahrt' : 'Ankunft'
 
   if (lon == null || lat == null) return null
 
   const hasDelay = leg.delayMinutes > 0
-
-  // Different styling based on type
-  const isOrigin = type === 'origin'
-  const isDestination = type === 'destination'
+  const isBoarding = type === 'boarding'
 
   return (
     <>
@@ -45,17 +43,32 @@ export function StationMarker({ leg, type, isTransfer = false }: StationMarkerPr
         }}
       >
         <div
-          className={`w-4 h-4 rounded-full border-2 cursor-pointer transition-transform hover:scale-125 ${
-            isTransfer
-              ? 'bg-gradient-to-br from-white to-[#4f8ef7] border-white'
-              : isOrigin
-                ? 'bg-white border-[#4f8ef7]'
-                : 'bg-[#4f8ef7] border-white'
-          }`}
+          className="cursor-pointer transition-transform hover:scale-125"
           style={{
-            boxShadow: isDestination ? '0 0 8px rgba(79, 142, 247, 0.6)' : 'none',
+            width: isBoarding ? 16 : 16,
+            height: isBoarding ? 16 : 16,
+            borderRadius: '50%',
+            borderWidth: 2,
+            borderStyle: 'solid',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            ...(isBoarding
+              ? { backgroundColor: '#ffffff', borderColor: '#4f8ef7' }
+              : isLast
+                ? { backgroundColor: '#4f8ef7', borderColor: '#ffffff' }
+                : { backgroundColor: '#080d1a', borderColor: '#f59e0b' }
+            ),
+            boxShadow: isLast ? '0 0 8px rgba(79, 142, 247, 0.6)' : 'none',
           }}
-        />
+        >
+          {isBoarding && (
+            <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#4f8ef7' }} />
+          )}
+          {!isBoarding && !isLast && (
+            <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+          )}
+        </div>
       </Marker>
 
       {showPopup && (
