@@ -75,6 +75,7 @@ export function TripMap({ legs }: TripMapProps) {
         initialViewState={{ longitude: 10, latitude: 51, zoom: 4 }}
         style={{ width: '100%', height: '100%' }}
         onLoad={() => setMapLoaded(true)}
+        preserveDrawingBuffer
       >
         <NavigationControl position="top-right" />
 

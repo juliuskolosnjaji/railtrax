@@ -16,6 +16,7 @@ model User {
   homeStation      String?  @map("home_station")
   traewellingToken String?  @map("traewelling_token")
   traewellingUsername String? @map("traewelling_username")
+  calendarToken    String?  @unique @map("calendar_token") @db.Uuid
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   trips           Trip[]
@@ -28,6 +29,7 @@ model User {
   subscriptions   Subscription[]
   usageCounter    UsageCounter?
   customRoutes    CustomRoute[]
+  pushSubscriptions PushSubscription[]
 
   @@map("users")
 }
@@ -294,6 +296,30 @@ model CustomRoute {
   user        User     @relation(fields: [userId], references: [id])
 
   @@map("custom_routes")
+}
+
+model PushSubscription {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  endpoint      String   @unique
+  p256dh        String
+  auth          String
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_push_subscriptions_user_id")
+  @@map("push_subscriptions")
+}
+
+model UserPreferences {
+  userId               String  @id @map("user_id") @db.Uuid
+  notificationsEnabled Boolean @default(false) @map("notifications_enabled")
+  delayAlerts          Boolean @default(true) @map("delay_alerts")
+  platformChanges      Boolean @default(true) @map("platform_changes")
+  cancellations        Boolean @default(true) @map("cancellations")
+
+  @@map("user_preferences")
 }
 
 model RollingStock {

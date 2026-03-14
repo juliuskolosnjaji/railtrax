@@ -34,6 +34,7 @@ interface BillingClientProps {
   maxTrips: number
   storageMbUsed: number
   maxStorageMb: number
+  calendarUrl: string | null
   showSuccess: boolean
 }
 
@@ -45,6 +46,7 @@ export function BillingClient({
   maxTrips,
   storageMbUsed,
   maxStorageMb,
+  calendarUrl,
   showSuccess,
 }: BillingClientProps) {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
@@ -171,6 +173,24 @@ export function BillingClient({
             <Progress value={storageUsagePct} className="h-1.5 bg-zinc-800" />
           )}
         </div>
+
+        {/* Calendar */}
+        {calendarUrl && (
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-zinc-400">Calendar feed</span>
+              <button
+                onClick={() => navigator.clipboard.writeText(calendarUrl)}
+                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                Copy iCal URL
+              </button>
+            </div>
+            <p className="text-xs text-zinc-600">
+              Add your planned trips to your calendar app
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Upgrade section — only for free users */}

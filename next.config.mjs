@@ -3,6 +3,7 @@ import withPWAInit from '@ducanh2912/next-pwa'
 const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
+  registerSwPath: './service-worker.js',
   runtimeCaching: [
     {
       urlPattern: /^\/api\/.*/i,
@@ -48,8 +49,7 @@ const withPWA = withPWAInit({
 const nextConfig = {
   experimental: {
     // db-vendo-client is ESM-only — exclude from webpack bundling
-    // @react-pdf/renderer needs Node.js for PDF generation
-    serverComponentsExternalPackages: ['db-vendo-client', '@react-pdf/renderer'],
+    serverComponentsExternalPackages: ['db-vendo-client'],
   },
 }
 

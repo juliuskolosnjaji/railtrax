@@ -14,6 +14,7 @@ export interface TripSummary {
   startDate: string | null
   endDate: string | null
   isPublic: boolean
+  shareToken: string | null
   createdAt: string
   _count: { legs: number }
 }
@@ -167,6 +168,30 @@ export function useDeleteLeg(tripId: string) {
   return useMutation({
     mutationFn: (legId: string) =>
       apiFetch(`/api/legs/${legId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trips', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useShareTrip(tripId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      apiFetch(`/api/trips/${tripId}/share`, { method: 'POST' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trips', tripId] })
+      qc.invalidateQueries({ queryKey: ['trips'] })
+    },
+  })
+}
+
+export function useUnshareTrip(tripId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      apiFetch(`/api/trips/${tripId}/share`, { method: 'DELETE' }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trips', tripId] })
       qc.invalidateQueries({ queryKey: ['trips'] })

@@ -20,7 +20,7 @@ export default async function BillingPage({
   const plan = getPlan(user.app_metadata as { plan?: string })
 
   // Fetch subscription row and usage counters in parallel
-  const [{ data: subscription }, { data: usage }] = await Promise.all([
+  const [{ data: subscription }, { data: usage }, { data: userData }] = await Promise.all([
     supabase
       .from('subscriptions')
       .select('*')
@@ -34,6 +34,11 @@ export default async function BillingPage({
       .select('trips_count, storage_bytes')
       .eq('user_id', user.id)
       .maybeSingle(),
+    supabase
+      .from('users')
+      .select('calendar_token')
+      .eq('id', user.id)
+      .single(),
   ])
 
   // Get customer portal URL for paying users
@@ -50,6 +55,9 @@ export default async function BillingPage({
   const maxTrips = getLimit(plan, 'maxTrips')
   const storageMbUsed = Math.round((usage?.storage_bytes ?? 0) / (1024 * 1024))
   const maxStorageMb = getLimit(plan, 'maxPhotosMb')
+  const calendarUrl = userData?.calendar_token 
+    ? `${process.env.NEXT_PUBLIC_URL}/api/calendar/${userData.calendar_token}.ics`
+    : null
 
   return (
     <>
@@ -66,6 +74,7 @@ export default async function BillingPage({
         maxTrips={maxTrips}
         storageMbUsed={storageMbUsed}
         maxStorageMb={maxStorageMb}
+        calendarUrl={calendarUrl}
         showSuccess={searchParams.success === 'true'}
       />
     </>

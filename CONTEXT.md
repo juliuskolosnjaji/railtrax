@@ -223,6 +223,12 @@ NEXT_PUBLIC_URL                 ← e.g. https://railplanner.app
 Optional (add when those features are being built):
 ```
 ANTHROPIC_API_KEY               ← server only
+
+# Formation API keys (all free tier — see .env.example for registration links)
+SWISS_OTD_API_KEY               ← Bearer token, api-manager.opentransportdata.swiss
+NS_API_KEY                      ← Ocp-Apim-Subscription-Key, apiportal.ns.nl → Ns-App
+NAVITIA_API_KEY                 ← Basic auth (token:), navitia.io, 3000 req/day free
+# RTT_USERNAME / RTT_PASSWORD   ← TODO: not yet obtained, api.rtt.io
 ```
 
 ---
@@ -336,8 +342,16 @@ ANTHROPIC_API_KEY               ← server only
 - [x] app/(app)/trips/[id]/page.tsx — reworked timeline: leg-linked entries appear indented below their leg; floating entries in "General entries" section; "Add entry" button (gated behind Plus via UpgradeModal); "add journal entry for this leg" inline link per leg; journal editor rendered as fixed modal overlay
 - [x] Trip export (PDF + image) — @react-pdf/renderer for PDF, @vercel/og for image; static map from OpenStreetMap staticmap API; Export button in trip detail header (DropdownMenu with PDF/Image options); available to all users
 
+- [x] lib/rollingStock.ts — static lookup; identifyRollingStock(leg) → RollingStockInfo | null — switch on category extracted from lineName; covers DB ICE/IC, ÖBB RJ/NJ, SNCF TGV/OUIGO/TER, Trenitalia FR/FA/ITA, Eurostar/Thalys, Renfe AVE, SBB IR/ICN, Flixtrain, EuroNight
+- [x] lib/marudor.ts — standalone Marudor client (kept for backwards compat); lib/formation/marudor.ts is the live source used by orchestrator
+- [x] lib/formation/ — multi-source formation module: types.ts, marudor.ts, swissOtd.ts, ns.ts, sncf.ts, rtt.ts, static.ts, index.ts; getFormation(leg) → FormationResult|null; 6h Redis cache
+- [x] app/api/legs/[id]/rolling-stock/route.ts GET — now calls getFormation() + fetches manualLink in parallel; returns { formation, manualLink }
+- [x] components/rolling-stock/StaticRollingStockChip.tsx — accepts FormationResult; chip with WiFi/bistro/bike icons; click → popover with description, speed, amenity grid, Wikipedia link, source label
+- [x] hooks/useRollingStock.ts — useLegRollingStock returns { formation, manualLink }; useFormation(legId) convenience hook
+- [x] components/trips/LegCard.tsx — useFormation for server result; instant identifyRollingStock client-side fallback while loading; StaticRollingStockChip shows formation data
+
 ### 🚧 In progress
-- (nothing — Session 10 complete)
+- (nothing — Session 12 complete)
 
 ### ⏳ Not started
 - Fill .env.local with real Supabase/LS/Upstash credentials, then run `npx prisma db push`
@@ -364,5 +378,7 @@ ANTHROPIC_API_KEY               ← server only
 - 2026-03-13 — Performance audit: added loading.tsx for dashboard, trips/[id], settings/billing (Suspense streaming); added loading prop to TripMap dynamic() to prevent CLS during bundle download; added display:'swap' to Inter font; added 3 DB indexes (trips user+status+created, legs trip+departure, legs status+departure); verified no Supabase data queries run in client components
 - 2026-03-13 — Added trip_id_vendo to legs table (migration 20260313000004). LegEditorSheet and AddToTripSheet now save the Vendo tripId on leg creation. polylines/route.ts uses it directly via getTripById() (fast path) instead of re-scanning the departure board (slow path). RouteLayer draws a dashed straight line between origin/dest coords when the real polyline hasn't been fetched yet — ensures something is always visible on the map.
 - 2026-03-13 — Switched map tiles from Stadia Maps to OpenFreeMap (tiles.openfreemap.org). Completely free with no API key or tile limits. Works directly with existing MapLibre setup. Using positron style (clean light/grey — coloured route lines stand out clearly).
+- 2026-03-14 — Formation APIs active: Marudor (DE, no key, User-Agent required), Swiss OTD (CH, Bearer auth), NS (NL, Ocp-Apim-Subscription-Key), SNCF Navitia (FR, Basic auth: token as username empty password). RTT (UK) pending — keys not yet obtained; source disabled in index.ts with TODO comment. Test script: scripts/testFormation.ts, run with: npx tsx --env-file=.env.local scripts/testFormation.ts
 - 2026-03-13 — Replaced db-hafas with db-vendo-client (dbnav profile). Old DB HAFAS API shut down permanently 2025. Vendo wraps DB Navigator + bahn.de APIs. Rate limits stricter than HAFAS — Redis caching is critical. lib/vendo.ts centralises all transit lookups with Redis TTLs (stations 24h, departures 2min, trip 5min, journeys 5min). API routes under /api/search/* and /api/stations/search all enforce 30 req/user/min via Upstash Ratelimit (slidingWindow); HafasError or any vendo error → 503 { error: 'service_unavailable', retryAfter: 30 }.
-- 2026-03-13 — Implemented trip export (PDF + image) using @react-pdf/renderer for PDF and @vercel/og (ImageResponse) for image. Static map tiles from OpenStreetMap staticmap API (no key needed). No files stored in Supabase. Export available to all users (free included).
+- 2026-03-13 — Trip export (PDF + image) is entirely client-side: screenshots the live Maplibre WebGL canvas directly (preserveDrawingBuffer: true on the Map component), draws info strip on a 1200×630 Canvas, then triggers a download. PDF uses jsPDF with the map image + leg table. No server routes, no external APIs needed. html2canvas and jsPDF installed; exports lazy-imported on demand.
+- 2026-03-14 — Formation data uses a multi-source architecture in lib/formation/. Single entrypoint: getFormation(leg) → FormationResult | null. Sources tried in order: (1) Marudor reihung v4 /formation endpoint — DB ICE/IC/EC/EN/NJ, no key needed, Baureihe mapped via BAUREIHE_NAMES to series+amenities; (2) Swiss Open Transport Data — SBB (IBNR prefix 85), key in SWISS_OTD_API_KEY; (3) NS virtual-train-api — NL (IBNR prefix 84), key in NS_API_KEY; (4) SNCF Navitia — TGV/OUIGO/TER/SNCF, key in NAVITIA_API_KEY; (5) Realtime Trains — UK (IBNR prefix 70), credentials in RTT_USERNAME/RTT_PASSWORD; (6) static lib/rollingStock.ts — guaranteed fallback for ÖBB/Trenitalia/Renfe/Eurostar/others. All results cached 6h in Redis. All sources fail silently — never break the leg card UI. GET /api/legs/[id]/rolling-stock now returns { formation: FormationResult|null, manualLink: LegRollingStock|null }. LegCard uses useFormation(legId) for server result with instant identifyRollingStock(leg) client-side fallback while query loads.

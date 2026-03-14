@@ -1,13 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Pencil, Trash2, Clock, AlertTriangle, Loader2, CheckCircle2, Star } from 'lucide-react'
+import { ArrowRight, Pencil, Trash2, Clock, AlertTriangle, Loader2, CheckCircle2, Star, Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LegEditorSheet } from './LegEditorSheet'
 import { useDeleteLeg, useUpdateLeg, type Leg } from '@/hooks/useTrips'
 import { useTraewellingStatus, useTraewellingCheckin } from '@/hooks/useTraewelling'
 import { ReviewPrompt } from '@/components/reviews/ReviewPrompt'
+import { useLegRollingStock, useFormation, useLinkRollingStock, useUnlinkRollingStock } from '@/hooks/useRollingStock'
+import { RollingStockChip } from '@/components/rolling-stock/RollingStockChip'
+import { RollingStockSelectorSheet } from '@/components/rolling-stock/RollingStockSelectorSheet'
+import { StaticRollingStockChip } from '@/components/rolling-stock/StaticRollingStockChip'
+import { identifyRollingStock } from '@/lib/rollingStock'
 
 const OPERATOR_STYLES: Record<string, string> = {
   DB: 'bg-red-950 text-red-300 border-red-800',
@@ -34,12 +39,39 @@ function durationMinutes(dep: string, arr: string) {
 export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
   const [editOpen, setEditOpen] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
+  const [rollingStockOpen, setRollingStockOpen] = useState(false)
   const deleteLeg = useDeleteLeg(tripId)
   const updateLeg = useUpdateLeg(tripId)
 
   const { data: traewelling } = useTraewellingStatus()
   const checkin = useTraewellingCheckin(tripId)
   const [checkinError, setCheckinError] = useState<string | null>(null)
+
+  // Rolling stock data and mutations
+  const { data: legRollingStockData } = useLegRollingStock(leg.id)
+  const legRollingStock = legRollingStockData?.manualLink ?? null
+  const linkRollingStock = useLinkRollingStock(leg.id)
+  const unlinkRollingStock = useUnlinkRollingStock(leg.id)
+
+  // Formation — live API (Marudor/SwissOTD/NS/SNCF/RTT) with static fallback.
+  // Falls back to instant client-side lookup while the server query is in-flight.
+  const { data: formation } = useFormation(leg.id)
+  const instantFallback = identifyRollingStock(leg)
+  // Convert instantFallback to a minimal FormationResult shape so the chip can render immediately
+  const displayFormation = formation ?? (instantFallback ? {
+    series: instantFallback.name,
+    operator: instantFallback.operator,
+    topSpeedKmh: instantFallback.topSpeed,
+    hasWifi: instantFallback.hasWifi,
+    hasBistro: instantFallback.hasBistro,
+    hasBike: instantFallback.hasBike,
+    hasWheelchair: false,
+    description: instantFallback.description,
+    wikipediaUrl: instantFallback.wikiUrl ?? null,
+    imageUrl: null,
+    source: 'static' as const,
+    trainName: null,
+  } : null)
 
   const now = new Date()
   const depDateObj = new Date(leg.plannedDeparture)
@@ -65,6 +97,26 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
       await updateLeg.mutateAsync({ id: leg.id, data: { status: 'completed' } })
     } catch (err) {
       console.error('Failed to complete leg:', err)
+    }
+  }
+
+  async function handleLinkRollingStock(rollingStock: any, setNumber?: string) {
+    try {
+      await linkRollingStock.mutateAsync({
+        rollingStockId: rollingStock.id,
+        setNumber,
+        source: 'manual',
+      })
+    } catch (err) {
+      console.error('Failed to link rolling stock:', err)
+    }
+  }
+
+  async function handleUnlinkRollingStock() {
+    try {
+      await unlinkRollingStock.mutateAsync()
+    } catch (err) {
+      console.error('Failed to unlink rolling stock:', err)
     }
   }
 
@@ -130,6 +182,9 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
               {leg.trainNumber && (
                 <span className="text-xs text-zinc-400">{leg.trainNumber}</span>
               )}
+              {displayFormation && (
+                <StaticRollingStockChip formation={displayFormation} />
+              )}
               <span className="flex items-center gap-1 text-xs text-zinc-500">
                 <Clock className="h-3 w-3" />
                 {durationStr}
@@ -144,6 +199,37 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 <span className="text-xs text-zinc-500">Seat: {leg.seat}</span>
               )}
             </div>
+
+            {/* Rolling Stock */}
+            {legRollingStock && legRollingStock.rollingStock ? (
+              <div className="flex items-center justify-between">
+                <RollingStockChip
+                  rollingStock={legRollingStock.rollingStock}
+                  setNumber={legRollingStock.setNumber}
+                  confirmed={legRollingStock.confirmed}
+                  onClick={() => setRollingStockOpen(true)}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleUnlinkRollingStock}
+                  disabled={unlinkRollingStock.isPending}
+                  className="text-zinc-400 hover:text-zinc-300"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRollingStockOpen(true)}
+                className="w-fit bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800 hover:text-white border-zinc-700"
+              >
+                <Plus className="h-3.5 w-3.5 mr-2" />
+                Link Rolling Stock
+              </Button>
+            )}
 
             {traewelling?.connected && leg.status === 'planned' && canCheckIn && !isCheckedIn && (
               <div className="pt-2 border-t border-zinc-800/80 mt-1">
@@ -219,6 +305,17 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
           trainType: leg.trainType,
         }}
         onComplete={() => {}}
+      />
+
+      <RollingStockSelectorSheet
+        open={rollingStockOpen}
+        onOpenChange={setRollingStockOpen}
+        operator={leg.operator || undefined}
+        onSelect={handleLinkRollingStock}
+        currentSelection={legRollingStock ? {
+          rollingStockId: legRollingStock.rollingStockId,
+          setNumber: legRollingStock.setNumber || undefined,
+        } : undefined}
       />
     </>
   )

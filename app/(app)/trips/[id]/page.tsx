@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
@@ -12,9 +12,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
 import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
 import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
+import { SharingSheet } from '@/components/trips/SharingSheet'
 const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor').then(m => m.JournalEditor), { ssr: false })
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { useTrip, useDeleteTrip } from '@/hooks/useTrips'
+import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip } from '@/hooks/useTrips'
 import { useJournalEntries, type JournalEntry } from '@/hooks/useJournal'
 import { useEntitlements } from '@/hooks/useEntitlements'
 
@@ -44,13 +45,24 @@ export default function TripDetailPage() {
   const qc = useQueryClient()
   const { can } = useEntitlements()
   const canJournal = can('journal')
+  const shareTrip = useShareTrip(id)
+  const unshareTrip = useUnshareTrip(id)
 
+  const mapContainerRef = useRef<HTMLDivElement>(null)
   const [addLegOpen, setAddLegOpen] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorLegId, setEditorLegId] = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+
+  const handleShareTrip = async () => {
+    await shareTrip.mutateAsync()
+  }
+
+  const handleUnshareTrip = async () => {
+    await unshareTrip.mutateAsync()
+  }
 
   useEffect(() => {
     if (!trip?.legs.length) return
@@ -81,16 +93,30 @@ export default function TripDetailPage() {
     router.push('/dashboard')
   }
 
-  function handleExportPdf() {
+  async function handleExportPdf() {
+    if (!trip || !mapContainerRef.current) return
     setIsExporting(true)
-    window.location.href = `/api/trips/${id}/export/pdf`
-    setTimeout(() => setIsExporting(false), 5000)
+    try {
+      const { exportTripAsPdf } = await import('@/lib/export/clientExport')
+      await exportTripAsPdf(trip, mapContainerRef.current)
+    } catch (err) {
+      console.error('PDF export failed:', err)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
-  function handleExportImage() {
+  async function handleExportImage() {
+    if (!trip || !mapContainerRef.current) return
     setIsExporting(true)
-    window.location.href = `/api/trips/${id}/export/image`
-    setTimeout(() => setIsExporting(false), 5000)
+    try {
+      const { exportTripAsImage } = await import('@/lib/export/clientExport')
+      await exportTripAsImage(trip, mapContainerRef.current)
+    } catch (err) {
+      console.error('Image export failed:', err)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   if (isLoading) {
@@ -158,6 +184,15 @@ export default function TripDetailPage() {
                 )}
                 Image
               </Button>
+              {trip && (
+                <SharingSheet
+                  tripId={id}
+                  isPublic={trip.isPublic}
+                  shareToken={trip.shareToken}
+                  onShare={handleShareTrip}
+                  onUnshare={handleUnshareTrip}
+                />
+              )}
               <Button
                 variant="ghost" size="icon"
                 className="text-zinc-500 hover:text-red-400 hover:bg-zinc-800 shrink-0"
@@ -176,13 +211,13 @@ export default function TripDetailPage() {
                 {startDate && endDate ? `${startDate} → ${endDate}` : startDate ?? endDate}
               </span>
             )}
-            {trip.description && <p className="w-full text-sm text-zinc-400 mt-1">{trip.description}</p>}
+            {trip?.description && <p className="w-full text-sm text-zinc-400 mt-1">{trip.description}</p>}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Map */}
             <div className="order-1">
-              <div className="rounded-xl overflow-hidden border border-zinc-800 h-[300px] lg:h-[calc(100vh-16rem)] lg:sticky lg:top-8">
+              <div ref={mapContainerRef} className="rounded-xl overflow-hidden border border-zinc-800 h-[300px] lg:h-[calc(100vh-16rem)] lg:sticky lg:top-8">
                 <TripMap legs={trip.legs} />
               </div>
             </div>
@@ -198,9 +233,9 @@ export default function TripDetailPage() {
                 </h2>
                 <div className="flex gap-2">
                   <Button
-                    size="sm" variant="outline"
+                    size="sm" variant="ghost"
                     onClick={() => openNewEntry()}
-                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1.5"
+                    className="text-zinc-400 hover:text-white hover:bg-zinc-800 gap-1.5"
                   >
                     <BookOpen className="h-4 w-4" /> Add entry
                   </Button>

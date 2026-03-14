@@ -7,14 +7,17 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { TripCard } from '@/components/trips/TripCard'
 import { NewTripSheet } from '@/components/trips/NewTripSheet'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
+import { NotificationBanner } from '@/components/shared/NotificationBanner'
 import { useTrips } from '@/hooks/useTrips'
 import { useEntitlements } from '@/hooks/useEntitlements'
+import { useUser } from '@/hooks/useUser'
 
 export default function DashboardPage() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const { data: trips, isLoading } = useTrips()
   const { getLimit } = useEntitlements()
+  const { user } = useUser()
 
   const maxTrips = getLimit('maxTrips')
   const atLimit = maxTrips !== Infinity && (trips?.length ?? 0) >= maxTrips
@@ -46,6 +49,8 @@ export default function DashboardPage() {
           New trip
         </Button>
       </div>
+
+      {user && <NotificationBanner userId={user.id} />}
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
