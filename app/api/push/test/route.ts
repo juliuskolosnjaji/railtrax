@@ -14,7 +14,10 @@ export async function POST() {
       url: '/dashboard',
     })
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('VAPID keys not configured')) {
+      return NextResponse.json({ error: 'vapid_not_configured' }, { status: 503 })
+    }
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 }

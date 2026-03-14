@@ -1,15 +1,21 @@
 import webpush from 'web-push'
 import { prisma } from './prisma'
 
-if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-  throw new Error('VAPID keys not configured')
-}
+let vapidInitialized = false
 
-webpush.setVapidDetails(
-  'mailto:support@railplanner.app',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-)
+function ensureVapidInitialized() {
+  if (!vapidInitialized) {
+    if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      throw new Error('VAPID keys not configured')
+    }
+    webpush.setVapidDetails(
+      'mailto:support@railplanner.app',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    )
+    vapidInitialized = true
+  }
+}
 
 interface PushPayload {
   title: string
@@ -22,6 +28,7 @@ async function sendToSubscription(
   subscription: { endpoint: string; p256dh: string; auth: string },
   payload: PushPayload
 ): Promise<void> {
+  ensureVapidInitialized()
   await webpush.sendNotification(
     {
       endpoint: subscription.endpoint,
@@ -78,5 +85,8 @@ export async function sendToUser(
 }
 
 export function getVapidPublicKey(): string {
-  return process.env.VAPID_PUBLIC_KEY!
+  if (!process.env.VAPID_PUBLIC_KEY) {
+    throw new Error('VAPID_PUBLIC_KEY not configured')
+  }
+  return process.env.VAPID_PUBLIC_KEY
 }
