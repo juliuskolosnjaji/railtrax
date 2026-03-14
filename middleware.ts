@@ -56,6 +56,11 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse
 }
 
+// Proxy function for Next.js proxy middleware
+export function proxy(request: NextRequest) {
+  return middleware(request)
+}
+
 export const config = {
   matcher: [
     /*

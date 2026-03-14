@@ -38,11 +38,15 @@ export default async function RollingStockDirectoryPage({ searchParams }: PagePr
     },
   })
 
+  type OperatorResult = {
+    operator: string
+  }
+  
   const operators = await prisma.rollingStock.findMany({
     distinct: ['operator'],
     select: { operator: true },
     orderBy: { operator: 'asc' },
-  })
+  }) as OperatorResult[]
 
   return (
     <div className="min-h-screen bg-slate-50">
