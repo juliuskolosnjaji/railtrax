@@ -1,22 +1,17 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import dynamic from 'next/dynamic'
+import { TripMap } from '@/components/map/TripMapClient'
 import { Button } from '@/components/ui/button'
 import { Calendar, MapPin, Train, Clock } from 'lucide-react'
 import Link from 'next/link'
-
-const TripMap = dynamic(
-  () => import('@/components/map/TripMap').then((m) => m.TripMap),
-  { ssr: false, loading: () => <div className="h-full w-full bg-gray-200 animate-pulse" /> },
-)
 
 interface PageProps {
   params: { shareToken: string }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: trip } = await supabase
     .from('trips')
@@ -61,7 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PublicTripPage({ params }: PageProps) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: trip } = await supabase
     .from('trips')

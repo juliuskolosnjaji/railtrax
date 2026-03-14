@@ -1,15 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+
+type Params = { params: Promise<{ id: string }> }
 
 const shareTripSchema = z.object({
   id: z.string().uuid(),
 })
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }> }
+  request: NextRequest,
+  { params }: Params
 ) {
+  const { id } = await params
   const supabase = await createClient()
   
   // Get current user
@@ -20,12 +23,10 @@ export async function POST(
   }
 
   // Validate trip ID
-  const validation = shareTripSchema.safeParse({ id: id })
+  const validation = shareTripSchema.safeParse({ id })
   if (!validation.success) {
     return NextResponse.json({ error: 'validation_error', details: validation.error.flatten() }, { status: 422 })
   }
-
-  const { id } = validation.data
 
   // Check if user owns the trip
   const { data: trip, error: tripError } = await supabase
@@ -75,8 +76,9 @@ export async function POST(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = await createClient()
   
   // Get current user
@@ -87,12 +89,10 @@ export async function DELETE(
   }
 
   // Validate trip ID
-  const validation = shareTripSchema.safeParse({ id: id })
+  const validation = shareTripSchema.safeParse({ id })
   if (!validation.success) {
     return NextResponse.json({ error: 'validation_error', details: validation.error.flatten() }, { status: 422 })
   }
-
-  const { id } = validation.data
 
   // Check if user owns the trip
   const { data: trip, error: tripError } = await supabase

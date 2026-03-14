@@ -1,18 +1,20 @@
 import ical from 'ical-generator'
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
-  request: Request,
-  { params }: { params: { token: string } }> }
+  _req: NextRequest,
+  { params }: { params: Promise<{}> }
 ) {
+  const paramsData = (await params) as { token: string }
+  const { token } = paramsData
   const supabase = await createClient()
   
   // Look up user by calendar token
   const { data: user } = await supabase
     .from('users')
     .select('id, username')
-    .eq('calendar_token', params.token)
+    .eq('calendar_token', token)
     .single()
 
   if (!user) {

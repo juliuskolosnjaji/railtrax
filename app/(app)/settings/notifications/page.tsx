@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { NotificationsClient } from './NotificationsClient'
 
 export default async function NotificationsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

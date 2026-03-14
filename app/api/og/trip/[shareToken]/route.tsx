@@ -1,18 +1,20 @@
 import { ImageResponse } from 'next/og'
+import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'edge'
 
 export async function GET(
-  request: Request,
-  { params }: { params: { shareToken: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ shareToken: string }> }
 ) {
-  const supabase = createClient()
+  const { shareToken } = await params
+  const supabase = await createClient()
   
   const { data: trip } = await supabase
     .from('trips')
     .select('title, description, start_date, end_date, legs(distance_km)')
-    .eq('share_token', params.shareToken)
+    .eq('share_token', shareToken)
     .eq('is_public', true)
     .single()
 

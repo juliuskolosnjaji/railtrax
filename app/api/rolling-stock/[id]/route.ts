@@ -1,13 +1,16 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+type Params = { params: Promise<{ id: string }> }
+
 export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }> }
+  _request: NextRequest,
+  { params }: Params
 ) {
+  const { id } = await params
   try {
     const rollingStock = await prisma.rollingStock.findUnique({
-      where: { id: id },
+      where: { id },
       include: {
         legs: {
           select: {

@@ -1,17 +1,14 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import dynamic from 'next/dynamic'
-const TripMap = dynamic(
-  () => import('@/components/map/TripMap').then((m) => m.TripMap),
-  { ssr: false, loading: () => <div className="h-full w-full bg-gray-200 animate-pulse" /> },
-)
+import { TripMap } from '@/components/map/TripMapClient'
 
 interface PageProps {
   params: { shareToken: string }
 }
 
 export default async function EmbedPage({ params }: PageProps) {
-  const supabase = createClient()
+  const { shareToken } = await params
+  const supabase = await createClient()
   
   const { data: trip } = await supabase
     .from('trips')
@@ -19,7 +16,7 @@ export default async function EmbedPage({ params }: PageProps) {
       *,
       legs(*)
     `)
-    .eq('share_token', params.shareToken)
+    .eq('share_token', shareToken)
     .eq('is_public', true)
     .single()
 

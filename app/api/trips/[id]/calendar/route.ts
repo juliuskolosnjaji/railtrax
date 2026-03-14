@@ -3,10 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
+type Params = { params: Promise<{ id: string }> }
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }> }
+  { params }: Params
 ) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -18,7 +21,7 @@ export async function GET(
     const trip = await prisma.trip.findUnique({
       where: { id: id, userId: user.id },
       include: {
-        legs: { orderBy: { position: 'asc' } }> }
+        legs: { orderBy: { position: 'asc' } }
       }
     })
 

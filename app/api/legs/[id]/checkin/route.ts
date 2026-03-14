@@ -3,10 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { checkin, TraewellingError } from '@/lib/traewelling'
 
+type Params = { params: Promise<{ id: string }> }
+
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }> }
+  { params }: Params
 ) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
