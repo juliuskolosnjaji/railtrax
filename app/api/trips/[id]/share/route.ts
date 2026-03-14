@@ -8,9 +8,9 @@ const shareTripSchema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } }> }
 ) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -20,7 +20,7 @@ export async function POST(
   }
 
   // Validate trip ID
-  const validation = shareTripSchema.safeParse({ id: params.id })
+  const validation = shareTripSchema.safeParse({ id: id })
   if (!validation.success) {
     return NextResponse.json({ error: 'validation_error', details: validation.error.flatten() }, { status: 422 })
   }
@@ -75,9 +75,9 @@ export async function POST(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } }> }
 ) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -87,7 +87,7 @@ export async function DELETE(
   }
 
   // Validate trip ID
-  const validation = shareTripSchema.safeParse({ id: params.id })
+  const validation = shareTripSchema.safeParse({ id: id })
   if (!validation.success) {
     return NextResponse.json({ error: 'validation_error', details: validation.error.flatten() }, { status: 422 })
   }

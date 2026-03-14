@@ -18,7 +18,7 @@ const reportRollingStockSchema = z.object({
   source: z.literal('user_report'),
 })
 
-type Params = { params: { id: string } }
+type Params = { params: Promise<{ id: string }> }
 
 // Verify the leg belongs to the authenticated user via its trip
 async function getLegForUser(legId: string, userId: string) {
@@ -31,12 +31,13 @@ async function getLegForUser(legId: string, userId: string) {
 // GET formation data for this leg — combines live API lookup with static fallback.
 // Also returns any manually-linked rolling stock as manualLink for UI display.
 export async function GET(_req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const leg = await getLegForUser(params.id, user.id)
+    const leg = await getLegForUser(id, user.id)
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
     // Run formation lookup and manual-link fetch in parallel
@@ -68,7 +69,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 // POST link rolling stock to this leg
 export async function POST(req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
@@ -82,7 +84,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   try {
-    const leg = await getLegForUser(params.id, user.id)
+    const leg = await getLegForUser(id, user.id)
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
     // Verify the rolling stock exists
@@ -95,7 +97,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     // Create or update the link
     const link = await prisma.legRollingStock.upsert({
-      where: { legId: params.id },
+      where: { legId: id },
       update: {
         rollingStockId: parsed.data.rollingStockId,
         setNumber: parsed.data.setNumber,
@@ -103,7 +105,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         source: parsed.data.source || 'manual',
       },
       create: {
-        legId: params.id,
+        legId: id,
         rollingStockId: parsed.data.rollingStockId,
         setNumber: parsed.data.setNumber,
         confirmed: true,
@@ -119,7 +121,8 @@ export async function POST(req: NextRequest, { params }: Params) {
 
 // PUT user report for rolling stock (when auto-detection is wrong)
 export async function PUT(req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
@@ -133,7 +136,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   try {
-    const leg = await getLegForUser(params.id, user.id)
+    const leg = await getLegForUser(id, user.id)
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
     // Verify the rolling stock exists
@@ -146,7 +149,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     // Update with user report (overrides any existing link)
     const link = await prisma.legRollingStock.upsert({
-      where: { legId: params.id },
+      where: { legId: id },
       update: {
         rollingStockId: parsed.data.rollingStockId,
         setNumber: parsed.data.setNumber,
@@ -154,7 +157,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         source: 'user_report',
       },
       create: {
-        legId: params.id,
+        legId: id,
         rollingStockId: parsed.data.rollingStockId,
         setNumber: parsed.data.setNumber,
         confirmed: true,
@@ -170,16 +173,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
 // DELETE remove rolling stock link
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const leg = await getLegForUser(params.id, user.id)
+    const leg = await getLegForUser(id, user.id)
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
     await prisma.legRollingStock.delete({
-      where: { legId: params.id }
+      where: { legId: id }
     })
 
     return NextResponse.json({ data: { success: true } })

@@ -5,9 +5,9 @@ import { checkin, TraewellingError } from '@/lib/traewelling'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } }> }
 ) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
@@ -24,7 +24,7 @@ export async function POST(
 
     // 2. Fetch leg and verify ownership through trip
     const leg = await prisma.leg.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: { trip: true }
     })
 

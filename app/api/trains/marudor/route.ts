@@ -4,7 +4,7 @@ import { getMarudorTrainInfo } from '@/lib/marudor'
 
 // GET /api/trains/marudor?number=521&departure=2026-03-14T08:30:00Z
 export async function GET(request: Request) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 

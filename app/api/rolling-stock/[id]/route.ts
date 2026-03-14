@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } }> }
 ) {
   try {
     const rollingStock = await prisma.rollingStock.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         legs: {
           select: {

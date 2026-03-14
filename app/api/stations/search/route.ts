@@ -4,7 +4,7 @@ import { searchStations } from '@/lib/vendo'
 import { checkSearchRateLimit } from '@/lib/ratelimit'
 
 export async function GET(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 

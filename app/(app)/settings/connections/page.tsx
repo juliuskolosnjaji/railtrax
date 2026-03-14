@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ConnectionsClient } from './ConnectionsClient'
 
 export default async function ConnectionsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

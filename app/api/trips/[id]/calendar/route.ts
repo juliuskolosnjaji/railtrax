@@ -5,9 +5,9 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } }> }
 ) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
@@ -16,9 +16,9 @@ export async function GET(
 
   try {
     const trip = await prisma.trip.findUnique({
-      where: { id: params.id, userId: user.id },
+      where: { id: id, userId: user.id },
       include: {
-        legs: { orderBy: { position: 'asc' } }
+        legs: { orderBy: { position: 'asc' } }> }
       }
     })
 

@@ -45,7 +45,9 @@
       "WebSearch",
       "WebFetch(domain:opentransportdata.swiss)",
       "WebFetch(domain:api-manager.opentransportdata.swiss)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ],
     "additionalDirectories": [
       "/home/julius/Dokumente/railtripper/app/api/trips/[id]/export/pdf"

@@ -3,16 +3,17 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { updateTripSchema } from '@/lib/validators/trip'
 
-type Params = { params: { id: string } }
+type Params = { params: Promise<{ id: string }> }
 
 export async function GET(_req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
     const trip = await prisma.trip.findUnique({
-      where: { id: params.id, userId: user.id },
+      where: { id, userId: user.id },
       include: {
         legs: { orderBy: { position: 'asc' } },
         _count: { select: { legs: true } },
@@ -26,7 +27,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function PUT(req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
@@ -41,11 +43,11 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   try {
     // findUnique with userId ensures we only update own trips
-    const existing = await prisma.trip.findUnique({ where: { id: params.id, userId: user.id } })
+    const existing = await prisma.trip.findUnique({ where: { id, userId: user.id } })
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
     const trip = await prisma.trip.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(parsed.data.title !== undefined && { title: parsed.data.title }),
         ...(parsed.data.description !== undefined && { description: parsed.data.description }),
@@ -65,16 +67,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const existing = await prisma.trip.findUnique({ where: { id: params.id, userId: user.id } })
+    const existing = await prisma.trip.findUnique({ where: { id, userId: user.id } })
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
-    await prisma.trip.delete({ where: { id: params.id } })
-    return NextResponse.json({ data: { id: params.id } })
+    await prisma.trip.delete({ where: { id } })
+    return NextResponse.json({ data: { id } })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }

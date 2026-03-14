@@ -4,9 +4,9 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   request: Request,
-  { params }: { params: { token: string } }
+  { params }: { params: { token: string } }> }
 ) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   // Look up user by calendar token
   const { data: user } = await supabase

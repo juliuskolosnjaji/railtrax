@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { sendToUser } from '@/lib/push'
 
 export async function POST() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 

@@ -13,7 +13,7 @@ interface LegRecord {
   polyline: unknown
 }
 
-type Params = { params: { id: string } }
+type Params = { params: Promise<{ id: string } }> }
 
 /**
  * GET /api/trips/[id]/polylines
@@ -25,15 +25,15 @@ type Params = { params: { id: string } }
  *   1. tripIdVendo is set → call getTripById() directly (fast, no board scan)
  *   2. originIbnr + trainNumber → departure board scan via fetchPolyline()
  *
- * Response: { data: { updated: number } }
+ * Response: { data: { updated: number } }> }
  */
 export async function GET(_req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const trip = await prisma.trip.findUnique({
-    where: { id: params.id, userId: user.id },
+    where: { id: id, userId: user.id },
     include: { legs: { orderBy: { position: 'asc' } } },
   })
   if (!trip) return NextResponse.json({ error: 'not_found' }, { status: 404 })
@@ -46,7 +46,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   )
 
   console.log(
-    `[polylines] trip=${params.id} total=${legs.length} to_enrich=${legsToEnrich.length}`,
+    `[polylines] trip=${id} total=${legs.length} to_enrich=${legsToEnrich.length}`,
     legsToEnrich.map((l) => ({ id: l.id, tripIdVendo: l.tripIdVendo, originIbnr: l.originIbnr })),
   )
 
@@ -87,6 +87,6 @@ export async function GET(_req: NextRequest, { params }: Params) {
     }),
   )
 
-  console.log(`[polylines] trip=${params.id} updated=${updated}`)
+  console.log(`[polylines] trip=${id} updated=${updated}`)
   return NextResponse.json({ data: { updated } })
 }

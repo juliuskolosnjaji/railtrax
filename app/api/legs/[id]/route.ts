@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { updateLegSchema } from '@/lib/validators/leg'
 
-type Params = { params: { id: string } }
+type Params = { params: Promise<{ id: string }> }
 
 // Verify the leg belongs to the authenticated user via its trip
 async function getLegForUser(legId: string, userId: string) {
@@ -13,12 +13,13 @@ async function getLegForUser(legId: string, userId: string) {
 }
 
 export async function GET(_req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const leg = await getLegForUser(params.id, user.id)
+    const leg = await getLegForUser(id, user.id)
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
     return NextResponse.json({ data: leg })
   } catch {
@@ -27,7 +28,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function PUT(req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
@@ -41,23 +43,20 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   try {
-    const existing = await getLegForUser(params.id, user.id)
+    const existing = await getLegForUser(id, user.id)
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
-    // Handle status update separately
-    if (parsed.data.status !== undefined) {
-      if (!['planned', 'checked_in', 'completed'].includes(parsed.data.status)) {
-        return NextResponse.json({ error: 'invalid_status' }, { status: 400 })
-      }
+    // If only updating status, do a minimal update
+    if (Object.keys(parsed.data).length === 1 && parsed.data.status !== undefined) {
       const leg = await prisma.leg.update({
-        where: { id: params.id },
+        where: { id },
         data: { status: parsed.data.status },
       })
       return NextResponse.json({ data: leg })
     }
 
     const leg = await prisma.leg.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(parsed.data.originName !== undefined && { originName: parsed.data.originName }),
         ...(parsed.data.originIbnr !== undefined && { originIbnr: parsed.data.originIbnr }),
@@ -84,16 +83,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const existing = await getLegForUser(params.id, user.id)
+    const existing = await getLegForUser(id, user.id)
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
-    await prisma.leg.delete({ where: { id: params.id } })
-    return NextResponse.json({ data: { id: params.id } })
+    await prisma.leg.delete({ where: { id } })
+    return NextResponse.json({ data: { id } })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }

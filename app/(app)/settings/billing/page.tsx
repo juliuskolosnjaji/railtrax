@@ -8,9 +8,10 @@ import { DevPlanSwitcher } from '@/components/dev/DevPlanSwitcher'
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: { success?: string }
+  searchParams: Promise<{ success?: string }>
 }) {
-  const supabase = createClient()
+  const { success } = await searchParams
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -75,7 +76,7 @@ export default async function BillingPage({
         storageMbUsed={storageMbUsed}
         maxStorageMb={maxStorageMb}
         calendarUrl={calendarUrl}
-        showSuccess={searchParams.success === 'true'}
+        showSuccess={success === 'true'}
       />
     </>
   )

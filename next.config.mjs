@@ -47,10 +47,8 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    // db-vendo-client is ESM-only — exclude from webpack bundling
-    serverComponentsExternalPackages: ['db-vendo-client'],
-  },
+  serverExternalPackages: ['db-vendo-client'],
+  turbopack: {},
 }
 
 export default withPWA(nextConfig)

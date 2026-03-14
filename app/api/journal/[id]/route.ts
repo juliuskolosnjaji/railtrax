@@ -14,21 +14,21 @@ async function getEntryAndVerifyOwner(id: string, userId: string) {
 }
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  const { entry, error } = await getEntryAndVerifyOwner(params.id, user.id)
+  const { entry, error } = await getEntryAndVerifyOwner(id, user.id)
   if (error) return error
   return NextResponse.json({ data: entry })
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  const { entry, error } = await getEntryAndVerifyOwner(params.id, user.id)
+  const { entry, error } = await getEntryAndVerifyOwner(id, user.id)
   if (error) return error
 
   const body = await req.json()
@@ -56,11 +56,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  const { entry, error } = await getEntryAndVerifyOwner(params.id, user.id)
+  const { entry, error } = await getEntryAndVerifyOwner(id, user.id)
   if (error) return error
 
   try {

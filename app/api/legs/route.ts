@@ -5,7 +5,7 @@ import { getPlan, getLimit } from '@/lib/entitlements'
 import { createLegSchema } from '@/lib/validators/leg'
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 

@@ -9,7 +9,7 @@ import sharp from 'sharp'
 const MAX_DIMENSION = 2000
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   // Verify entry ownership
-  const entry = await prisma.journalEntry.findUnique({ where: { id: params.id }, select: { userId: true } })
+  const entry = await prisma.journalEntry.findUnique({ where: { id: id }, select: { userId: true } })
   if (!entry) return NextResponse.json({ error: 'not_found' }, { status: 404 })
   if (entry.userId !== user.id) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   // Upload to Supabase storage
   const uuid = randomUUID()
-  const storagePath = `${user.id}/${params.id}/${uuid}.jpg`
+  const storagePath = `${user.id}/${id}/${uuid}.jpg`
   const admin = createAdminClient()
 
   const { error: uploadError } = await admin.storage
@@ -72,10 +72,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { data: { publicUrl } } = admin.storage.from('journal-photos').getPublicUrl(storagePath)
 
   // Determine position (append to end)
-  const photoCount = await prisma.journalPhoto.count({ where: { entryId: params.id } })
+  const photoCount = await prisma.journalPhoto.count({ where: { entryId: id } })
 
   const photo = await prisma.journalPhoto.create({
-    data: { entryId: params.id, url: publicUrl, position: photoCount },
+    data: { entryId: id, url: publicUrl, position: photoCount },
   })
 
   // Update usage counters
