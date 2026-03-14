@@ -1,6 +1,9 @@
+'use client'
+
 import Link from 'next/link'
 import { Clock, Map, CheckCircle, Train, ArrowRight } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
+import DemoMap from '@/components/landing/DemoMap'
 
 const FEATURES = [
   {
@@ -105,60 +108,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* SVG Route Map */}
-          <div style={{ padding: '24px', position: 'relative', overflow: 'hidden', minHeight: 240 }}>
-            {/* Background grid */}
-            <svg width="100%" height="220" viewBox="0 0 860 220" fill="none" style={{ position: 'absolute', inset: 0, opacity: 0.08 }}>
-              {Array.from({ length: 13 }).flatMap((_, i) =>
-                Array.from({ length: 7 }).map((_, j) => (
-                  <circle key={`${i}-${j}`} cx={30 + i * 67} cy={20 + j * 32} r="1.5" fill="#4f8ef7" />
-                ))
-              )}
-            </svg>
-
-            {/* Route */}
-            <svg width="100%" height="210" viewBox="0 0 820 210" fill="none" style={{ position: 'relative', zIndex: 1 }}>
-              {/* Route polyline */}
-              <path
-                d="M 90 155 C 170 148 220 130 290 120 C 360 110 400 102 470 98 C 540 94 590 112 650 125"
-                stroke="#4f8ef7" strokeWidth="2.5" strokeLinecap="round" fill="none"
-              />
-              {/* Dashed secondary track */}
-              <path
-                d="M 90 159 C 170 152 220 134 290 124 C 360 114 400 106 470 102 C 540 98 590 116 650 129"
-                stroke="#1e3a6e" strokeWidth="1" strokeDasharray="4 4" strokeLinecap="round" fill="none"
-              />
-
-              {/* Amsterdam */}
-              <circle cx="90"  cy="155" r="6" fill="#080d1a" stroke="#4f8ef7" strokeWidth="2"/>
-              <circle cx="90"  cy="155" r="3" fill="#4f8ef7"/>
-              <text x="90"  y="175" textAnchor="middle" fill="#8ba3c7" fontSize="11" fontFamily="Inter, sans-serif">Amsterdam</text>
-
-              {/* Köln */}
-              <circle cx="260" cy="123" r="4.5" fill="#080d1a" stroke="#4f8ef7" strokeWidth="1.5"/>
-              <circle cx="260" cy="123" r="2"   fill="#4f8ef7"/>
-              <text x="260" y="140" textAnchor="middle" fill="#8ba3c7" fontSize="10" fontFamily="Inter, sans-serif">Köln</text>
-
-              {/* Frankfurt */}
-              <circle cx="380" cy="106" r="4.5" fill="#080d1a" stroke="#4f8ef7" strokeWidth="1.5"/>
-              <circle cx="380" cy="106" r="2"   fill="#4f8ef7"/>
-              <text x="380" y="123" textAnchor="middle" fill="#8ba3c7" fontSize="10" fontFamily="Inter, sans-serif">Frankfurt</text>
-
-              {/* München */}
-              <circle cx="510" cy="98" r="4.5" fill="#080d1a" stroke="#4f8ef7" strokeWidth="1.5"/>
-              <circle cx="510" cy="98" r="2"   fill="#4f8ef7"/>
-              <text x="510" y="115" textAnchor="middle" fill="#8ba3c7" fontSize="10" fontFamily="Inter, sans-serif">München</text>
-
-              {/* Wien */}
-              <circle cx="650" cy="125" r="6"   fill="#080d1a" stroke="#4f8ef7" strokeWidth="2"/>
-              <circle cx="650" cy="125" r="3"   fill="#4f8ef7"/>
-              <text x="650" y="145" textAnchor="middle" fill="#8ba3c7" fontSize="11" fontFamily="Inter, sans-serif">Wien</text>
-
-              {/* Train marker */}
-              <rect x="435" y="76" width="30" height="18" rx="5" fill="#4f8ef7"/>
-              <text x="450" y="89" textAnchor="middle" fill="#080d1a" fontSize="9" fontWeight="700" fontFamily="Inter, sans-serif">ICE</text>
-            </svg>
-          </div>
+          {/* Demo Map */}
+          <DemoMap />
 
           {/* Stats bar */}
           <div style={{ padding: '14px 24px', borderTop: '1px solid #1e2d4a', display: 'flex', gap: 36 }}>
@@ -168,7 +119,7 @@ export default function HomePage() {
             </div>
             <div>
               <p style={{ fontSize: 10, color: '#4a6a9a', marginBottom: 3, letterSpacing: '0.06em', fontWeight: 600 }}>DAUER</p>
-              <p style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>11h 30m</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>13h 28m</p>
             </div>
             <div>
               <p style={{ fontSize: 10, color: '#4a6a9a', marginBottom: 3, letterSpacing: '0.06em', fontWeight: 600 }}>ABSCHNITTE</p>
