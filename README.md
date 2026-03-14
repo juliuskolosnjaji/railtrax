@@ -1,6 +1,15 @@
 # Railtrax
 
-A full-stack web app for planning, visualizing, and documenting European train journeys. Built with Next.js 14, Supabase, and Tailwind CSS.
+A full-stack web app for planning, visualizing, and documenting European train journeys. Built with Next.js 16, Supabase, and Tailwind CSS.
+
+## ✅ Recent Updates
+
+- **Next.js 16 Upgrade**: Successfully upgraded from Next.js 14 to Next.js 16 with React 19
+- **Google OAuth**: Added Google sign-up and login functionality
+- **PDF Export Fixes**: Resolved 4 critical issues - missing station names, invalid dates, 0km distances, and map failures
+- **Fallback Map Generator**: Created SVG fallback when external map services fail
+- **Distance Calculations**: Fixed missing distance_km calculations for existing legs
+- **Render.com Deployment**: Ready for deployment on Render.com with proper configuration
 
 ## 🚀 Features
 
@@ -14,7 +23,7 @@ A full-stack web app for planning, visualizing, and documenting European train j
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **Database**: Supabase (PostgreSQL)
 - **ORM**: Prisma
 - **Auth**: Supabase Auth
@@ -22,13 +31,24 @@ A full-stack web app for planning, visualizing, and documenting European train j
 - **Map**: Maplibre GL JS + react-map-gl
 - **State Management**: React Query + Zustand
 - **Forms**: React Hook Form + Zod
-- **Deployment**: Vercel
+- **Deployment**: Render.com
 
 ## 🚀 Deployment
 
-### Prerequisites
+### Render.com Deployment (Recommended)
 
-Before deploying to Vercel, you need to set up the following services:
+1. **Connect your GitHub repository** to Render.com
+2. **Use the provided `render.yaml`** configuration file
+3. **Set environment variables** as shown above
+4. **Deploy automatically** on push to main branch
+
+See [`RENDER_DEPLOYMENT.md`](RENDER_DEPLOYMENT.md) for detailed deployment instructions.
+
+### Manual Setup (Alternative)
+
+#### Prerequisites
+
+Before deploying, you need to set up the following services:
 
 1. **Supabase Project** - Database and Auth
 2. **Upstash Redis** - Caching and rate limiting
@@ -65,7 +85,11 @@ LS_VARIANT_PRO_YEARLY=your-pro-yearly-variant-id
 RESEND_API_KEY=your-resend-api-key
 
 # App
-NEXT_PUBLIC_URL=https://your-app.vercel.app
+NEXT_PUBLIC_URL=https://your-app.render.app
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 # AI (optional)
 ANTHROPIC_API_KEY=your-anthropic-api-key
@@ -98,11 +122,37 @@ NAVITIA_API_KEY=your-navitia-api-key
    npx prisma db seed
    ```
 
+### Post-Deployment Fixes
+
+1. **Fix Missing Distance Calculations** (for existing trips):
+   ```bash
+   npx prisma db execute --file scripts/fix-distance-km.sql
+   ```
+   This fixes 0km/0kg CO₂ calculations in PDF exports.
+
+2. **PDF Export Issues Resolved**:
+   - ✅ Station names now display correctly
+   - ✅ Invalid dates fixed with proper null handling
+   - ✅ Distance calculations work for all legs
+   - ✅ Fallback SVG map when external services fail
+
+### Google OAuth Setup
+
+1. **Set up Google Cloud Console**:
+   - Create a new project or select existing
+   - Enable Google+ API
+   - Create OAuth 2.0 credentials
+   - Add authorized redirect URIs: `https://your-app.com/auth/callback`
+   - Copy Client ID and Client Secret to environment variables
+
+   See [`GOOGLE_OAUTH_SETUP.md`](GOOGLE_OAUTH_SETUP.md) for detailed German tutorial.
+
 ### Supabase Configuration
 
 1. **Enable Google OAuth**:
    - Go to Authentication → Providers
    - Enable Google provider
+   - Add your Google Client ID and Client Secret
    - Add your Google OAuth credentials
 
 2. **Set up Storage Buckets**:

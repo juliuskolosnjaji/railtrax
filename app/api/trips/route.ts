@@ -10,7 +10,8 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const trips = await prisma().trip.findMany({
+    const prismaClient = prisma()
+    const trips = await prismaClient.trip.findMany({
       where: { userId: user.id },
       include: { _count: { select: { legs: true } } },
       orderBy: { createdAt: 'desc' },
