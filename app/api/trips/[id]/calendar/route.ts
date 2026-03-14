@@ -3,6 +3,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
+type Leg = {
+  id: string
+  trainType?: string | null
+  trainNumber?: string | null
+  originName: string
+  destName: string
+  operator?: string | null
+  seat?: string | null
+  notes?: string | null
+  plannedDeparture: Date
+  plannedArrival: Date
+}
+
 type Params = { params: Promise<{ id: string }> }
 
 export async function GET(
@@ -33,7 +46,7 @@ export async function GET(
     const calendar = ical({ name: `Railtripper - ${trip.title}` })
 
     // Add events for each leg
-    trip.legs.forEach((leg) => {
+    trip.legs.forEach((leg: Leg) => {
       const summary = leg.trainType && leg.trainNumber
         ? `${leg.trainType} ${leg.trainNumber}: ${leg.originName} → ${leg.destName}`
         : `${leg.originName} → ${leg.destName}`
