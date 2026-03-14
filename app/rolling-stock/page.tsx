@@ -4,6 +4,31 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 
+interface RollingStockWithCount {
+  id: string
+  operator: string
+  series: string
+  uicClass?: string | null
+  manufacturer?: string | null
+  introducedYear?: number | null
+  maxSpeedKmh?: number | null
+  seats1st?: number | null
+  seats2nd?: number | null
+  hasBistro?: boolean | null
+  hasWifi?: boolean | null
+  hasWheelchair?: boolean | null
+  hasBikeSpace?: boolean | null
+  powerSystem?: string | null
+  traction?: string | null
+  description?: string | null
+  photoUrl?: string | null
+  wikiUrl?: string | null
+  dataSource?: string | null
+  _count: {
+    legs: number
+  }
+}
+
 interface PageProps {
   searchParams?: { q?: string; operator?: string }
 }
@@ -93,7 +118,7 @@ export default async function RollingStockDirectoryPage({ searchParams }: PagePr
 
         {/* Results */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {rollingStock.map((stock) => (
+          {rollingStock.map((stock: RollingStockWithCount) => (
             <Link
               key={stock.id}
               href={`/rolling-stock/${stock.id}`}
