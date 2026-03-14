@@ -1,17 +1,7 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "nextjs",
   "functions": {
-    "app/api/**/*": {
-      "maxDuration": 30
+    "middleware.js": {
+      "runtime": "nodejs18.x"
     }
-  },
-  "crons": [
-    {
-      "path": "/api/health",
-      "schedule": "0 0 * * *"
-    }
-  ]
+  }
 }
