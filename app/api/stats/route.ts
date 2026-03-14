@@ -23,6 +23,17 @@ export async function GET() {
   const plan = getPlan(user.app_metadata as { plan?: string })
 
   try {
+    type TripWithLegs = {
+      legs: Array<{
+        distanceKm: number | null
+        plannedDeparture: Date
+        plannedArrival: Date
+        originIbnr: string | null
+        destIbnr: string | null
+        operator: string | null
+      }>
+    }
+    
     const trips = await prisma.trip.findMany({
       where: { userId: user.id, status: 'completed' },
       include: {
@@ -69,7 +80,7 @@ export async function GET() {
       }
     }
 
-    const totalLegs = trips.reduce((sum: number, trip) => sum + (trip.legs?.length || 0), 0)
+    const totalLegs = trips.reduce((sum: number, trip: TripWithLegs) => sum + trip.legs.length, 0)
 
     const base = {
       total_km: Math.round(totalKm),
