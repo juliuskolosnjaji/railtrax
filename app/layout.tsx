@@ -6,7 +6,7 @@ import { QueryProvider } from '@/components/shared/QueryProvider'
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {
-  title: 'RailPlanner',
+  title: 'Railtrax',
   description: 'Plan, visualise, and document European train journeys.',
 }
 
@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="de">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#E32228" />
+        <meta name="theme-color" content="#080d1a" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className={inter.className}>

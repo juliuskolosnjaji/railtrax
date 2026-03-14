@@ -9,7 +9,7 @@ function ensureVapidInitialized() {
       throw new Error('VAPID keys not configured')
     }
     webpush.setVapidDetails(
-      'mailto:support@railplanner.app',
+      'mailto:support@railtrax.app',
       process.env.VAPID_PUBLIC_KEY,
       process.env.VAPID_PRIVATE_KEY
     )

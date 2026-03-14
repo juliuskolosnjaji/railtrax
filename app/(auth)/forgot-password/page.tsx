@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Logo } from '@/components/ui/Logo'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -37,60 +38,72 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <Card className="bg-zinc-900 border-zinc-800 text-white">
-        <CardHeader>
-          <CardTitle className="text-xl">Check your email</CardTitle>
-          <CardDescription className="text-zinc-400">
-            If an account exists for that address, we sent a password reset link.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link href="/login" className="text-sm text-zinc-400 hover:text-white transition-colors">
-            ← Back to sign in
-          </Link>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <div className="flex justify-center">
+          <Logo size="lg" />
+        </div>
+        <Card className="text-white rounded-xl" style={{ background: '#0a1628', border: '1px solid #1e2d4a' }}>
+          <CardHeader>
+            <CardTitle className="text-xl">Check your email</CardTitle>
+            <CardDescription style={{ color: '#8ba3c7' }}>
+              If an account exists for that address, we sent a password reset link.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/login" className="text-sm transition-colors hover:text-white" style={{ color: '#4a6a9a' }}>
+              ← Back to sign in
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800 text-white">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-xl">Reset password</CardTitle>
-        <CardDescription className="text-zinc-400">
-          Enter your email address and we&apos;ll send you a reset link
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-zinc-300">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-zinc-500"
-              {...register('email')}
-            />
-            {errors.email && <p className="text-xs text-red-400">{errors.email.message}</p>}
-          </div>
+    <div className="space-y-6">
+      <div className="flex justify-center">
+        <Logo size="lg" />
+      </div>
+      <Card className="text-white rounded-xl" style={{ background: '#0a1628', border: '1px solid #1e2d4a' }}>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-xl">Reset password</CardTitle>
+          <CardDescription style={{ color: '#8ba3c7' }}>
+            Enter your email address and we&apos;ll send you a reset link
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" style={{ color: '#8ba3c7' }}>Email</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                className="text-white placeholder:text-[#4a6a9a] focus-visible:ring-[#4f8ef7]"
+                style={{ background: '#080d1a', border: '1px solid #1e2d4a' }}
+                {...register('email')}
+              />
+              {errors.email && <p className="text-xs text-[#e25555]">{errors.email.message}</p>}
+            </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-white text-zinc-900 hover:bg-zinc-100"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Sending…' : 'Send reset link'}
-          </Button>
+            <Button
+              type="submit"
+              className="w-full hover:opacity-90 transition-opacity"
+              style={{ background: '#4f8ef7', color: '#fff' }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Sending…' : 'Send reset link'}
+            </Button>
 
-          <p className="text-center text-sm">
-            <Link href="/login" className="text-zinc-400 hover:text-white transition-colors">
-              ← Back to sign in
-            </Link>
-          </p>
-        </form>
-      </CardContent>
-    </Card>
+            <p className="text-center text-sm">
+              <Link href="/login" className="transition-colors hover:text-white" style={{ color: '#4a6a9a' }}>
+                ← Back to sign in
+              </Link>
+            </p>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

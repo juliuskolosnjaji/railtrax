@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Logo } from '@/components/ui/Logo'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -66,7 +67,8 @@ function LoginForm() {
       <Button
         type="button"
         variant="outline"
-        className="w-full border-zinc-700 bg-zinc-800 text-white hover:bg-zinc-700"
+        className="w-full"
+        style={{ background: '#0d1f3c', border: '1px solid #1e3a6e', color: '#fff' }}
         onClick={handleGoogleSignIn}
         disabled={isGoogleLoading}
       >
@@ -81,31 +83,32 @@ function LoginForm() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-zinc-700" />
+          <span className="w-full border-t" style={{ borderColor: '#1e2d4a' }} />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-zinc-900 px-2 text-zinc-500">or</span>
+          <span className="px-2 text-xs" style={{ background: '#0a1628', color: '#4a6a9a' }}>or</span>
         </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-zinc-300">Email</Label>
+          <Label htmlFor="email" style={{ color: '#8ba3c7' }}>Email</Label>
           <Input
             id="email"
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
-            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-zinc-500"
+            className="text-white placeholder:text-[#4a6a9a] focus-visible:ring-[#4f8ef7]"
+            style={{ background: '#080d1a', border: '1px solid #1e2d4a' }}
             {...register('email')}
           />
-          {errors.email && <p className="text-xs text-red-400">{errors.email.message}</p>}
+          {errors.email && <p className="text-xs text-[#e25555]">{errors.email.message}</p>}
         </div>
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-zinc-300">Password</Label>
-            <Link href="/forgot-password" className="text-xs text-zinc-400 hover:text-white transition-colors">
+            <Label htmlFor="password" style={{ color: '#8ba3c7' }}>Password</Label>
+            <Link href="/forgot-password" className="text-xs transition-colors hover:text-white" style={{ color: '#4a6a9a' }}>
               Forgot password?
             </Link>
           </div>
@@ -114,30 +117,32 @@ function LoginForm() {
             type="password"
             autoComplete="current-password"
             placeholder="••••••••"
-            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-zinc-500"
+            className="text-white placeholder:text-[#4a6a9a] focus-visible:ring-[#4f8ef7]"
+            style={{ background: '#080d1a', border: '1px solid #1e2d4a' }}
             {...register('password')}
           />
-          {errors.password && <p className="text-xs text-red-400">{errors.password.message}</p>}
+          {errors.password && <p className="text-xs text-[#e25555]">{errors.password.message}</p>}
         </div>
 
         {serverError && (
-          <p className="text-sm text-red-400 bg-red-950/30 border border-red-900/50 rounded-md px-3 py-2">
+          <p className="text-sm rounded-md px-3 py-2" style={{ color: '#e25555', background: '#1f0d0d', border: '1px solid #e2555530' }}>
             {serverError}
           </p>
         )}
 
         <Button
           type="submit"
-          className="w-full bg-white text-zinc-900 hover:bg-zinc-100"
+          className="w-full hover:opacity-90 transition-opacity"
+          style={{ background: '#4f8ef7', color: '#fff' }}
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
 
-      <p className="text-center text-sm text-zinc-500">
+      <p className="text-center text-sm" style={{ color: '#4a6a9a' }}>
         No account?{' '}
-        <Link href="/signup" className="text-zinc-300 hover:text-white transition-colors">
+        <Link href="/signup" className="transition-colors hover:text-white" style={{ color: '#8ba3c7' }}>
           Create one
         </Link>
       </p>
@@ -147,18 +152,23 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Card className="bg-zinc-900 border-zinc-800 text-white">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-xl">Sign in</CardTitle>
-        <CardDescription className="text-zinc-400">
-          Enter your email and password to continue
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Suspense>
-          <LoginForm />
-        </Suspense>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="flex justify-center">
+        <Logo size="lg" />
+      </div>
+      <Card className="text-white rounded-xl" style={{ background: '#0a1628', border: '1px solid #1e2d4a' }}>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-xl">Sign in</CardTitle>
+          <CardDescription style={{ color: '#8ba3c7' }}>
+            Enter your email and password to continue
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Suspense>
+            <LoginForm />
+          </Suspense>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

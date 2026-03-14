@@ -27,7 +27,7 @@ export async function createCheckoutUrl(
       },
       productOptions: {
         redirectUrl: `${process.env.NEXT_PUBLIC_URL}/settings/billing?success=true`,
-        receiptButtonText: 'Go to RailPlanner',
+        receiptButtonText: 'Go to Railtrax',
       },
     },
   )

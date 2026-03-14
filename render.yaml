@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: railplanner-web
+    name: railtrax-web
     env: node
     buildCommand: npm install && npm run build
     startCommand: npm start
@@ -66,7 +66,7 @@ services:
       - key: NEXT_PUBLIC_URL
         fromService:
           type: web
-          name: railplanner-web
+          name: railtrax-web
           envVarKey: RENDER_EXTERNAL_URL
       
       # Node.js version

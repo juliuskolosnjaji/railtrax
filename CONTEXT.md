@@ -1,4 +1,4 @@
-# RailPlanner — Developer Context
+# Railtrax — Developer Context
 
 > **Paste this file at the start of every Claude Code session.**
 > Keep it updated as you make decisions. It is the single source of truth for "what have we already decided and why."
@@ -17,7 +17,7 @@ Full product spec is in `SPEC.md` at the root of this repo.
 
 | Layer | Choice | Do not suggest alternatives |
 |---|---|---|
-| Framework | Next.js 14, App Router, TypeScript | No Pages Router, no Remix |
+| Framework | Next.js 16, App Router, TypeScript | No Pages Router, no Remix |
 | Database | Supabase (PostgreSQL) | No PlanetScale, no Neon |
 | ORM | Prisma | No Drizzle, no raw SQL in app code |
 | Auth | Supabase Auth | No NextAuth, no Clerk |
@@ -33,7 +33,7 @@ Full product spec is in `SPEC.md` at the root of this repo.
 | Rich text (journal) | Tiptap | No Quill, no Slate |
 | Charts (stats page) | Recharts | No Chart.js in this project |
 | AI | Anthropic Claude API (server-side only) | Never expose API key to client |
-| Deployment | Vercel Hobby (free) | No Railway, no Fly.io |
+| Deployment | Render.com | No Vercel, no Railway, no Fly.io |
 | Background jobs | Supabase Edge Functions + pg_cron | No separate worker process |
 | PDF generation | @react-pdf/renderer (Node.js only) | No client-side PDF libraries |
 
@@ -42,7 +42,7 @@ Full product spec is in `SPEC.md` at the root of this repo.
 ## Project structure
 
 ```
-railplanner/
+railtrax/
 ├── app/                          # Next.js App Router
 │   ├── (auth)/                   # Auth pages (login, signup, forgot-password)
 │   ├── (app)/                    # Authenticated app shell
@@ -247,7 +247,7 @@ NAVITIA_API_KEY                 ← Basic auth (token:), navitia.io, 3000 req/da
 
 6. **The Lemon Squeezy webhook endpoint must not use Next.js body parsing.** It needs the raw body to verify the HMAC signature. Export `config = { api: { bodyParser: false } }` from the route.
 
-7. **Supabase free tier pauses after 1 week of inactivity.** The `/api/health` endpoint + UptimeRobot ping (every 5 min) prevents this. Do not remove the health endpoint.
+7. **Supabase free tier pauses after 1 week of inactivity.** The `/api/health` endpoint exists for uptime monitoring. Do not remove it.
 
 8. **All Overpass API calls are server-side and cached** in Upstash Redis with a 7-day TTL. Never call Overpass from the browser — rate limits are per-IP.
 
@@ -257,108 +257,37 @@ NAVITIA_API_KEY                 ← Basic auth (token:), navitia.io, 3000 req/da
 
 ---
 
-## What has been built (update this as you go)
+## What has been built
 
-### ✅ Done
-- [x] Next.js 14 App Router scaffold (TypeScript, Tailwind CSS, ESLint)
-- [x] shadcn/ui configured (zinc base, CSS variables, default theme)
-- [x] Prisma schema — all 16 models (users, trips, legs, tickets, journal_entries, journal_photos, route_reviews, interrail_passes, achievements, user_achievements, api_keys, subscriptions, usage_counters, custom_routes, rolling_stock, leg_rolling_stock)
-- [x] lib/supabase/client.ts, server.ts, admin.ts created
-- [x] app/api/health/route.ts created
-- [x] supabase/migrations/20260312000000_storage_and_triggers.sql — storage buckets (tickets, journal-photos, avatars) + RLS policies + usage_counter triggers
-- [x] Dependencies installed: @supabase/supabase-js, @supabase/ssr, prisma, zod, react-hook-form, @tanstack/react-query v5, zustand, @upstash/redis, @upstash/ratelimit, resend
-- [x] Root layout and placeholder homepage with RailPlanner branding
-- [x] Auth pages: /login (email+password + Google OAuth), /signup (email+password+username), /forgot-password
-- [x] app/auth/callback/route.ts — OAuth code exchange handler
-- [x] middleware.ts — session refresh on every request; redirects unauthenticated → /login, authenticated away from auth routes → /dashboard
-- [x] hooks/useUser.ts — { user, plan, isLoading } using onAuthStateChange
-- [x] lib/entitlements.ts — PLAN_LIMITS, getPlan, can, getLimit
-- [x] app/(app)/layout.tsx — sidebar with nav (Dashboard, Search, Stats, Settings), user avatar, sign-out
-- [x] app/(app)/dashboard/page.tsx — placeholder dashboard
-- [x] supabase/migrations/20260313000000_handle_new_user.sql — trigger creates public.users + usage_counters on auth.users INSERT
-- [x] components/shared/SignOutButton.tsx
-- [x] hooks/useEntitlements.ts — { plan, can, getLimit } client hook
-- [x] lib/lemonsqueezy.ts — createCheckoutUrl(), getCustomerPortalUrl()
-- [x] app/api/billing/checkout/route.ts — POST, creates LS checkout URL
-- [x] app/api/billing/webhook/route.ts — handles subscription_created/updated/resumed/cancelled/expired/payment_failed; raw body, HMAC verification
-- [x] components/billing/UpgradeModal.tsx — dialog with monthly/yearly toggle, upgrades to Plus or Pro
-- [x] app/(app)/settings/billing/page.tsx + BillingClient.tsx — plan badge, usage bars, upgrade cards, portal link, cancellation warning
-- [x] app/api/trips/route.ts — GET list, POST create (auth + usage limit check)
-- [x] app/api/trips/[id]/route.ts — GET, PUT, DELETE (ownership enforced)
-- [x] app/api/legs/route.ts — POST create (auth + trip ownership + per-trip leg limit)
-- [x] app/api/legs/[id]/route.ts — GET, PUT, DELETE (ownership via trip relation)
-- [x] hooks/useTrips.ts — useTrips, useTrip, useCreateTrip, useUpdateTrip, useDeleteTrip, useCreateLeg, useUpdateLeg, useDeleteLeg (all with query invalidation)
-- [x] components/trips/TripCard.tsx — card with status badge, date range, leg count
-- [x] components/trips/NewTripSheet.tsx — RHF + Zod form, creates trip, navigates to detail
-- [x] components/trips/LegEditorSheet.tsx — RHF + Zod form, dual create/edit, all leg fields
-- [x] components/trips/LegCard.tsx — timeline item with operator badge, delay badge, edit/delete
-- [x] app/(app)/dashboard/page.tsx — trip grid, New trip button with UpgradeModal gate
-- [x] app/(app)/trips/[id]/page.tsx — trip header, leg timeline, Add leg button; wired to TripMap
-- [x] maplibre-gl + react-map-gl installed; db-vendo-client installed (replaced db-hafas — DB shut down old HAFAS API permanently)
-- [x] next.config.mjs — serverExternalPackages: ['db-vendo-client']
-- [x] lib/hafas.ts — getHafas() singleton, fetchPolyline() with Hafas departure search + fallback
-- [x] hooks/useTrips.ts Leg type — added originLat/Lon, destLat/Lon, polyline: [number, number][] | null
-- [x] components/map/TripMap.tsx — react-map-gl Map with Stadia style, useRef<MapRef>, fitBounds on load, OpenRailwayMap overlay toggle (70% opacity), NavigationControl
-- [x] components/map/RouteLayer.tsx — GeoJSON LineString per leg; uses polyline if stored, else straight line; colours per operator
-- [x] components/map/StationMarker.tsx — circle Marker + Popup with station name, planned/actual time, delay
-- [x] app/api/trips/[id]/polylines/route.ts — lazily fetches Hafas polylines for legs that have IBNR + trainNumber; falls back silently
-- [x] lib/hafas-types.ts — shared types: HafasStation, HafasDeparture, HafasStopover, HafasJourney (used by API routes and client components)
-- [x] lib/hafas.ts — added searchStations(), getDepartures(), getJourney(), getJourneyByTrainNumber() (searches major German hubs by full-day departures)
-- [x] hooks/useDebounce.ts — generic useDebounce<T> hook
-- [x] hooks/useTrips.ts — apiFetch exported (was private)
-- [x] app/api/stations/search/route.ts — GET ?q=… → HafasStation[]
-- [x] app/api/departures/route.ts — GET ?ibnr=…&when=… → HafasDeparture[]
-- [x] app/api/journey/route.ts — GET ?tripId=… → HafasJourney
-- [x] app/api/trains/route.ts — GET ?number=…&date=… → HafasJourney or 404
-- [x] components/trips/LegEditorSheet.tsx — full redesign: 3-tab sheet (Departures / Train / Manual); Departures tab: station autocomplete + datetime picker → departure list → journey confirm; Train tab: train number + date + find button → journey confirm; journey confirm: board/alight selects with preview, seat/notes, submit; Manual tab: existing RHF form preserved
+### ✅ Production ready
+- Supabase auth (email + Google OAuth)
+- Trip / leg CRUD with plan enforcement
+- Connection search via db-vendo-client
+- Public trip sharing with share tokens
+- Rolling stock database (seeded, browseable at /rolling-stock)
+- Billing + entitlements (Lemon Squeezy, free/plus/pro)
+- iCal export
+- Träwelling check-in integration
+- Web push notification infrastructure
+- Map visualisation (Maplibre GL + OpenFreeMap tiles)
+- PWA manifest
 
-- [x] app/(app)/search/page.tsx — connection search: station autocomplete (StationInput, debounce 300ms), swap button, date/time pickers, 1st/2nd class toggle, TanStack Query search (enabled by searchParams state), recent searches in localStorage (max 5, chip quick-picks), 3 skeleton loading cards, 503/empty/error states
-- [x] components/search/StationInput.tsx — controlled station autocomplete, /api/stations/search, dropdown with 6 results, debounce 300ms
-- [x] components/search/JourneyCard.tsx — result card: departure→arrival + duration + transfers, route strip (station dots + coloured segments + train labels per leg type), operator badges, expand chevron → intermediate stops via /api/search/trip (useQueries, lazy fetch per leg, Skeleton loading)
-- [x] components/search/AddToTripSheet.tsx — sheet: list user trips + inline "create new trip" form; posts each JourneyLeg to /api/legs sequentially; redirects to /trips/[id] on success
-- [x] app/(app)/search/loading.tsx — Suspense skeleton for search page
+### 🚧 Partially built
+- Journal entries + photo upload (backend done, UI minimal)
+- Statistics & heatmap page (exists, incomplete)
+- Rolling stock auto-detection (`lib/formation/` — Marudor, Swiss OTD, NS, SNCF sources active; RTT pending keys)
+- PDF/image trip export (`lib/export/clientExport.ts` exists)
+- Polyline fetching for map routes (endpoint exists, not always triggered)
 
-- [x] app/(app)/dashboard/loading.tsx, trips/[id]/loading.tsx, settings/billing/loading.tsx — Suspense streaming skeletons matching each page's layout
-- [x] trips/[id]/page.tsx — TripMap dynamic() loading prop prevents CLS while maplibre bundle downloads
-- [x] app/layout.tsx — Inter font display:'swap' prevents invisible text during load
-- [x] prisma/schema.prisma — idx_trips_user_status_created, idx_legs_trip_departure, idx_legs_status_departure
-- [x] supabase/migrations/20260313000002_performance_indexes.sql — same indexes as raw SQL for Supabase SQL editor
+### ⏳ Schema exists, UI missing
+- Achievements / badges
+- API key management (Pro tier)
+- Custom routes
+- Interrail pass tracking
+- Ticket wallet
 
-- [x] app/api/stats/route.ts — GET (auth required): sums distance_km + counts completed legs/trips, derives total_hours from departure/arrival diff, extracts country codes from IBNRs (80=DE 85=AT 88=CH 87=FR); free plan gets base stats + upgradeRequired:true; plus/pro also get co2_saved_kg = total_km × 0.22
-- [x] app/(app)/stats/page.tsx — 4 stat cards (Total distance, Completed trips, Time on trains, Countries visited), CO2 card (Plus only, locked with UpgradeModal for free), placeholder heatmap + chart cards locked for free
-- [x] public/manifest.json — PWA manifest: name "Railtrax", theme_color "#E32228", display "standalone", start_url "/dashboard", icons at 192px and 512px
-- [x] @ducanh2912/next-pwa installed; next.config.mjs wrapped with withPWA: NetworkFirst /api/*, CacheFirst _next/static/*, CacheFirst OpenFreeMap tiles (max 500, 30d TTL), StaleWhileRevalidate for page navigations; disabled in development
-- [x] app/layout.tsx — added <link rel="manifest">, <meta name="theme-color" content="#E32228">, <meta name="apple-mobile-web-app-capable">
-
-- [x] app/api/journal/route.ts — GET ?tripId= (list entries with photos) + POST (Plus/Pro gate, trip ownership check, optional leg validation)
-- [x] app/api/journal/[id]/route.ts — GET, PUT, DELETE (ownership enforced)
-- [x] app/api/journal/[id]/photos/route.ts — POST multipart: sharp resize to max 2000px → JPEG 85%, upload to journal-photos/{userId}/{entryId}/{uuid}.jpg, increment usage_counters
-- [x] app/api/stats/heatmap/route.ts — GET (Plus/Pro gate): returns GeoJSON FeatureCollection of all leg polylines (falls back to straight line); consumed by HeatmapMap on stats page
-- [x] @tiptap/react @tiptap/starter-kit @tiptap/extension-image @tiptap/extension-link @tiptap/extension-placeholder @tiptap/html installed; sharp + yet-another-react-lightbox installed
-- [x] lib/validators/journal.ts — createJournalEntrySchema + updateJournalEntrySchema (Zod)
-- [x] hooks/useJournal.ts — useJournalEntries, useCreateJournalEntry, useUpdateJournalEntry, useDeleteJournalEntry (TanStack Query with invalidation)
-- [x] components/journal/JournalEditor.tsx — Tiptap editor (StarterKit + Image + Link + Placeholder); toolbar (Bold/Italic/BulletList/Link/ImageUpload); mood emoji picker; 30s autosave (debounced); creates entry on first save (POST), updates on subsequent saves (PUT); image upload creates entry first if needed
-- [x] components/journal/JournalEntryCard.tsx — read-only; generateHTML from @tiptap/html; mood + timestamp + location header; photo grid (3-col); yet-another-react-lightbox on photo click; edit/delete on hover
-- [x] app/(app)/trips/[id]/page.tsx — reworked timeline: leg-linked entries appear indented below their leg; floating entries in "General entries" section; "Add entry" button (gated behind Plus via UpgradeModal); "add journal entry for this leg" inline link per leg; journal editor rendered as fixed modal overlay
-- [x] Trip export (PDF + image) — @react-pdf/renderer for PDF, @vercel/og for image; static map from OpenStreetMap staticmap API; Export button in trip detail header (DropdownMenu with PDF/Image options); available to all users
-
-- [x] lib/rollingStock.ts — static lookup; identifyRollingStock(leg) → RollingStockInfo | null — switch on category extracted from lineName; covers DB ICE/IC, ÖBB RJ/NJ, SNCF TGV/OUIGO/TER, Trenitalia FR/FA/ITA, Eurostar/Thalys, Renfe AVE, SBB IR/ICN, Flixtrain, EuroNight
-- [x] lib/marudor.ts — standalone Marudor client (kept for backwards compat); lib/formation/marudor.ts is the live source used by orchestrator
-- [x] lib/formation/ — multi-source formation module: types.ts, marudor.ts, swissOtd.ts, ns.ts, sncf.ts, rtt.ts, static.ts, index.ts; getFormation(leg) → FormationResult|null; 6h Redis cache
-- [x] app/api/legs/[id]/rolling-stock/route.ts GET — now calls getFormation() + fetches manualLink in parallel; returns { formation, manualLink }
-- [x] components/rolling-stock/StaticRollingStockChip.tsx — accepts FormationResult; chip with WiFi/bistro/bike icons; click → popover with description, speed, amenity grid, Wikipedia link, source label
-- [x] hooks/useRollingStock.ts — useLegRollingStock returns { formation, manualLink }; useFormation(legId) convenience hook
-- [x] components/trips/LegCard.tsx — useFormation for server result; instant identifyRollingStock client-side fallback while loading; StaticRollingStockChip shows formation data
-
-### 🚧 In progress
-- (nothing — Session 12 complete)
-
-### ⏳ Not started
-- Fill .env.local with real Supabase/LS/Upstash credentials, then run `npx prisma db push`
-- Run storage bucket + trigger SQL in Supabase SQL editor
-- Run supabase/migrations/20260313000000_handle_new_user.sql in Supabase SQL editor
-- Enable Google OAuth in Supabase dashboard (Authentication → Providers → Google)
-- Everything in SPEC.md §12 Phase 1 beyond auth (trips CRUD, connection search, map)
+### 📝 Referenced but unused
+- `ANTHROPIC_API_KEY` in env — AI suggestions not yet implemented
 
 ---
 
@@ -382,3 +311,7 @@ NAVITIA_API_KEY                 ← Basic auth (token:), navitia.io, 3000 req/da
 - 2026-03-13 — Replaced db-hafas with db-vendo-client (dbnav profile). Old DB HAFAS API shut down permanently 2025. Vendo wraps DB Navigator + bahn.de APIs. Rate limits stricter than HAFAS — Redis caching is critical. lib/vendo.ts centralises all transit lookups with Redis TTLs (stations 24h, departures 2min, trip 5min, journeys 5min). API routes under /api/search/* and /api/stations/search all enforce 30 req/user/min via Upstash Ratelimit (slidingWindow); HafasError or any vendo error → 503 { error: 'service_unavailable', retryAfter: 30 }.
 - 2026-03-13 — Trip export (PDF + image) is entirely client-side: screenshots the live Maplibre WebGL canvas directly (preserveDrawingBuffer: true on the Map component), draws info strip on a 1200×630 Canvas, then triggers a download. PDF uses jsPDF with the map image + leg table. No server routes, no external APIs needed. html2canvas and jsPDF installed; exports lazy-imported on demand.
 - 2026-03-14 — Formation data uses a multi-source architecture in lib/formation/. Single entrypoint: getFormation(leg) → FormationResult | null. Sources tried in order: (1) Marudor reihung v4 /formation endpoint — DB ICE/IC/EC/EN/NJ, no key needed, Baureihe mapped via BAUREIHE_NAMES to series+amenities; (2) Swiss Open Transport Data — SBB (IBNR prefix 85), key in SWISS_OTD_API_KEY; (3) NS virtual-train-api — NL (IBNR prefix 84), key in NS_API_KEY; (4) SNCF Navitia — TGV/OUIGO/TER/SNCF, key in NAVITIA_API_KEY; (5) Realtime Trains — UK (IBNR prefix 70), credentials in RTT_USERNAME/RTT_PASSWORD; (6) static lib/rollingStock.ts — guaranteed fallback for ÖBB/Trenitalia/Renfe/Eurostar/others. All results cached 6h in Redis. All sources fail silently — never break the leg card UI. GET /api/legs/[id]/rolling-stock now returns { formation: FormationResult|null, manualLink: LegRollingStock|null }. LegCard uses useFormation(legId) for server result with instant identifyRollingStock(leg) client-side fallback while query loads.
+- 2026-03-14 — Renamed project from Railtripper to Railtrax. All branding, package.json name, manifest, User-Agent strings, and export filenames updated.
+- 2026-03-14 — Migrated deployment from Vercel Hobby to Render.com. render.yaml at root defines the web service (Node 20, build: npm install && npm run build, start: npm start). No serverless function timeout limit — standard Node.js timeouts apply. Remove any Vercel-specific workarounds (Edge Function splits, 10s timeout hacks).
+- 2026-03-14 — Upgraded to Next.js 16 / React 19. Dynamic route params and searchParams are now Promises and must be awaited: `const { id } = await params` and `const q = (await searchParams)?.q`.
+- 2026-03-14 — Rebranded to Railtrax with Midnight Blue design system (#080d1a base, #4f8ef7 brand blue). Design tokens in globals.css (hex custom properties + shadcn HSL variables mapped to palette) and tailwind.config.ts (brand/surface/tx color scales). Logo component at components/ui/Logo.tsx (SVG track + station dots). Landing page at /. Auth pages use Logo size="lg" above the card. Sidebar uses Logo. OG image uses dark background. PWA manifest theme_color updated to #080d1a.

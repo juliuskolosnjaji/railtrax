@@ -63,7 +63,7 @@ async function sendPushNotification(
 
   const webpush = await import('https://esm.sh/web-push@3.11.0')
   webpush.setVapidDetails(
-    'mailto:support@railplanner.app',
+    'mailto:support@railtrax.app',
     vapidPublicKey,
     vapidPrivateKey
   )

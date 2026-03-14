@@ -10,7 +10,7 @@ export async function GET(
 ) {
   const { shareToken } = await params
   const supabase = await createClient()
-  
+
   const { data: trip } = await supabase
     .from('trips')
     .select('title, description, start_date, end_date, legs(distance_km)')
@@ -22,7 +22,10 @@ export async function GET(
     return new Response('Trip not found', { status: 404 })
   }
 
-  const totalDistance = (trip.legs as { distance_km?: number }[]).reduce((sum: number, leg: { distance_km?: number }) => sum + (leg.distance_km || 0), 0)
+  const totalDistance = (trip.legs as { distance_km?: number }[]).reduce(
+    (sum: number, leg: { distance_km?: number }) => sum + (leg.distance_km || 0),
+    0
+  )
   const legCount = trip.legs.length
 
   return new ImageResponse(
@@ -33,68 +36,54 @@ export async function GET(
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#ffffff',
-          backgroundImage: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          backgroundColor: '#080d1a',
           fontFamily: 'system-ui, -apple-system, sans-serif',
+          position: 'relative',
         }}
       >
+        {/* Top brand strip */}
+        <div style={{ display: 'flex', alignItems: 'center', padding: '40px 60px 0', gap: 14 }}>
+          {/* Logo mark */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <line x1="1" y1="12" x2="23" y2="12" stroke="#4f8ef7" strokeWidth="2.5" strokeLinecap="round"/>
+              <line x1="1" y1="16" x2="23" y2="16" stroke="#1e3a6e" strokeWidth="1" strokeDasharray="3 3"/>
+              <circle cx="5"  cy="12" r="3"   fill="#080d1a" stroke="#4f8ef7" strokeWidth="1.5"/>
+              <circle cx="5"  cy="12" r="1.5" fill="#4f8ef7"/>
+              <circle cx="12" cy="12" r="2.5" fill="#080d1a" stroke="#4f8ef7" strokeWidth="1.5"/>
+              <circle cx="12" cy="12" r="1"   fill="#4f8ef7"/>
+              <circle cx="19" cy="12" r="3"   fill="#080d1a" stroke="#4f8ef7" strokeWidth="1.5"/>
+              <circle cx="19" cy="12" r="1.5" fill="#4f8ef7"/>
+            </svg>
+            <span style={{ fontSize: 20, fontWeight: 500, color: '#ffffff', letterSpacing: '-0.3px' }}>
+              Railtrax
+            </span>
+          </div>
+          <span style={{ color: '#1e2d4a', fontSize: 18, marginLeft: 8 }}>|</span>
+          <span style={{ color: '#4a6a9a', fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600 }}>
+            Shared Trip
+          </span>
+        </div>
+
+        {/* Main content */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
+            flex: 1,
             justifyContent: 'center',
-            padding: '60px',
-            textAlign: 'center',
-            maxWidth: '800px',
+            padding: '40px 60px',
           }}
         >
-          {/* Logo */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '40px',
-            }}
-          >
-            <div
-              style={{
-                width: '40px',
-                height: '40px',
-                backgroundColor: '#E32228',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '24px',
-                fontWeight: 'bold',
-              }}
-            >
-              R
-            </div>
-            <span
-              style={{
-                fontSize: '28px',
-                fontWeight: '700',
-                color: '#1f2937',
-              }}
-            >
-              Railtrax
-            </span>
-          </div>
-
-          {/* Trip Title */}
+          {/* Trip title */}
           <h1
             style={{
-              fontSize: '48px',
-              fontWeight: '700',
-              color: '#1f2937',
-              marginBottom: '16px',
-              lineHeight: '1.2',
+              fontSize: trip.title.length > 30 ? '44px' : '56px',
+              fontWeight: 700,
+              color: '#ffffff',
+              marginBottom: 16,
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em',
             }}
           >
             {trip.title}
@@ -102,127 +91,53 @@ export async function GET(
 
           {/* Description */}
           {trip.description && (
-            <p
-              style={{
-                fontSize: '20px',
-                color: '#6b7280',
-                marginBottom: '40px',
-                lineHeight: '1.5',
-              }}
-            >
-              {trip.description.length > 100 
-                ? trip.description.substring(0, 100) + '...' 
-                : trip.description
-              }
+            <p style={{ fontSize: 20, color: '#8ba3c7', marginBottom: 48, lineHeight: 1.5, maxWidth: 700 }}>
+              {trip.description.length > 120
+                ? trip.description.substring(0, 120) + '…'
+                : trip.description}
             </p>
           )}
 
-          {/* Stats */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '48px',
-              marginBottom: '40px',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '32px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                }}
-              >
-                {legCount}
-              </div>
-              <div
-                style={{
-                  fontSize: '16px',
-                  color: '#6b7280',
-                  marginTop: '4px',
-                }}
-              >
-                {legCount === 1 ? 'Leg' : 'Legs'}
-              </div>
+          {/* Stats row */}
+          <div style={{ display: 'flex', gap: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', paddingRight: 48, borderRight: '1px solid #1e2d4a' }}>
+              <span style={{ fontSize: 11, color: '#4a6a9a', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 6 }}>ABSCHNITTE</span>
+              <span style={{ fontSize: 36, fontWeight: 700, color: '#ffffff' }}>{legCount}</span>
             </div>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '32px',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                }}
-              >
-                {totalDistance.toFixed(0)}
-              </div>
-              <div
-                style={{
-                  fontSize: '16px',
-                  color: '#6b7280',
-                  marginTop: '4px',
-                }}
-              >
-                Kilometers
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: 48, paddingRight: 48, borderRight: trip.start_date ? '1px solid #1e2d4a' : 'none' }}>
+              <span style={{ fontSize: 11, color: '#4a6a9a', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 6 }}>STRECKE</span>
+              <span style={{ fontSize: 36, fontWeight: 700, color: '#ffffff' }}>{totalDistance.toFixed(0)} km</span>
             </div>
             {trip.start_date && trip.end_date && (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: '32px',
-                    fontWeight: '600',
-                    color: '#1f2937',
-                  }}
-                >
-                  {Math.ceil((new Date(trip.end_date).getTime() - new Date(trip.start_date).getTime()) / (1000 * 60 * 60 * 24))}
-                </div>
-                <div
-                  style={{
-                    fontSize: '16px',
-                    color: '#6b7280',
-                    marginTop: '4px',
-                  }}
-                >
-                  Days
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: 48 }}>
+                <span style={{ fontSize: 11, color: '#4a6a9a', letterSpacing: '0.1em', fontWeight: 600, marginBottom: 6 }}>ZEITRAUM</span>
+                <span style={{ fontSize: 24, fontWeight: 600, color: '#8ba3c7' }}>
+                  {new Date(trip.start_date).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })}
+                  {' → '}
+                  {new Date(trip.end_date).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </span>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Date Range */}
-          {trip.start_date && trip.end_date && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                fontSize: '18px',
-                color: '#6b7280',
-              }}
-            >
-              <span>{new Date(trip.start_date).toLocaleDateString()}</span>
-              <span>→</span>
-              <span>{new Date(trip.end_date).toLocaleDateString()}</span>
-            </div>
-          )}
+        {/* Bottom strip */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '20px 60px',
+            background: '#0d1f3c',
+            borderTop: '1px solid #1e3a6e',
+          }}
+        >
+          <span style={{ color: '#4f8ef7', fontSize: 14, fontWeight: 500 }}>
+            railtrax.app
+          </span>
+          <span style={{ color: '#4a6a9a', fontSize: 13 }}>
+            European Rail Planner
+          </span>
         </div>
       </div>
     ),

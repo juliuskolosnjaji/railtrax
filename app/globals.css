@@ -6,49 +6,62 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    /* ─── Railtrax Midnight Blue Design System ─── */
+
+    /* Backgrounds */
+    --bg-base:       #080d1a;   /* page background */
+    --bg-surface:    #0a1628;   /* card/panel background */
+    --bg-elevated:   #0d1f3c;   /* elevated surfaces, active nav */
+    --bg-muted:      #111e35;   /* hover states */
+
+    /* Brand */
+    --brand:         #4f8ef7;   /* primary blue */
+    --brand-dim:     #1e3a6e;   /* borders, secondary elements */
+    --brand-faint:   #0d1f3c;   /* backgrounds with brand tint */
+
+    /* Text */
+    --text-primary:  #ffffff;
+    --text-secondary:#8ba3c7;
+    --text-muted:    #4a6a9a;
+    --text-brand:    #4f8ef7;
+
+    /* Borders */
+    --border-base:   #1e2d4a;
+    --border-bright: #1e3a6e;
+
+    /* Semantic */
+    --success:       #3ecf6e;
+    --success-bg:    #0d2618;
+    --warning:       #f59e0b;
+    --warning-bg:    #1c1508;
+    --danger:        #e25555;
+    --danger-bg:     #1f0d0d;
+
+    /* ─── shadcn/ui HSL variables (mapped to Midnight Blue palette) ─── */
+    --background:             223 53% 7%;    /* #080d1a */
+    --foreground:             0 0% 100%;     /* #ffffff */
+    --card:                   216 60% 10%;   /* #0a1628 */
+    --card-foreground:        0 0% 100%;
+    --popover:                217 64% 14%;   /* #0d1f3c */
+    --popover-foreground:     0 0% 100%;
+    --primary:                218 91% 64%;   /* #4f8ef7 */
+    --primary-foreground:     223 53% 7%;    /* #080d1a */
+    --secondary:              217 64% 14%;   /* #0d1f3c */
+    --secondary-foreground:   216 35% 66%;   /* #8ba3c7 */
+    --muted:                  220 53% 14%;   /* #111e35 */
+    --muted-foreground:       216 35% 66%;   /* #8ba3c7 */
+    --accent:                 217 64% 14%;   /* #0d1f3c */
+    --accent-foreground:      218 91% 64%;   /* #4f8ef7 */
+    --destructive:            0 71% 61%;     /* #e25555 */
+    --destructive-foreground: 0 0% 100%;
+    --border:                 220 42% 20%;   /* #1e2d4a */
+    --input:                  220 42% 20%;   /* #1e2d4a */
+    --ring:                   218 91% 64%;   /* #4f8ef7 */
+    --radius:                 0.5rem;
   }
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-  }
+  /* Keep dark-mode class for any components that need it */
+  .dark { color-scheme: dark; }
 }
 
 @layer base {

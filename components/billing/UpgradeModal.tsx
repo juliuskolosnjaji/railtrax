@@ -52,7 +52,7 @@ const FEATURE_COPY: Record<
   },
   apiAccess: {
     title: 'API Access',
-    body: 'Build your own apps on top of RailPlanner.',
+    body: 'Build your own apps on top of Railtrax.',
     requiredPlan: 'pro',
   },
 }
