@@ -15,7 +15,7 @@ import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
 import { SharingSheet } from '@/components/trips/SharingSheet'
 const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor').then(m => m.JournalEditor), { ssr: false })
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip } from '@/hooks/useTrips'
+import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip, type Leg } from '@/hooks/useTrips'
 import { useJournalEntries, type JournalEntry } from '@/hooks/useJournal'
 import { useEntitlements } from '@/hooks/useEntitlements'
 
@@ -262,7 +262,7 @@ export default function TripDetailPage() {
                 </div>
               ) : (
                 <div className="pb-8">
-                  {trip.legs.map((leg) => {
+                  {trip.legs.map((leg: Leg) => {
                     const legEntries = entries.filter((e) => e.legId === leg.id)
                     return (
                       <div key={leg.id}>

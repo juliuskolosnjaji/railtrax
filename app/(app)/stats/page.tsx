@@ -125,7 +125,7 @@ export default function StatsPage() {
     ? Object.entries(stats.monthly_distances)
         .sort(([a], [b]) => a.localeCompare(b))
         .slice(-12)
-        .map(([month, km]) => ({
+        .map(([month, km]: [string, number]) => ({
           month: formatMonth(month),
           km: Math.round(km),
         }))

@@ -28,7 +28,7 @@ function loadRecent(): RecentSearch[] {
 
 function saveRecent(r: RecentSearch): RecentSearch[] {
   const key = `${r.origin.id}:${r.destination.id}`
-  const filtered = loadRecent().filter((x) => `${x.origin.id}:${x.destination.id}` !== key)
+  const filtered = loadRecent().filter((x: RecentSearch) => `${x.origin.id}:${x.destination.id}` !== key)
   const updated = [r, ...filtered].slice(0, MAX_RECENT)
   localStorage.setItem(RECENT_KEY, JSON.stringify(updated))
   return updated

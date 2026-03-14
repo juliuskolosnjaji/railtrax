@@ -21,7 +21,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           Settings
         </h2>
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0">
-          {SETTINGS_TABS.map((tab) => {
+          {SETTINGS_TABS.map((tab: any) => {
             const isActive = pathname === tab.href
             const Icon = tab.icon
 

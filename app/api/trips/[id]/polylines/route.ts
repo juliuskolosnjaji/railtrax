@@ -48,13 +48,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   console.log(
     `[polylines] trip=${id} total=${legs.length} to_enrich=${legsToEnrich.length}`,
-    legsToEnrich.map((l) => ({ id: l.id, tripIdVendo: l.tripIdVendo, originIbnr: l.originIbnr })),
+    legsToEnrich.map((l: any) => ({ id: l.id, tripIdVendo: l.tripIdVendo, originIbnr: l.originIbnr })),
   )
 
   let updated = 0
 
   await Promise.allSettled(
-    legsToEnrich.map(async (leg) => {
+    legsToEnrich.map(async (leg: any) => {
       let coords: [number, number][] | null = null
 
       if (leg.tripIdVendo) {
