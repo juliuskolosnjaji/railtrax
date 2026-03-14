@@ -18,6 +18,7 @@ import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip, type Leg } from '@/hooks/useTrips'
 import { useJournalEntries, type JournalEntry } from '@/hooks/useJournal'
 import { useEntitlements } from '@/hooks/useEntitlements'
+import { TripRouteCard } from '@/components/trips/TripRouteCard'
 
 const TripMap = dynamic(
   () => import('@/components/map/TripMap').then((m) => m.TripMap),
@@ -213,6 +214,36 @@ export default function TripDetailPage() {
             )}
             {trip?.description && <p className="w-full text-sm text-zinc-400 mt-1">{trip.description}</p>}
           </div>
+
+          {trip.legs.length > 0 && (
+            <div className="mb-8">
+              <TripRouteCard
+                legs={trip.legs.map((l) => ({
+                  originName:   l.originName,
+                  originLat:    l.originLat,
+                  originLon:    l.originLon,
+                  destName:     l.destName,
+                  destLat:      l.destLat,
+                  destLon:      l.destLon,
+                  polyline:     l.polyline,
+                  trainType:    l.trainType,
+                  trainNumber:  l.trainNumber,
+                  operator:     l.operator,
+                }))}
+                stats={{
+                  distanceKm: trip.legs.reduce((s, l) => s + (l.distanceKm ?? 0), 0) || null,
+                  durationMs: (() => {
+                    const first = trip.legs[0]
+                    const last  = trip.legs[trip.legs.length - 1]
+                    const dep = first.actualDeparture ?? first.plannedDeparture
+                    const arr = last.actualArrival   ?? last.plannedArrival
+                    const ms  = new Date(arr).getTime() - new Date(dep).getTime()
+                    return ms > 0 ? ms : null
+                  })(),
+                }}
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Map */}
