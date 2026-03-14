@@ -133,7 +133,7 @@ export async function GET(
           }}
         >
           <span style={{ color: '#4f8ef7', fontSize: 14, fontWeight: 500 }}>
-            railtrax.app
+            railtrax.eu
           </span>
           <span style={{ color: '#4a6a9a', fontSize: 13 }}>
             European Rail Planner

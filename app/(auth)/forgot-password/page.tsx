@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
   async function onSubmit(values: FormValues) {
     const supabase = createClient()
     await supabase.auth.resetPasswordForEmail(values.email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/settings/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_URL ?? window.location.origin}/auth/callback?next=/settings/reset-password`,
     })
     // Always show success — don't leak whether email exists
     setSent(true)
