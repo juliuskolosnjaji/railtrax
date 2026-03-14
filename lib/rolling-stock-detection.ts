@@ -26,7 +26,7 @@ export async function detectRollingStock(
   const normalizedTrainNumber = trainNumber?.toUpperCase().trim()
 
   // Try exact matches first
-  const candidates = await prisma.rollingStock.findMany({
+  const candidates = await prisma().rollingStock.findMany({
     where: {
       AND: [
         normalizedOperator ? { operator: { contains: normalizedOperator, mode: 'insensitive' } } : {},

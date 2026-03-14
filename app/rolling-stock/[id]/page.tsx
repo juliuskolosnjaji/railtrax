@@ -30,7 +30,7 @@ interface PageProps {
 }
 
 export default async function RollingStockPage({ params }: PageProps) {
-  const rollingStock = await prisma.rollingStock.findUnique({
+  const rollingStock = await prisma().rollingStock.findUnique({
     where: { id: params.id },
     include: {
       legs: {

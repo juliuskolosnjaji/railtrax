@@ -8,7 +8,7 @@ export async function POST() {
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    await prisma.user.update({
+    await prisma().user.update({
       where: { id: user.id },
       data: {
         traewellingToken: null,

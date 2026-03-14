@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const count = await prisma.leg.count({
+    const count = await prisma().leg.count({
       where: {
         trip: { userId },
         status: { in: ['planned', 'checked_in'] },

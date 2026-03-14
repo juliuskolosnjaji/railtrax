@@ -7,7 +7,7 @@ type Params = { params: Promise<{ id: string }> }
 
 // Verify the leg belongs to the authenticated user via its trip
 async function getLegForUser(legId: string, userId: string) {
-  return prisma.leg.findFirst({
+  return prisma().leg.findFirst({
     where: { id: legId, trip: { userId } },
   })
 }
@@ -48,14 +48,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
     // If only updating status, do a minimal update
     if (Object.keys(parsed.data).length === 1 && parsed.data.status !== undefined) {
-      const leg = await prisma.leg.update({
+      const leg = await prisma().leg.update({
         where: { id },
         data: { status: parsed.data.status },
       })
       return NextResponse.json({ data: leg })
     }
 
-    const leg = await prisma.leg.update({
+    const leg = await prisma().leg.update({
       where: { id },
       data: {
         ...(parsed.data.originName !== undefined && { originName: parsed.data.originName }),
@@ -92,7 +92,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const existing = await getLegForUser(id, user.id)
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
-    await prisma.leg.delete({ where: { id } })
+    await prisma().leg.delete({ where: { id } })
     return NextResponse.json({ data: { id } })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Verify the trip belongs to this user
-  const trip = await prisma.trip.findUnique({
+  const trip = await prisma().trip.findUnique({
     where: { id: parsed.data.tripId, userId: user.id },
   })
   if (!trip) return NextResponse.json({ error: 'not_found' }, { status: 404 })
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const maxLegs = getLimit(plan, 'maxLegsPerTrip')
 
   if (maxLegs !== Infinity) {
-    const legCount = await prisma.leg.count({ where: { tripId: parsed.data.tripId } })
+    const legCount = await prisma().leg.count({ where: { tripId: parsed.data.tripId } })
     if (legCount >= maxLegs) {
       return NextResponse.json(
         { error: 'limit_reached', limit: maxLegs, current: legCount, upgrade: true },
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Auto-assign position = current max + 1
-  const lastLeg = await prisma.leg.findFirst({
+  const lastLeg = await prisma().leg.findFirst({
     where: { tripId: parsed.data.tripId },
     orderBy: { position: 'desc' },
     select: { position: true },
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const leg = await (prisma.leg.create as any)({
+    const leg = await (prisma().leg.create as any)({
       data: {
         tripId: parsed.data.tripId,
         position,

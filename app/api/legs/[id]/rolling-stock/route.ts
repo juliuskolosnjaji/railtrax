@@ -22,7 +22,7 @@ type Params = { params: Promise<{ id: string }> }
 
 // Verify the leg belongs to the authenticated user via its trip
 async function getLegForUser(legId: string, userId: string) {
-  return prisma.leg.findFirst({
+  return prisma().leg.findFirst({
     where: { id: legId, trip: { userId } },
     include: { rollingStock: true }
   })
@@ -50,7 +50,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         originIbnr: leg.originIbnr,
       }),
       leg.rollingStock
-        ? prisma.rollingStock.findUnique({ where: { id: leg.rollingStock.rollingStockId } })
+        ? prisma().rollingStock.findUnique({ where: { id: leg.rollingStock.rollingStockId } })
         : Promise.resolve(null),
     ])
 
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
     // Verify the rolling stock exists
-    const rollingStock = await prisma.rollingStock.findUnique({
+    const rollingStock = await prisma().rollingStock.findUnique({
       where: { id: parsed.data.rollingStockId }
     })
     if (!rollingStock) {
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     }
 
     // Create or update the link
-    const link = await prisma.legRollingStock.upsert({
+    const link = await prisma().legRollingStock.upsert({
       where: { legId: id },
       update: {
         rollingStockId: parsed.data.rollingStockId,
@@ -140,7 +140,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
     // Verify the rolling stock exists
-    const rollingStock = await prisma.rollingStock.findUnique({
+    const rollingStock = await prisma().rollingStock.findUnique({
       where: { id: parsed.data.rollingStockId }
     })
     if (!rollingStock) {
@@ -148,7 +148,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }
 
     // Update with user report (overrides any existing link)
-    const link = await prisma.legRollingStock.upsert({
+    const link = await prisma().legRollingStock.upsert({
       where: { legId: id },
       update: {
         rollingStockId: parsed.data.rollingStockId,
@@ -182,7 +182,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const leg = await getLegForUser(id, user.id)
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
-    await prisma.legRollingStock.delete({
+    await prisma().legRollingStock.delete({
       where: { legId: id }
     })
 

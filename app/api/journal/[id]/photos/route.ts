@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   // Verify entry ownership
-  const entry = await prisma.journalEntry.findUnique({ where: { id: id }, select: { userId: true } })
+  const entry = await prisma().journalEntry.findUnique({ where: { id: id }, select: { userId: true } })
   if (!entry) return NextResponse.json({ error: 'not_found' }, { status: 404 })
   if (entry.userId !== user.id) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!file) return NextResponse.json({ error: 'validation_error', details: 'file required' }, { status: 422 })
 
   // Check storage limit
-  const usage = await prisma.usageCounter.findUnique({ where: { userId: user.id } })
+  const usage = await prisma().usageCounter.findUnique({ where: { userId: user.id } })
   const usedBytes = Number(usage?.storageBytes ?? 0)
   const maxBytes = maxMb * 1024 * 1024
   if (usedBytes >= maxBytes) {
@@ -73,14 +73,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { data: { publicUrl } } = admin.storage.from('journal-photos').getPublicUrl(storagePath)
 
   // Determine position (append to end)
-  const photoCount = await prisma.journalPhoto.count({ where: { entryId: id } })
+  const photoCount = await prisma().journalPhoto.count({ where: { entryId: id } })
 
-  const photo = await prisma.journalPhoto.create({
+  const photo = await prisma().journalPhoto.create({
     data: { entryId: id, url: publicUrl, position: photoCount },
   })
 
   // Update usage counters
-  await prisma.usageCounter.update({
+  await prisma().usageCounter.update({
     where: { userId: user.id },
     data: {
       photosCount: { increment: 1 },

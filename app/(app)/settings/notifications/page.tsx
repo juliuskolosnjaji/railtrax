@@ -11,12 +11,12 @@ export default async function NotificationsPage() {
 
   if (!user) redirect('/login')
 
-  let preferences = await prisma.userPreferences.findUnique({
+  let preferences = await prisma().userPreferences.findUnique({
     where: { userId: user.id },
   })
 
   if (!preferences) {
-    preferences = await prisma.userPreferences.create({
+    preferences = await prisma().userPreferences.create({
       data: { userId: user.id },
     })
   }

@@ -16,7 +16,7 @@ export async function POST(
 
   try {
     // 1. Fetch user to get Träwelling token
-    const dbUser = await prisma.user.findUnique({
+    const dbUser = await prisma().user.findUnique({
       where: { id: user.id },
       select: { traewellingToken: true }
     })
@@ -26,7 +26,7 @@ export async function POST(
     }
 
     // 2. Fetch leg and verify ownership through trip
-    const leg = await prisma.leg.findUnique({
+    const leg = await prisma().leg.findUnique({
       where: { id: id },
       include: { trip: true }
     })
@@ -38,7 +38,7 @@ export async function POST(
     const { statusId } = await checkin(dbUser.traewellingToken, leg)
 
     // 4. Update the leg in database
-    const updatedLeg = await prisma.leg.update({
+    const updatedLeg = await prisma().leg.update({
       where: { id: leg.id },
       data: {
         status: 'checked_in',

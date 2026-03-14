@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await prisma.pushSubscription.upsert({
+    await prisma().pushSubscription.upsert({
       where: { endpoint: parsed.data.endpoint },
       create: {
         userId: user.id,

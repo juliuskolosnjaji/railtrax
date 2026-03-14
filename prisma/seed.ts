@@ -382,7 +382,7 @@ async function main() {
   console.log('🚂 Seeding rolling stock data...')
 
   for (const stock of ROLLING_STOCK_DATA) {
-    await prisma.rollingStock.upsert({
+    await prisma().rollingStock.upsert({
       where: { id: stock.id },
       update: stock,
       create: stock,
@@ -399,5 +399,5 @@ main()
     process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect()
+    await prisma().$disconnect()
   })

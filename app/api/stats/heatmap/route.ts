@@ -41,7 +41,7 @@ export async function GET() {
       cacheKey,
       3600,
       async () => {
-        const legs = await prisma.leg.findMany({
+        const legs = await prisma().leg.findMany({
           where: {
             trip: { userId: user.id },
             status: 'completed',

@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const { id } = await params
   try {
-    const rollingStock = await prisma.rollingStock.findUnique({
+    const rollingStock = await prisma().rollingStock.findUnique({
       where: { id },
       include: {
         legs: {

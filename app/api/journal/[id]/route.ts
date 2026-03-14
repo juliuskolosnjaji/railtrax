@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { updateJournalEntrySchema } from '@/lib/validators/journal'
 
 async function getEntryAndVerifyOwner(id: string, userId: string) {
-  const entry = await prisma.journalEntry.findUnique({
+  const entry = await prisma().journalEntry.findUnique({
     where: { id },
     include: { photos: { orderBy: { position: 'asc' } } },
   })
@@ -40,7 +40,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   try {
-    const updated = await prisma.journalEntry.update({
+    const updated = await prisma().journalEntry.update({
       where: { id: entry!.id },
       data: {
         ...(parsed.data.body !== undefined && { body: JSON.stringify(parsed.data.body) }),
@@ -67,7 +67,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (error) return error
 
   try {
-    await prisma.journalEntry.delete({ where: { id: entry!.id } })
+    await prisma().journalEntry.delete({ where: { id: entry!.id } })
     return NextResponse.json({ data: { id: entry!.id } })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })

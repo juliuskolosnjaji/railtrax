@@ -13,11 +13,11 @@ export async function GET(req: NextRequest) {
   if (!tripId) return NextResponse.json({ error: 'validation_error', details: 'tripId required' }, { status: 422 })
 
   // Verify trip ownership
-  const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { userId: true } })
+  const trip = await prisma().trip.findUnique({ where: { id: tripId }, select: { userId: true } })
   if (!trip) return NextResponse.json({ error: 'not_found' }, { status: 404 })
   if (trip.userId !== user.id) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
-  const entries = await prisma.journalEntry.findMany({
+  const entries = await prisma().journalEntry.findMany({
     where: { tripId, userId: user.id },
     include: { photos: { orderBy: { position: 'asc' } } },
     orderBy: { createdAt: 'asc' },
@@ -43,20 +43,20 @@ export async function POST(req: NextRequest) {
   }
 
   // Verify trip ownership
-  const trip = await prisma.trip.findUnique({ where: { id: parsed.data.trip_id }, select: { userId: true } })
+  const trip = await prisma().trip.findUnique({ where: { id: parsed.data.trip_id }, select: { userId: true } })
   if (!trip) return NextResponse.json({ error: 'not_found' }, { status: 404 })
   if (trip.userId !== user.id) return NextResponse.json({ error: 'forbidden' }, { status: 403 })
 
   // Optionally verify leg belongs to trip
   if (parsed.data.leg_id) {
-    const leg = await prisma.leg.findUnique({ where: { id: parsed.data.leg_id }, select: { tripId: true } })
+    const leg = await prisma().leg.findUnique({ where: { id: parsed.data.leg_id }, select: { tripId: true } })
     if (!leg || leg.tripId !== parsed.data.trip_id) {
       return NextResponse.json({ error: 'validation_error', details: 'leg not in trip' }, { status: 422 })
     }
   }
 
   try {
-    const entry = await prisma.journalEntry.create({
+    const entry = await prisma().journalEntry.create({
       data: {
         tripId: parsed.data.trip_id,
         legId: parsed.data.leg_id ?? null,

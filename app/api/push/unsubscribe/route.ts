@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await prisma.pushSubscription.deleteMany({
+    await prisma().pushSubscription.deleteMany({
       where: {
         endpoint: parsed.data.endpoint,
         userId: user.id,

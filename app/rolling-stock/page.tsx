@@ -50,7 +50,7 @@ export default async function RollingStockDirectoryPage({ searchParams }: PagePr
     }),
   }
 
-  const rollingStock = await prisma.rollingStock.findMany({
+  const rollingStock = await prisma().rollingStock.findMany({
     where,
     orderBy: [
       { operator: 'asc' },
@@ -67,7 +67,7 @@ export default async function RollingStockDirectoryPage({ searchParams }: PagePr
     operator: string
   }
   
-  const operators = await prisma.rollingStock.findMany({
+  const operators = await prisma().rollingStock.findMany({
     distinct: ['operator'],
     select: { operator: true },
     orderBy: { operator: 'asc' },

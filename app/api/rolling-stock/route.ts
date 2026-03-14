@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       }),
     }
 
-    const rollingStock = await prisma.rollingStock.findMany({
+    const rollingStock = await prisma().rollingStock.findMany({
       where,
       take: query.limit,
       orderBy: [

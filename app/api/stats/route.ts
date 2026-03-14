@@ -34,7 +34,7 @@ export async function GET() {
       }>
     }
     
-    const trips = await prisma.trip.findMany({
+    const trips = await prisma().trip.findMany({
       where: { userId: user.id, status: 'completed' },
       include: {
         legs: {

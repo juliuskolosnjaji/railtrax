@@ -45,7 +45,7 @@ export async function sendToUser(
   userId: string,
   notification: PushPayload
 ): Promise<{ sent: number; failed: number }> {
-  const subscriptions = await prisma.pushSubscription.findMany({
+  const subscriptions = await prisma().pushSubscription.findMany({
     where: { userId },
     select: { endpoint: true, p256dh: true, auth: true },
   })
@@ -73,7 +73,7 @@ export async function sendToUser(
     } else {
       const error = result.reason as { statusCode?: number }
       if (error.statusCode === 410) {
-        await prisma.pushSubscription.delete({
+        await prisma().pushSubscription.delete({
           where: { endpoint: subscriptions[i].endpoint },
         })
       }

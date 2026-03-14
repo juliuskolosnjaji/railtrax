@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const username = traewellingUser.username
 
     // Save token and username to user record in DB
-    await prisma.user.update({
+    await prisma().user.update({
       where: { id: user.id },
       data: {
         traewellingToken: token,

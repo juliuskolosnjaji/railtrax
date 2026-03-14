@@ -20,12 +20,12 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    let prefs = await prisma.userPreferences.findUnique({
+    let prefs = await prisma().userPreferences.findUnique({
       where: { userId: user.id },
     })
 
     if (!prefs) {
-      prefs = await prisma.userPreferences.create({
+      prefs = await prisma().userPreferences.create({
         data: { userId: user.id },
       })
     }
@@ -50,7 +50,7 @@ export async function PUT(req: NextRequest) {
   const parsed = preferencesSchema.parse(body)
 
   try {
-    const prefs = await prisma.userPreferences.upsert({
+    const prefs = await prisma().userPreferences.upsert({
       where: { userId: user.id },
       create: {
         userId: user.id,

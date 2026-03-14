@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const trip = await prisma.trip.findUnique({
+    const trip = await prisma().trip.findUnique({
       where: { id, userId: user.id },
       include: {
         legs: { orderBy: { position: 'asc' } },
@@ -43,10 +43,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   try {
     // findUnique with userId ensures we only update own trips
-    const existing = await prisma.trip.findUnique({ where: { id, userId: user.id } })
+    const existing = await prisma().trip.findUnique({ where: { id, userId: user.id } })
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
-    const trip = await prisma.trip.update({
+    const trip = await prisma().trip.update({
       where: { id },
       data: {
         ...(parsed.data.title !== undefined && { title: parsed.data.title }),
@@ -73,10 +73,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const existing = await prisma.trip.findUnique({ where: { id, userId: user.id } })
+    const existing = await prisma().trip.findUnique({ where: { id, userId: user.id } })
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
-    await prisma.trip.delete({ where: { id } })
+    await prisma().trip.delete({ where: { id } })
     return NextResponse.json({ data: { id } })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })

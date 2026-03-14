@@ -33,7 +33,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  const trip = await prisma.trip.findUnique({
+  const trip = await prisma().trip.findUnique({
     where: { id, userId: user.id },
     include: { legs: { orderBy: { position: 'asc' } } },
   })
@@ -79,7 +79,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
       if (!coords) return
 
-      await prisma.leg.update({
+      await prisma().leg.update({
         where: { id: leg.id },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: { polyline: coords as any },
