@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, BookOpen, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
@@ -19,10 +19,7 @@ import { useJournalEntries, type JournalEntry } from '@/hooks/useJournal'
 import { useEntitlements } from '@/hooks/useEntitlements'
 import { TripRouteCard } from '@/components/trips/TripRouteCard'
 
-const TripMap = dynamic(
-  () => import('@/components/map/TripMap').then((m) => m.TripMap),
-  { ssr: false, loading: () => <div className="h-full w-full bg-zinc-800 animate-pulse" /> },
-)
+
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
   planned:   { bg: '#0d1f3c', color: '#4f8ef7',  border: '#1e3a6e' },
@@ -48,13 +45,11 @@ export default function TripDetailPage() {
   const shareTrip = useShareTrip(id)
   const unshareTrip = useUnshareTrip(id)
 
-  const mapContainerRef = useRef<HTMLDivElement>(null)
   const [addLegOpen, setAddLegOpen] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorLegId, setEditorLegId] = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
-  const [isExporting, setIsExporting] = useState(false)
 
   const handleShareTrip = async () => {
     await shareTrip.mutateAsync()
@@ -91,32 +86,6 @@ export default function TripDetailPage() {
     if (!confirm('Delete this trip? This cannot be undone.')) return
     await deleteTrip.mutateAsync(id)
     router.push('/dashboard')
-  }
-
-  async function handleExportPdf() {
-    if (!trip || !mapContainerRef.current) return
-    setIsExporting(true)
-    try {
-      const { exportTripAsPdf } = await import('@/lib/export/clientExport')
-      await exportTripAsPdf(trip, mapContainerRef.current)
-    } catch (err) {
-      console.error('PDF export failed:', err)
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
-  async function handleExportImage() {
-    if (!trip || !mapContainerRef.current) return
-    setIsExporting(true)
-    try {
-      const { exportTripAsImage } = await import('@/lib/export/clientExport')
-      await exportTripAsImage(trip, mapContainerRef.current)
-    } catch (err) {
-      console.error('Image export failed:', err)
-    } finally {
-      setIsExporting(false)
-    }
   }
 
   if (isLoading) {
@@ -158,32 +127,6 @@ export default function TripDetailPage() {
           <div className="flex items-start justify-between gap-4 mb-2">
             <h1 className="text-2xl font-medium text-white">{trip.title}</h1>
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost" size="sm"
-                className="bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white hover:border-[#4f8ef7] rounded-lg px-3 py-2 h-auto"
-                disabled={isExporting}
-                onClick={handleExportPdf}
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <FileText className="h-4 w-4 mr-2" />
-                )}
-                PDF
-              </Button>
-              <Button
-                variant="ghost" size="sm"
-                className="bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white hover:border-[#4f8ef7] rounded-lg px-3 py-2 h-auto"
-                disabled={isExporting}
-                onClick={handleExportImage}
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                )}
-                Bild
-              </Button>
               {trip && (
                 <SharingSheet
                   tripId={id}
@@ -252,16 +195,8 @@ export default function TripDetailPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Map */}
-            <div className="order-1">
-              <div ref={mapContainerRef} className="rounded-xl overflow-hidden border border-[#1e2d4a] h-[300px] lg:h-[calc(100vh-16rem)] lg:sticky lg:top-8">
-                <TripMap legs={trip.legs} />
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="order-2">
+          {/* Timeline */}
+          <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-medium text-white flex items-center gap-2">
                   Zeitlinie
@@ -343,7 +278,6 @@ export default function TripDetailPage() {
               )}
             </div>
           </div>
-        </div>
       </div>
 
       {/* Journal editor modal */}
