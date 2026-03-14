@@ -11,6 +11,26 @@
 
 import { cached } from './redis'
 
+// ─── Helper: Derive operator from IBNR country prefix ───────────────────────────
+function deriveOperatorFromIbnr(ibnr: string | null): string | null {
+  if (!ibnr) return null
+  const prefix = ibnr.substring(0, 2)
+  switch (prefix) {
+    case '80': return 'DB'      // Germany
+    case '85': return 'SBB'     // Switzerland
+    case '81': return 'ÖBB'     // Austria
+    case '87': return 'SNCF'    // France
+    case '84': return 'NS'      // Netherlands
+    case '88': return 'FS'      // Italy
+    case '70': return 'NR'      // UK (National Rail)
+    case '72': return 'VR'      // Finland
+    case '74': return 'DSB'     // Denmark
+    case '76': return 'SJ'      // Sweden
+    case '78': return 'VY'      // Norway
+    default: return null
+  }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface Station {
@@ -245,7 +265,7 @@ export async function getTripById(tripId: string): Promise<VendoTrip | null> {
     return {
       tripId: trip.id,
       lineName: trip.line?.name ?? '',
-      operator: trip.line?.operator?.name ?? null,
+      operator: trip.line?.operator?.name ?? deriveOperatorFromIbnr(trip.origin?.id ?? null),
       stops,
       polyline,
     }
@@ -299,7 +319,7 @@ export async function searchJourneys(
             destinationLon: l.destination?.location?.longitude ?? null,
             departure: l.plannedDeparture ?? l.departure ?? '',
             arrival: l.plannedArrival ?? l.arrival ?? '',
-            operator: l.line?.operator?.name ?? null,
+            operator: l.line?.operator?.name ?? deriveOperatorFromIbnr(l.origin?.id ?? null),
             trainNumber: l.line?.name ?? '',
             tripId: l.tripId ?? null,
             delayMinutes: Math.round(((l.departureDelay ?? 0)) / 60),

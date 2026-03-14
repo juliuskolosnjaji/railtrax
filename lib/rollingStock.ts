@@ -45,11 +45,40 @@ export function identifyRollingStock(leg: {
   // Build a "full name" string to extract category + optional number from.
   // lineName from vendo is the most reliable source: "ICE 521", "RJ 60", "TGV 9576"
   const fullName = leg.lineName ?? leg.trainType ?? leg.trainNumber ?? ''
-  const m = fullName.trim().match(/^([A-ZÖÜÄa-zöüä]+)\s*(\d+)?/)
-  if (!m) return null
-
-  const category = m[1].toUpperCase()
-  const num = m[2] ? parseInt(m[2], 10) : null
+  const cleaned = fullName.trim()
+  
+  // Handle special cases like "Bus RE5X" - split on space and find the meaningful part
+  const parts = cleaned.split(/\s+/)
+  let category = ''
+  let num: number | null = null
+  
+  if (parts.length > 1) {
+    // If first part is "Bus", skip it and look at the rest
+    if (parts[0].toUpperCase() === 'BUS') {
+      const secondPart = parts[1]
+      const m = secondPart.match(/^([A-ZÖÜÄa-zöüä]+)\s*(\d+)?/)
+      if (m) {
+        category = m[1].toUpperCase()
+        num = m[2] ? parseInt(m[2], 10) : null
+      }
+    } else {
+      // Normal case: try the first part
+      const m = parts[0].match(/^([A-ZÖÜÄa-zöüä]+)\s*(\d+)?/)
+      if (m) {
+        category = m[1].toUpperCase()
+        num = m[2] ? parseInt(m[2], 10) : null
+      }
+    }
+  } else {
+    // Single part
+    const m = cleaned.match(/^([A-ZÖÜÄa-zöüä]+)\s*(\d+)?/)
+    if (m) {
+      category = m[1].toUpperCase()
+      num = m[2] ? parseInt(m[2], 10) : null
+    }
+  }
+  
+  if (!category) return null
 
   switch (category) {
     // ── DB ───────────────────────────────────────────────────────────────────
@@ -141,6 +170,18 @@ export function identifyRollingStock(leg: {
     case 'FLX':
     case 'FLIXTRAIN':
       return { name: 'Flixtrain', operator: 'Flixtrain', topSpeed: 160, hasWifi: true, hasBistro: false, hasBike: true, description: 'Budget intercity — classic loco-hauled coaches in Flixtrain livery.' }
+
+    // ── Regional / PE ───────────────────────────────────────────────────────────
+    case 'PE':
+      return { name: 'Panorama Express', operator: 'various', topSpeed: 140, hasWifi: false, hasBistro: false, hasBike: true, description: 'Swiss/Austrian regional express — scenic routes, often Panorama cars.' }
+
+    // ── Additional DB categories ─────────────────────────────────────────────────
+    case 'RE':
+    case 'RB':
+      return { name: 'RegionalExpress/RegionalBahn', operator: 'DB', topSpeed: 140, hasWifi: false, hasBistro: false, hasBike: true, description: 'DB regional service — typically LINT or Talent EMUs, or classic coaches.' }
+
+    case 'S':
+      return { name: 'S-Bahn', operator: 'DB', topSpeed: 140, hasWifi: false, hasBistro: false, hasBike: false, description: 'DB S-Bahn — suburban metro style service in major metros.' }
 
     default:
       return null

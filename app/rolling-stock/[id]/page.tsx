@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { Wifi, Utensils, Bike, Zap, Calendar, Factory, Gauge, Users, ExternalLink } from 'lucide-react'
+import { Wifi, Utensils, Bike, Zap, Calendar, Factory, Gauge, Users, ExternalLink, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -99,6 +100,15 @@ export default async function RollingStockPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Back button */}
+        <Link
+          href="/rolling-stock"
+          className="inline-flex items-center gap-2 text-[#4a6a9a] hover:text-white text-sm mb-6 transition-colors"
+        >
+          <ArrowLeft size={16} />
+          Zurück
+        </Link>
+
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
           <div className="flex items-start justify-between">
@@ -270,9 +280,9 @@ export default async function RollingStockPage({ params }: PageProps) {
         {rollingStock.wikiUrl && (
           <div className="flex justify-center mt-6">
             <a href={rollingStock.wikiUrl} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="gap-2">
+              <Button className="bg-[#0d1f3c] border border-[#1e3a6e] text-[#4f8ef7] hover:bg-[#1a3a5e] gap-2">
                 <ExternalLink className="h-4 w-4" />
-                Learn more on Wikipedia
+                Wikipedia öffnen →
               </Button>
             </a>
           </div>

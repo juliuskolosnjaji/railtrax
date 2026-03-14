@@ -85,6 +85,7 @@ export function TripMap({ legs, preview = false, className = '' }: TripMapProps)
         dragPan={preview ? false : undefined}
         dragRotate={preview ? false : undefined}
         touchZoomRotate={preview ? false : undefined}
+        keyboard={preview ? false : undefined}
         attributionControl={preview ? false : undefined}
       >
         {/* NavigationControl - only in full map mode */}

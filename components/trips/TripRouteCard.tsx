@@ -135,7 +135,7 @@ export function TripRouteCard({ legs, stats, originLabel, destLabel }: TripRoute
       </div>
 
       {/* ── Maplibre map ── */}
-      <div className="p-6 relative overflow-hidden min-h-[280px] md:min-h-[400px]">
+      <div className="p-6 relative min-h-[280px] md:min-h-[400px]">
         {hasCoords ? (
           <div className="h-[280px] md:h-[400px] w-full">
             <TripMap legs={tripLegs} preview={false} className="h-full w-full" />
