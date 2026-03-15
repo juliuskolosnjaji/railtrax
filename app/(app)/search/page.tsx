@@ -17,27 +17,25 @@ interface Station {
 
 interface JourneyLeg {
   origin: string
-  originIbnr: string
+  originIbnr: string | null
+  originLat?: number | null
+  originLon?: number | null
   destination: string
-  destinationIbnr: string
-  departure: string
-  arrival: string
-  plannedDeparture: string
-  plannedArrival: string
+  destinationIbnr: string | null
+  destinationLat?: number | null
+  destinationLon?: number | null
+  departure: string     // planned departure ISO
+  arrival: string       // planned arrival ISO
   operator: string | null
-  trainNumber: string | null
-  lineName: string | null
+  trainNumber: string
   platform: string | null
-  delay: number
-  cancelled: boolean
+  delayMinutes: number
 }
 
 interface Journey {
-  id: string
   legs: JourneyLeg[]
-  totalDuration: number
-  changes: number
-  operators: string[]
+  totalDuration: number   // computed client-side (minutes)
+  changes: number         // computed client-side
   isBest?: boolean
 }
 
@@ -71,12 +69,18 @@ function getOperatorColor(operator: string | null): { line: string; badge: strin
 
 function resolveOperator(leg: JourneyLeg): string {
   if (leg.operator) return leg.operator
-  const line = (leg.lineName ?? leg.trainNumber ?? '').toUpperCase()
+  const line = (leg.trainNumber ?? '').toUpperCase()
   if (line.startsWith('ICE') || line.startsWith('IC') || line.startsWith('EC')) return 'DB'
   if (line.startsWith('RJ') || line.startsWith('NJ')) return 'ÖBB'
   if (line.startsWith('TGV') || line.startsWith('OUIGO')) return 'SNCF'
   if (line.startsWith('FR') || line.startsWith('FA')) return 'Trenitalia'
   return ''
+}
+
+const VALID_OPERATORS = new Set(['DB', 'SBB', 'ÖBB', 'SNCF', 'Eurostar', 'NS', 'Renfe'])
+function toOperatorEnum(op: string): string {
+  if (VALID_OPERATORS.has(op)) return op
+  return 'other'
 }
 
 // ─── StationInput ─────────────────────────────────────────────────────────────
@@ -184,7 +188,7 @@ function RouteStrip({ legs }: { legs: JourneyLeg[] }) {
           const colors = getOperatorColor(op)
           const isFirst = i === 0
           const isLast = i === legs.length - 1
-          const delay = leg.delay ?? 0
+          const delay = leg.delayMinutes ?? 0
           return (
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start' }}>
               {/* Station */}
@@ -209,7 +213,7 @@ function RouteStrip({ legs }: { legs: JourneyLeg[] }) {
                   <div style={{ fontSize: 8, color: '#1e3a6e' }}>Gl. {leg.platform}</div>
                 )}
                 <div style={{ fontSize: 8, color: delay > 0 ? '#e25555' : '#4a6a9a' }}>
-                  {formatTime(leg.plannedDeparture)}
+                  {formatTime(leg.departure)}
                   {delay > 0 && ` +${delay}`}
                 </div>
               </div>
@@ -226,7 +230,7 @@ function RouteStrip({ legs }: { legs: JourneyLeg[] }) {
                   borderRadius: 3, whiteSpace: 'nowrap', marginTop: 4,
                   background: colors.badge, color: colors.text,
                 }}>
-                  {leg.lineName ?? leg.trainNumber ?? '?'}
+                  {leg.trainNumber ?? '?'}
                 </div>
               </div>
 
@@ -247,7 +251,7 @@ function RouteStrip({ legs }: { legs: JourneyLeg[] }) {
                     {leg.destination.replace(/\s*(Hauptbahnhof|Hbf)\s*/gi, ' Hbf').trim()}
                   </div>
                   <div style={{ fontSize: 8, color: '#4a6a9a' }}>
-                    {formatTime(leg.plannedArrival)}
+                    {formatTime(leg.arrival)}
                   </div>
                 </div>
               )}
@@ -334,43 +338,12 @@ function TripPickerModal({
 
 // ─── JourneyCard ──────────────────────────────────────────────────────────────
 
-function JourneyCard({ journey }: { journey: Journey }) {
-  const router = useRouter()
-  const [showTripPicker, setShowTripPicker] = useState(false)
-
-  const addLegMutation = useMutation({
-    mutationFn: async ({ journey, tripId }: { journey: Journey; tripId: string }) => {
-      for (const leg of journey.legs) {
-        const op = resolveOperator(leg) || undefined
-        const res = await fetch('/api/legs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tripId,
-            originName: leg.origin,
-            originIbnr: leg.originIbnr || undefined,
-            plannedDeparture: leg.plannedDeparture,
-            destName: leg.destination,
-            destIbnr: leg.destinationIbnr || undefined,
-            plannedArrival: leg.plannedArrival,
-            operator: op,
-            trainNumber: leg.trainNumber || undefined,
-            lineName: leg.lineName || undefined,
-          }),
-        })
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}))
-          throw new Error(err?.error ?? `Failed to add leg (${res.status})`)
-        }
-      }
-    },
-  })
-
+function JourneyCard({ journey, onAdd }: { journey: Journey; onAdd: (j: Journey) => void }) {
   const firstLeg = journey.legs[0]
   const lastLeg = journey.legs[journey.legs.length - 1]
-  const depTime = formatTime(firstLeg?.plannedDeparture)
-  const arrTime = formatTime(lastLeg?.plannedArrival)
-  const totalDelay = lastLeg?.delay ?? 0
+  const depTime = formatTime(firstLeg?.departure)
+  const arrTime = formatTime(lastLeg?.arrival)
+  const totalDelay = lastLeg?.delayMinutes ?? 0
   const uniqueOps = [...new Set(journey.legs.map(l => resolveOperator(l)).filter(Boolean))]
 
   return (
@@ -438,7 +411,7 @@ function JourneyCard({ journey }: { journey: Journey }) {
               }}>pünktlich</span>
             )}
             <button
-              onClick={e => { e.stopPropagation(); setShowTripPicker(true) }}
+              onClick={e => { e.stopPropagation(); onAdd(journey) }}
               style={{
                 background: '#0d1f3c', border: '1px solid #1e3a6e',
                 color: '#4f8ef7', borderRadius: 8, padding: '8px 14px',
@@ -481,17 +454,6 @@ function JourneyCard({ journey }: { journey: Journey }) {
         </button>
       </div>
 
-      {/* Trip picker modal */}
-      {showTripPicker && (
-        <TripPickerModal
-          onSelect={tripId => {
-            setShowTripPicker(false)
-            addLegMutation.mutate({ journey, tripId })
-            router.push(`/trips/${tripId}`)
-          }}
-          onClose={() => setShowTripPicker(false)}
-        />
-      )}
     </div>
   )
 }
@@ -499,7 +461,44 @@ function JourneyCard({ journey }: { journey: Journey }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SearchPage() {
+  const router = useRouter()
+  const [pickerJourney, setPickerJourney] = useState<Journey | null>(null)
 
+  const addLegsMutation = useMutation({
+    mutationFn: async ({ journey, tripId }: { journey: Journey; tripId: string }) => {
+      for (const leg of journey.legs) {
+        const op = resolveOperator(leg)
+        const res = await fetch('/api/legs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tripId,
+            originName: leg.origin,
+            originIbnr: leg.originIbnr ?? undefined,
+            originLat: leg.originLat ?? undefined,
+            originLon: leg.originLon ?? undefined,
+            plannedDeparture: leg.departure,
+            destName: leg.destination,
+            destIbnr: leg.destinationIbnr ?? undefined,
+            destLat: leg.destinationLat ?? undefined,
+            destLon: leg.destinationLon ?? undefined,
+            plannedArrival: leg.arrival,
+            operator: op ? toOperatorEnum(op) : undefined,
+            trainNumber: leg.trainNumber || undefined,
+            lineName: leg.trainNumber || undefined,
+          }),
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err?.error ?? `Failed to add leg (${res.status})`)
+        }
+      }
+    },
+    onSuccess: (_, { tripId }) => {
+      setPickerJourney(null)
+      router.push(`/trips/${tripId}`)
+    },
+  })
 
   const [from, setFrom] = useState<Station | null>(null)
   const [to, setTo] = useState<Station | null>(null)
@@ -573,7 +572,15 @@ export default function SearchPage() {
       if (res.status === 503) throw new Error('service_unavailable')
       if (!res.ok) throw new Error('fetch_failed')
       const data = await res.json()
-      const results = data.data as Journey[]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw: any[] = data.data ?? []
+      const results: Journey[] = raw.map(j => ({
+        legs: j.legs ?? [],
+        totalDuration: j.legs?.length > 0
+          ? Math.round((new Date(j.legs[j.legs.length - 1].arrival).getTime() - new Date(j.legs[0].departure).getTime()) / 60000)
+          : 0,
+        changes: (j.legs?.length ?? 1) - 1,
+      }))
       if (results.length > 0) {
         const fastest = [...results].sort((a, b) => a.totalDuration - b.totalDuration)[0]
         fastest.isBest = true
@@ -612,13 +619,13 @@ export default function SearchPage() {
     return journeys.filter(j => {
       if (filters.direct && j.changes > 0) return false
       if (filters.maxChanges2 && j.changes > 2) return false
-      if (filters.onlyICE && !j.legs.some(l => (l.lineName ?? '').match(/^ICE|^IC |^EC /i))) return false
+      if (filters.onlyICE && !j.legs.some(l => (l.trainNumber ?? '').match(/^ICE|^IC |^EC /i))) return false
       return true
     }).sort((a, b) => {
       if (sortBy === 'duration') return a.totalDuration - b.totalDuration
       if (sortBy === 'changes') return a.changes - b.changes
-      const aTime = new Date(a.legs[0]?.plannedDeparture ?? 0).getTime()
-      const bTime = new Date(b.legs[0]?.plannedDeparture ?? 0).getTime()
+      const aTime = new Date(a.legs[0]?.departure ?? 0).getTime()
+      const bTime = new Date(b.legs[0]?.departure ?? 0).getTime()
       return aTime - bTime
     })
   }
@@ -626,6 +633,7 @@ export default function SearchPage() {
   const filtered = journeys ? applyFilters(journeys) : []
 
   return (
+    <>
     <div style={{ background: '#080d1a', minHeight: '100vh', padding: '28px 32px' }}>
       <div style={{ maxWidth: 860, margin: '0 auto' }}>
 
@@ -952,12 +960,20 @@ export default function SearchPage() {
             </div>
           ) : (
             filtered.map((journey, i) => (
-              <JourneyCard key={i} journey={journey} />
+              <JourneyCard key={i} journey={journey} onAdd={j => setPickerJourney(j)} />
             ))
           )}
         </div>
       )}
       </div>
     </div>
+
+    {pickerJourney && (
+      <TripPickerModal
+        onSelect={tripId => addLegsMutation.mutate({ journey: pickerJourney, tripId })}
+        onClose={() => setPickerJourney(null)}
+      />
+    )}
+    </>
   )
 }
