@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { Search, ArrowLeftRight, Calendar, Clock, ChevronDown } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 
@@ -341,23 +341,27 @@ function JourneyCard({ journey }: { journey: Journey }) {
   const addLegMutation = useMutation({
     mutationFn: async ({ journey, tripId }: { journey: Journey; tripId: string }) => {
       for (const leg of journey.legs) {
-        await fetch('/api/legs', {
+        const op = resolveOperator(leg) || undefined
+        const res = await fetch('/api/legs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            trip_id: tripId,
-            origin_name: leg.origin,
-            origin_ibnr: leg.originIbnr,
-            destination_name: leg.destination,
-            destination_ibnr: leg.destinationIbnr,
-            planned_departure: leg.plannedDeparture,
-            planned_arrival: leg.plannedArrival,
-            operator: leg.operator,
-            train_number: leg.trainNumber,
-            line_name: leg.lineName,
-            platform_planned: leg.platform,
+            tripId,
+            originName: leg.origin,
+            originIbnr: leg.originIbnr || undefined,
+            plannedDeparture: leg.plannedDeparture,
+            destName: leg.destination,
+            destIbnr: leg.destinationIbnr || undefined,
+            plannedArrival: leg.plannedArrival,
+            operator: op,
+            trainNumber: leg.trainNumber || undefined,
+            lineName: leg.lineName || undefined,
           }),
         })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err?.error ?? `Failed to add leg (${res.status})`)
+        }
       }
     },
   })
@@ -495,8 +499,7 @@ function JourneyCard({ journey }: { journey: Journey }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SearchPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _queryClient = useQueryClient()
+
 
   const [from, setFrom] = useState<Station | null>(null)
   const [to, setTo] = useState<Station | null>(null)
