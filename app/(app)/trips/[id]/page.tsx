@@ -5,11 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
 import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
+import { TripEditorSheet } from '@/components/trips/TripEditorSheet'
 import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
 import { SharingSheet } from '@/components/trips/SharingSheet'
 const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor').then(m => m.JournalEditor), { ssr: false })
@@ -50,6 +51,7 @@ export default function TripDetailPage() {
   const [editorLegId, setEditorLegId] = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [tripEditOpen, setTripEditOpen] = useState(false)
 
   const handleShareTrip = async () => {
     await shareTrip.mutateAsync()
@@ -125,7 +127,15 @@ export default function TripDetailPage() {
           </Link>
 
           <div className="flex items-start justify-between gap-4 mb-2">
-            <h1 className="text-2xl font-medium text-white">{trip.title}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-medium text-white">{trip.title}</h1>
+              <button
+                onClick={() => setTripEditOpen(true)}
+                className="p-2 rounded-lg bg-[#0a1628] border border-[#1e2d4a] text-[#4a6a9a] hover:text-white hover:border-[#4f8ef7] transition-colors"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            </div>
             <div className="flex items-center gap-2">
               <a
                 href={`/api/trips/${id}/export/pdf`}
@@ -325,6 +335,7 @@ export default function TripDetailPage() {
       )}
 
       <LegEditorSheet tripId={id} open={addLegOpen} onOpenChange={setAddLegOpen} />
+      <TripEditorSheet open={tripEditOpen} onOpenChange={setTripEditOpen} trip={trip} />
       <UpgradeModal feature="journal" open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   )

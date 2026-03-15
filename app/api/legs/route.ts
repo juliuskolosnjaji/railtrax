@@ -93,6 +93,29 @@ export async function POST(req: NextRequest) {
         distanceKm: distanceKm,
       },
     })
+
+    // Auto-update trip start/end dates based on leg times
+    const firstLeg = await prisma().leg.findFirst({
+      where: { tripId: parsed.data.tripId },
+      orderBy: { plannedDeparture: 'asc' },
+      select: { plannedDeparture: true },
+    })
+    const lastLeg = await prisma().leg.findFirst({
+      where: { tripId: parsed.data.tripId },
+      orderBy: { plannedArrival: 'desc' },
+      select: { plannedArrival: true },
+    })
+
+    if (firstLeg && lastLeg) {
+      await prisma().trip.update({
+        where: { id: parsed.data.tripId },
+        data: {
+          startDate: firstLeg.plannedDeparture,
+          endDate: lastLeg.plannedArrival,
+        },
+      })
+    }
+
     return NextResponse.json({ data: leg }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
