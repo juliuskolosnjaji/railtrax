@@ -624,6 +624,7 @@ export default function SearchPage() {
 
   return (
     <div style={{ background: '#080d1a', minHeight: '100vh', padding: '28px 32px' }}>
+      <div style={{ maxWidth: 860, margin: '0 auto' }}>
 
       <div style={{ fontSize: 22, fontWeight: 500, color: '#fff', marginBottom: 4 }}>
         Verbindungssuche
@@ -953,6 +954,7 @@ export default function SearchPage() {
           )}
         </div>
       )}
+      </div>
     </div>
   )
 }
