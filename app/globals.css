@@ -72,3 +72,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes live-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.25; }
+  50%       { transform: scale(1.6); opacity: 0.08; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}

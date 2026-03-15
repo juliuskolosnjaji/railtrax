@@ -4,18 +4,29 @@ import { prisma } from '@/lib/prisma'
 import { getPlan, getLimit } from '@/lib/entitlements'
 import { createTripSchema } from '@/lib/validators/trip'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
+  const includeLegs = new URL(req.url).searchParams.get('legs') === '1'
+
   try {
     const prismaClient = prisma()
-    const trips = await prismaClient.trip.findMany({
-      where: { userId: user.id },
-      include: { _count: { select: { legs: true } } },
-      orderBy: { createdAt: 'desc' },
-    })
+    const trips = includeLegs
+      ? await prismaClient.trip.findMany({
+          where: { userId: user.id },
+          include: {
+            legs: { orderBy: { plannedDeparture: 'asc' } },
+            _count: { select: { legs: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+      : await prismaClient.trip.findMany({
+          where: { userId: user.id },
+          include: { _count: { select: { legs: true } } },
+          orderBy: { createdAt: 'desc' },
+        })
     return NextResponse.json({ data: trips })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
