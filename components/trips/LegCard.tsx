@@ -13,6 +13,7 @@ import { RollingStockChip } from '@/components/rolling-stock/RollingStockChip'
 import { RollingStockSelectorSheet } from '@/components/rolling-stock/RollingStockSelectorSheet'
 import { StaticRollingStockChip } from '@/components/rolling-stock/StaticRollingStockChip'
 import { identifyRollingStock } from '@/lib/rollingStock'
+import { getWagenreihungUrl } from '@/lib/wagenreihung'
 
 const OPERATOR_STYLES: Record<string, string> = {
   DB: 'bg-red-950 text-red-300 border-red-800',
@@ -199,6 +200,33 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 <span className="text-xs text-[#4a6a9a]">Platz: {leg.seat}</span>
               )}
             </div>
+
+            {/* Wagenreihung */}
+            {(() => {
+              const url = getWagenreihungUrl({
+                trainNumber: leg.trainNumber,
+                lineName: leg.lineName,
+                operator: leg.operator,
+                originIbnr: leg.originIbnr,
+                plannedDeparture: leg.plannedDeparture,
+              })
+              return url ? (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#4a6a9a] hover:text-[#8ba3c7] transition-colors w-fit"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="1" y="10" width="22" height="10" rx="2" />
+                    <path d="M5 10V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3" />
+                    <circle cx="7" cy="20" r="2" />
+                    <circle cx="17" cy="20" r="2" />
+                  </svg>
+                  Wagenreihung
+                </a>
+              ) : null
+            })()}
 
             {/* Rolling Stock */}
             {legRollingStock && legRollingStock.rollingStock ? (

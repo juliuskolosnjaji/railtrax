@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { Search, ArrowLeftRight, Calendar, Clock, ChevronDown } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
+import { getWagenreihungUrl } from '@/lib/wagenreihung'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -232,6 +233,31 @@ function RouteStrip({ legs }: { legs: JourneyLeg[] }) {
                 }}>
                   {leg.trainNumber ?? '?'}
                 </div>
+                {(() => {
+                  const url = getWagenreihungUrl({
+                    trainNumber: leg.trainNumber,
+                    operator: leg.operator,
+                    originIbnr: leg.originIbnr,
+                    departure: leg.departure,
+                  })
+                  return url ? (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Wagenreihung"
+                      style={{ display: 'flex', alignItems: 'center', marginTop: 3, color: '#4a6a9a' }}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="1" y="10" width="22" height="10" rx="2" />
+                        <path d="M5 10V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3" />
+                        <circle cx="7" cy="20" r="2" />
+                        <circle cx="17" cy="20" r="2" />
+                      </svg>
+                    </a>
+                  ) : null
+                })()}
               </div>
 
               {/* Last station */}
