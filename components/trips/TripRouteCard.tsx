@@ -128,9 +128,18 @@ export function TripRouteCard({ legs, stats, originLabel, destLabel }: TripRoute
           </div>
         </div>
         {trainBadges.length > 0 && (
-          <div className="flex gap-2">
+          <div style={{
+            display: 'flex', gap: 6, flexWrap: 'wrap',
+            marginTop: 4,
+          }}>
             {trainBadges.map(b => (
-              <span key={b} className="bg-[#0d1f3c] border border-[#1e3a6e] text-[#4f8ef7] px-2.5 py-1 rounded-md text-xs font-semibold">
+              <span key={b} style={{
+                fontSize: 11, fontWeight: 600,
+                padding: '3px 8px', borderRadius: 5,
+                background: '#0d1f3c', color: '#60a5fa',
+                border: '1px solid #1e3a6e',
+                whiteSpace: 'nowrap',
+              }}>
                 {b}
               </span>
             ))}
@@ -139,9 +148,11 @@ export function TripRouteCard({ legs, stats, originLabel, destLabel }: TripRoute
       </div>
 
       {/* ── Maplibre map ── */}
-      <div className="p-6 relative min-h-[280px] md:min-h-[400px]">
+      <div className="p-6 relative">
         {hasCoords ? (
-          <div className="h-[280px] md:h-[400px] w-full">
+          <div 
+            className="w-full overflow-hidden rounded-xl h-[220px] md:h-[380px]"
+          >
             <TripMap legs={tripLegs} preview={false} className="h-full w-full" />
           </div>
         ) : (

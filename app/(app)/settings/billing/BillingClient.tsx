@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import type { Plan } from '@/lib/entitlements'
 
 const PLAN_LABELS: Record<Plan, string> = {
-  free: 'Free',
+  free: 'Kostenlos',
   plus: 'Plus',
   pro: 'Pro',
 }
@@ -82,15 +82,15 @@ export function BillingClient({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Billing</h1>
-        <p className="text-zinc-400 mt-1">Manage your subscription and usage.</p>
+        <h1 className="text-2xl font-bold text-white">Abonnement</h1>
+        <p className="text-zinc-400 mt-1">Verwalte dein Abonnement und deinen Speicherplatz.</p>
       </div>
 
       {/* Success banner */}
       {showSuccess && (
         <div className="flex items-center gap-3 rounded-lg bg-emerald-950/50 border border-emerald-800 px-4 py-3 text-emerald-300">
           <CheckCircle2 className="h-5 w-5 shrink-0" />
-          <span className="text-sm">Subscription activated — welcome to {PLAN_LABELS[plan]}!</span>
+          <span className="text-sm">Abonnement aktiviert — willkommen bei {PLAN_LABELS[plan]}!</span>
         </div>
       )}
 
@@ -98,7 +98,7 @@ export function BillingClient({
       <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-zinc-400 mb-1">Current plan</p>
+            <p className="text-sm text-zinc-400 mb-1">Aktueller Tarif</p>
             <div className="flex items-center gap-2">
               <span className="text-xl font-semibold text-white">{PLAN_LABELS[plan]}</span>
               <Badge className={PLAN_BADGE_STYLE[plan]}>{PLAN_LABELS[plan]}</Badge>
@@ -112,7 +112,7 @@ export function BillingClient({
                 size="sm"
                 className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1.5"
               >
-                Manage subscription
+                Abonnement verwalten
                 <ExternalLink className="h-3.5 w-3.5" />
               </Button>
             </a>
@@ -142,12 +142,12 @@ export function BillingClient({
 
       {/* Usage */}
       <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-5">
-        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">Usage</h2>
+        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">NUTZUNG</h2>
 
         {/* Trips */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-zinc-400">Trips</span>
+            <span className="text-zinc-400">Reisen</span>
             <span className="text-zinc-300">
               {tripsCount}
               {maxTrips !== Infinity ? ` / ${maxTrips}` : ''}
@@ -157,14 +157,14 @@ export function BillingClient({
             <Progress value={tripsUsagePct} className="h-1.5 bg-zinc-800" />
           )}
           {maxTrips === Infinity && (
-            <p className="text-xs text-zinc-600">Unlimited</p>
+            <p className="text-xs text-zinc-600">Unbegrenzt</p>
           )}
         </div>
 
         {/* Storage */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-zinc-400">Photo storage</span>
+            <span className="text-zinc-400">Foto-Speicher</span>
             <span className="text-zinc-300">
               {plan === 'free' ? 'Not included' : `${storageMbUsed} MB / ${maxStorageMb} MB`}
             </span>
@@ -197,7 +197,7 @@ export function BillingClient({
       {plan === 'free' && (
         <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-5">
           <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-            Upgrade your plan
+            Upgraden
           </h2>
 
           {/* Billing interval toggle */}
@@ -245,7 +245,7 @@ export function BillingClient({
                 onClick={() => handleUpgrade('plus')}
                 disabled={isLoading}
               >
-                Upgrade to Plus
+                Plus wählen
               </Button>
             </div>
 
@@ -272,7 +272,7 @@ export function BillingClient({
                 onClick={() => handleUpgrade('pro')}
                 disabled={isLoading}
               >
-                Upgrade to Pro
+                Pro wählen
               </Button>
             </div>
           </div>

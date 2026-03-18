@@ -181,3 +181,45 @@ html, body {
 img, canvas, video, iframe {
   max-width: 100%;
 }
+
+/* ─── Global Icon Centering Fixes ─────────────────────────────────────────────── */
+
+/* Ensure icons are always vertically centered in buttons */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fix lucide icon vertical alignment */
+button svg, a svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ─── Mobile Padding Consistency ───────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* All page-level containers */
+  .page-container {
+    padding: 16px !important;
+  }
+
+  /* Trip detail specific */
+  .trip-header {
+    padding: 16px !important;
+  }
+
+  /* Leg cards */
+  .leg-card {
+    padding: 14px !important;
+    margin: 0 !important;
+    border-radius: 10px !important;
+  }
+
+  /* Route card */
+  .route-card {
+    margin: 0 0 16px 0 !important;
+    border-radius: 10px !important;
+  }
+}

@@ -200,63 +200,73 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
               )}
             </div>
 
-            {/* Wagenreihung */}
-            {(() => {
-              const url = getWagenreihungUrl({
-                trainNumber: leg.trainNumber,
-                lineName: leg.lineName,
-                operator: leg.operator,
-                originIbnr: leg.originIbnr,
-                plannedDeparture: leg.plannedDeparture,
-              })
-              return url ? (
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-[#4a6a9a] hover:text-[#8ba3c7] transition-colors w-fit"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="1" y="10" width="22" height="10" rx="2" />
-                    <path d="M5 10V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3" />
-                    <circle cx="7" cy="20" r="2" />
-                    <circle cx="17" cy="20" r="2" />
-                  </svg>
-                  Wagenreihung
-                </a>
-              ) : null
-            })()}
+            {/* Wagenreihung + Rolling Stock - inline on mobile */}
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Wagenreihung */}
+              {(() => {
+                const url = getWagenreihungUrl({
+                  trainNumber: leg.trainNumber,
+                  lineName: leg.lineName,
+                  operator: leg.operator,
+                  originIbnr: leg.originIbnr,
+                  plannedDeparture: leg.plannedDeparture,
+                })
+                return url ? (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      fontSize: 12, color: '#4a6a9a', textDecoration: 'none',
+                      padding: '3px 0',
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="1" y="10" width="22" height="10" rx="2" />
+                      <path d="M5 10V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3" />
+                      <circle cx="7" cy="20" r="2" />
+                      <circle cx="17" cy="20" r="2" />
+                    </svg>
+                    Wagenreihung
+                  </a>
+                ) : null
+              })()}
 
-            {/* Rolling Stock */}
-            {legRollingStock && legRollingStock.rollingStock ? (
-              <div className="flex items-center justify-between">
-                <RollingStockChip
-                  rollingStock={legRollingStock.rollingStock}
-                  setNumber={legRollingStock.setNumber}
-                  confirmed={legRollingStock.confirmed}
+              {/* Rolling Stock */}
+              {legRollingStock && legRollingStock.rollingStock ? (
+                <div className="flex items-center gap-2">
+                  <RollingStockChip
+                    rollingStock={legRollingStock.rollingStock}
+                    setNumber={legRollingStock.setNumber}
+                    confirmed={legRollingStock.confirmed}
+                    onClick={() => setRollingStockOpen(true)}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleUnlinkRollingStock}
+                    disabled={unlinkRollingStock.isPending}
+                    className="text-[#4a6a9a] hover:text-[#e25555]"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <button
                   onClick={() => setRollingStockOpen(true)}
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleUnlinkRollingStock}
-                  disabled={unlinkRollingStock.isPending}
-                  className="text-[#4a6a9a] hover:text-[#e25555]"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontSize: 12, color: '#4a6a9a',
+                    background: 'none', border: '1px dashed #1e2d4a',
+                    borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
+                  }}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setRollingStockOpen(true)}
-                className="w-fit bg-[#0d1f3c] text-[#4a6a9a] hover:text-white border-[#1e3a6e] rounded-lg"
-              >
-                <Plus className="h-3.5 w-3.5 mr-2" />
-                Zugtyp verknüpfen
-              </Button>
-            )}
+                  <Plus size={11} />
+                  Zugtyp verknüpfen
+                </button>
+              )}
+            </div>
 
             {traewelling?.connected && leg.status === 'planned' && canCheckIn && !isCheckedIn && (
               <div className="pt-2 border-t border-[#1e2d4a] mt-1">

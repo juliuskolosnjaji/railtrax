@@ -84,7 +84,7 @@ export function TripMap({ legs, preview = false, className = '' }: TripMapProps)
         interactiveLayerIds={['demo-route-line']}
       >
         {/* NavigationControl - only in full map mode */}
-        {!preview && <NavigationControl position="top-right" />}
+        {!preview && <NavigationControl position="bottom-right" />}
 
         {/* Route lines */}
         {legs.map((leg) => (

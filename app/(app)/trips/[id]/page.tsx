@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Pencil } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Pencil, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
@@ -25,13 +25,20 @@ import { TripRouteCard } from '@/components/trips/TripRouteCard'
 const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
   planned:   { bg: '#0d1f3c', color: '#4f8ef7',  border: '#1e3a6e' },
   active:    { bg: '#0d2618', color: '#3ecf6e',  border: '#1a4a2e' },
-  completed: { bg: '#0d2618', color: '#3ecf6e',  border: '#1a4a2e' },
+  completed: { bg: '#1a1a1a', color: '#6b7280',  border: '#2a2a2a' },
   cancelled: { bg: '#1f0d0d', color: '#e25555',  border: '#3a1515' },
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  planned: 'Geplant',
+  active: '● Aktiv',
+  completed: 'Abgeschlossen',
+  cancelled: 'Storniert',
 }
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return null
-  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 export default function TripDetailPage() {
@@ -129,31 +136,61 @@ export default function TripDetailPage() {
           <div className="flex items-start justify-between gap-4 mb-2">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-medium text-white">{trip.title}</h1>
+              {/* Edit button — icon only */}
               <button
                 onClick={() => setTripEditOpen(true)}
-                className="p-2 rounded-lg bg-[#0a1628] border border-[#1e2d4a] text-[#4a6a9a] hover:text-white hover:border-[#4f8ef7] transition-colors"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 36, height: 36,
+                  background: '#0d1f3c', border: '1px solid #1e3a6e',
+                  borderRadius: 8, cursor: 'pointer', flexShrink: 0,
+                }}
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil size={15} color="#4f8ef7" />
               </button>
             </div>
-            <div className="flex items-center gap-2">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: 'wrap',
+            }}>
+              {/* PDF button */}
               <a
                 href={`/api/trips/${id}/export/pdf`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white hover:border-[#4f8ef7] text-sm"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  gap: 6, height: 36, padding: '0 14px',
+                  background: '#0d1f3c', border: '1px solid #1e3a6e',
+                  borderRadius: 8, cursor: 'pointer',
+                  fontSize: 13, fontWeight: 500, color: '#4f8ef7',
+                  flexShrink: 0,
+                }}
               >
-                <FileText className="h-4 w-4" /> PDF
+                <FileText size={14} />
+                PDF
               </a>
+              {/* Image/Bild button */}
               <button
                 onClick={async () => {
                   const { exportTripAsImage } = await import('@/lib/export/clientExport')
                   await exportTripAsImage(trip, null as unknown as HTMLElement)
                 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white hover:border-[#4f8ef7] text-sm"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  gap: 6, height: 36, padding: '0 14px',
+                  background: '#0d1f3c', border: '1px solid #1e3a6e',
+                  borderRadius: 8, cursor: 'pointer',
+                  fontSize: 13, fontWeight: 500, color: '#4f8ef7',
+                  flexShrink: 0,
+                }}
               >
-                <ImageIcon className="h-4 w-4" /> Bild
+                <ImageIcon size={14} />
+                Bild
               </button>
+              {/* Share button */}
               {trip && (
                 <SharingSheet
                   tripId={id}
@@ -163,24 +200,31 @@ export default function TripDetailPage() {
                   onUnshare={handleUnshareTrip}
                 />
               )}
-              <Button
-                variant="ghost" size="icon"
-                className="bg-[#0a1628] border border-[#1e2d4a] text-[#4a6a9a] hover:text-[#e25555] hover:border-[#e25555] rounded-lg shrink-0"
+              {/* Delete button */}
+              <button
                 onClick={handleDeleteTrip}
                 disabled={deleteTrip.isPending}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 36, height: 36,
+                  background: '#0d1f3c', border: '1px solid #1e3a6e',
+                  borderRadius: 8, cursor: 'pointer', flexShrink: 0,
+                }}
               >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+                <Trash2 size={15} color="#e25555" />
+              </button>
             </div>
           </div>
 
           <div className="flex items-center gap-3 mb-8 flex-wrap">
             {(() => {
-              const s = STATUS_STYLES[trip.status ?? 'planned'] ?? STATUS_STYLES.planned
+              const status = trip.status ?? 'planned'
+              const s = STATUS_STYLES[status] ?? STATUS_STYLES.planned
+              const label = STATUS_LABELS[status] ?? STATUS_LABELS.planned
               return (
                 <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
-                  className="rounded-full px-3 py-1 text-xs font-medium capitalize">
-                  {trip.status ?? 'planned'}
+                  className="rounded-full px-3 py-1 text-xs font-medium">
+                  {label}
                 </span>
               )
             })()}
@@ -224,28 +268,59 @@ export default function TripDetailPage() {
 
           {/* Timeline */}
           <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-medium text-white flex items-center gap-2">
-                  Zeitlinie
-                  <span className="bg-[#0d1f3c] text-[#4a6a9a] text-xs px-2 py-1 rounded">
-                    {trip.legs.length} Abschnitte · {entries.length} {entries.length === 1 ? 'Eintrag' : 'Einträge'}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 20px',
+                gap: 10,
+                flexWrap: 'nowrap',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10,
+                              minWidth: 0, flex: 1 }}>
+                  <h2 style={{ fontSize: 16, fontWeight: 600, color: '#fff',
+                               margin: 0, whiteSpace: 'nowrap' }}>
+                    Zeitlinie
+                  </h2>
+                  {/* Count badge — smaller, doesn't wrap */}
+                  <span style={{
+                    fontSize: 11, color: '#4a6a9a',
+                    background: '#0d1f3c', border: '1px solid #1e2d4a',
+                    borderRadius: 5, padding: '2px 8px', whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}>
+                    {trip.legs.length} Abschnitte · {entries.length} Einträge
                   </span>
-                </h2>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm" variant="ghost"
+                </div>
+
+                {/* Action buttons — right side */}
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <button
                     onClick={() => openNewEntry()}
-                    className="bg-[#0a1628] border border-[#1e2d4a] text-[#8ba3c7] hover:text-white rounded-lg gap-1.5 h-auto py-2"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      gap: 5, height: 34, padding: '0 12px',
+                      background: '#0d1f3c', border: '1px solid #1e3a6e',
+                      borderRadius: 7, cursor: 'pointer',
+                      fontSize: 12, fontWeight: 500, color: '#4f8ef7',
+                    }}
                   >
-                    <BookOpen className="h-4 w-4" /> Eintrag
-                  </Button>
-                  <Button
-                    size="sm"
+                    <BookOpen size={13} />
+                    Eintrag
+                  </button>
+                  <button
                     onClick={() => setAddLegOpen(true)}
-                    className="bg-[#4f8ef7] text-white hover:bg-[#3a7de6] rounded-lg gap-1.5 h-auto py-2"
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      gap: 5, height: 34, padding: '0 12px',
+                      background: '#2563eb', border: 'none',
+                      borderRadius: 7, cursor: 'pointer',
+                      fontSize: 12, fontWeight: 600, color: '#fff',
+                    }}
                   >
-                    <Plus className="h-4 w-4" /> Abschnitt
-                  </Button>
+                    <Plus size={13} />
+                    Abschnitt
+                  </button>
                 </div>
               </div>
 

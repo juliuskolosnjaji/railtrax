@@ -137,8 +137,8 @@ export default function StatsPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-5xl">
-      <h1 className="text-2xl font-bold text-white mb-1">Statistics</h1>
-      <p className="text-zinc-500 text-sm mb-6">Distance travelled, countries visited, CO₂ saved, and more.</p>
+      <h1 className="text-2xl font-bold text-white mb-1">Statistik</h1>
+      <p className="text-zinc-500 text-sm mb-6">Zurückgelegte Strecke, besuchte Länder, CO₂ gespart und mehr.</p>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 border-b border-zinc-800">
@@ -150,7 +150,7 @@ export default function StatsPage() {
               : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
-          Overview
+          Übersicht
           {activeTab === 'overview' && (
             <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
           )}
@@ -274,19 +274,19 @@ export default function StatsPage() {
                           }}
                           labelStyle={{ color: '#e4e4e7' }}
                           itemStyle={{ color: '#a1a1aa' }}
-                          formatter={(value) => [`${value} km`, 'Distance']}
+                          formatter={(value) => [`${value} km`, 'Strecke']}
                         />
                         <Bar dataKey="km" fill="#22c55e" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <p className="text-sm text-zinc-500 text-center py-8">No data yet</p>
+                    <p className="text-sm text-zinc-500 text-center py-8">Noch keine Daten</p>
                   )}
                 </div>
 
                 {/* Top operators horizontal bar chart */}
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-                  <p className="text-sm text-zinc-500 mb-4">Top operators</p>
+                  <p className="text-sm text-zinc-500 mb-4">Top-Betreiber</p>
                   {operatorData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart data={operatorData.slice(0, 5)} layout="vertical" margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
@@ -315,13 +315,13 @@ export default function StatsPage() {
                           }}
                           labelStyle={{ color: '#e4e4e7' }}
                           itemStyle={{ color: '#a1a1aa' }}
-                          formatter={(value) => [`${value} km`, 'Distance']}
+                          formatter={(value) => [`${value} km`, 'Strecke']}
                         />
                         <Bar dataKey="km" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <p className="text-sm text-zinc-500 text-center py-8">No data yet</p>
+                    <p className="text-sm text-zinc-500 text-center py-8">Noch keine Daten</p>
                   )}
                 </div>
               </>
@@ -334,12 +334,12 @@ export default function StatsPage() {
         <>
           {stats?.upgradeRequired ? (
             <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-12 flex flex-col items-center justify-center">
-              <p className="text-zinc-500 text-sm mb-4">Heatmap is available for Plus subscribers</p>
+              <p className="text-zinc-500 text-sm mb-4">Heatmap ist verfügbar für Plus-Abonnenten</p>
               <button
                 onClick={() => setUpgradeOpen(true)}
                 className="px-4 py-2 bg-white text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-100 transition-colors"
               >
-                Upgrade to Plus
+                Plus wählen
               </button>
             </div>
           ) : (
@@ -348,7 +348,7 @@ export default function StatsPage() {
                 <HeatmapMap geojson={heatmapData.data} />
               ) : (
                 <div className="flex items-center justify-center h-full text-zinc-500 text-sm">
-                  No route data to display yet
+                  Noch keine Routendaten zum Anzeigen
                 </div>
               )}
             </div>
