@@ -232,24 +232,46 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
     console.log('Trip fetch error (non-fatal):', e)
   }
 
-  // ── STEP 5: Determine destination station ────────────────────
+  // ── STEP 5: Find destination station (Träwelling internal ID) ──
 
-  let destinationStation: number | undefined
+  let destinationStationId: number | null = null
 
   if (leg.destIbnr) {
-    destinationStation = parseInt(leg.destIbnr, 10)
-  } else {
+    for (const url of [
+      `https://traewelling.de/api/v1/station/${leg.destIbnr}`,
+      `https://traewelling.de/api/v1/stations/${leg.destIbnr}`,
+    ]) {
+      const r = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      })
+      if (r.ok) {
+        const d = await r.json()
+        const s = d.data ?? d
+        if (s?.id) {
+          destinationStationId = s.id
+          console.log('Destination by IBNR lookup:', s.name, s.id)
+          break
+        }
+      }
+    }
+  }
+
+  if (!destinationStationId) {
     try {
-      const destRes = await fetch(
+      const r = await fetch(
         `https://traewelling.de/api/v1/stations?query=${encodeURIComponent(leg.destName)}`,
         { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
       )
-      if (destRes.ok) {
-        const destData = await destRes.json()
-        const destStations: any[] = destData.data ?? []
-        if (destStations.length > 0) {
-          destinationStation = destStations[0].id
-          console.log('Destination station:', destStations[0].name, destinationStation)
+      if (r.ok) {
+        const d = await r.json()
+        const stations: any[] = d.data ?? []
+        if (stations.length > 0) {
+          const exact = stations.find((s: any) =>
+            s.name.toLowerCase() === leg.destName.toLowerCase()
+          )
+          const best = exact ?? stations[0]
+          destinationStationId = best.id
+          console.log('Destination by name search:', best.name, best.id)
         }
       }
     } catch (e) {
@@ -258,27 +280,20 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
   }
 
   // ── STEP 6: Build checkin payload ────────────────────────────
-
-  const useIbnr = !!(
-    leg.originIbnr && leg.destIbnr &&
-    !isNaN(parseInt(leg.originIbnr)) &&
-    !isNaN(parseInt(leg.destIbnr))
-  )
-  const startStation = useIbnr ? parseInt(leg.originIbnr!, 10) : stationId
+  // Always use ibnr: false with Träwelling internal IDs.
+  // Using ibnr: true with DB IBNRs causes 500 errors.
 
   const payload: Record<string, unknown> = {
     tripId:    String(tripIdForCheckin),
     lineName:  matchingDep.line.name,
-    start:     startStation,
+    start:     stationId,
     departure: new Date(leg.plannedDeparture).toISOString(),
     arrival:   new Date(leg.plannedArrival).toISOString(),
-    ibnr:      useIbnr,
+    ibnr:      false,
   }
 
-  if (destinationStation !== undefined) {
-    payload.destination = useIbnr
-      ? parseInt(leg.destIbnr!, 10)
-      : destinationStation
+  if (destinationStationId !== null) {
+    payload.destination = destinationStationId
   }
 
   console.log('Checkin payload:', JSON.stringify(payload))
@@ -332,8 +347,20 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
 
   if (checkinRes.status === 500) {
     const msg = checkinData?.message ?? 'Träwelling Serverfehler'
-    console.error('Träwelling 500:', msg)
-    throw new TraewellingError('api_error', msg)
+    console.error('Träwelling 500:', msg, 'payload was:', JSON.stringify(payload))
+
+    const minutesAgo = Math.round(
+      (Date.now() - new Date(leg.plannedDeparture).getTime()) / 60000
+    )
+    if (minutesAgo > 30) {
+      throw new TraewellingError(
+        'api_error',
+        `Check-in nicht möglich: Der Zug ist bereits vor ${minutesAgo} Minuten abgefahren. ` +
+        `Check-in ist nur für aktuelle oder zukünftige Fahrten möglich.`
+      )
+    }
+
+    throw new TraewellingError('api_error', `Träwelling Serverfehler. Bitte erneut versuchen. (${msg})`)
   }
 
   if (!checkinRes.ok) {
