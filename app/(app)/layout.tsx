@@ -7,6 +7,35 @@ import { SignOutButton } from '@/components/shared/SignOutButton'
 import { getPlan } from '@/lib/entitlements'
 import { Logo } from '@/components/ui/Logo'
 
+function LegalFooter() {
+  return (
+    <footer
+      style={{
+        borderTop: '1px solid #0d1f3c',
+        padding: '14px 24px',
+        display: 'flex',
+        gap: 20,
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+      }}
+    >
+      {[
+        { href: '/impressum',            label: 'Impressum' },
+        { href: '/datenschutz',          label: 'Datenschutz' },
+        { href: '/nutzungsbedingungen',  label: 'AGB' },
+        { href: 'mailto:legal@railtrax.eu', label: 'Kontakt' },
+      ].map(({ href, label }) => (
+        <a key={href} href={href} style={{ fontSize: 11, color: '#1e3a6e', textDecoration: 'none' }}>
+          {label}
+        </a>
+      ))}
+      <span style={{ fontSize: 11, color: '#0d1f3c' }}>
+        © {new Date().getFullYear()} Railtrax
+      </span>
+    </footer>
+  )
+}
+
 const NAV_ITEMS = [
   { href: '/dashboard',     label: 'Dashboard',      icon: LayoutDashboard },
   { href: '/search',        label: 'Suche',           icon: Search },
@@ -91,6 +120,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <main className="flex-1 overflow-y-auto" style={{ backgroundColor: '#080d1a' }}>
         {children}
+        <LegalFooter />
       </main>
     </div>
   )

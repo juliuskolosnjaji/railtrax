@@ -17,6 +17,8 @@ model User {
   traewellingToken String?  @map("traewelling_token")
   traewellingUsername String? @map("traewelling_username")
   calendarToken    String?  @unique @map("calendar_token") @db.Uuid
+  unsubscribeToken String?  @unique @default(cuid()) @map("unsubscribe_token")
+  marketingEmails  Boolean  @default(true) @map("marketing_emails")
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   trips           Trip[]

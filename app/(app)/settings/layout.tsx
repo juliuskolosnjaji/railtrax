@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CreditCard, Train } from 'lucide-react'
+import { CreditCard, Train, Bell, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const SETTINGS_TABS = [
-  { name: 'Billing', href: '/settings/billing', icon: CreditCard },
-  { name: 'Connections', href: '/settings/connections', icon: Train },
+  { name: 'Abonnement',        href: '/settings/billing',       icon: CreditCard },
+  { name: 'Verbindungen',      href: '/settings/connections',   icon: Train },
+  { name: 'Benachrichtigungen', href: '/settings/notifications', icon: Bell },
+  { name: 'Daten & Privatsphäre', href: '/settings/privacy',   icon: Shield },
 ]
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
