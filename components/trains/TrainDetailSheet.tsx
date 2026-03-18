@@ -34,6 +34,7 @@ interface TrainDetail {
 
 interface TrainDetailSheetProps {
   trainNumber: string
+  tripId?: string
   date?: string
   highlightStopId?: string
   onClose: () => void
@@ -41,15 +42,23 @@ interface TrainDetailSheetProps {
 }
 
 export function TrainDetailSheet({
-  trainNumber, date, highlightStopId, onClose, onAddToTrip
+  trainNumber, tripId, date, highlightStopId, onClose, onAddToTrip
 }: TrainDetailSheetProps) {
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['train', trainNumber, date],
-    queryFn: () =>
-      fetch(`/api/trains/${encodeURIComponent(trainNumber)}?date=${date ?? new Date().toISOString().slice(0,10)}`)
-        .then(r => r.json()).then(d => d.data),
-    refetchInterval: 60_000,  // refresh every minute
+    queryKey: ['train', trainNumber, tripId, date],
+    queryFn: () => {
+      const params = new URLSearchParams()
+      if (tripId) params.set('tripId', tripId)
+      params.set('date', date ?? new Date().toISOString().slice(0, 10))
+      return fetch(`/api/trains/${encodeURIComponent(trainNumber)}?${params}`, {
+        signal: AbortSignal.timeout(15000),
+      })
+        .then(r => r.json()).then(d => d.data)
+    },
+    refetchInterval: 60_000,
+    retry: 1,
+    retryDelay: 2000,
   })
 
   return (

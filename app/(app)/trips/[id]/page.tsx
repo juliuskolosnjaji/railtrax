@@ -94,7 +94,7 @@ export default function TripDetailPage() {
   }
 
   async function handleDeleteTrip() {
-    if (!confirm('Delete this trip? This cannot be undone.')) return
+    if (!confirm('Reise wirklich löschen? Dies kann nicht rückgängig gemacht werden.')) return
     await deleteTrip.mutateAsync(id)
     router.push('/dashboard')
   }

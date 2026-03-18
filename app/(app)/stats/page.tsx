@@ -41,6 +41,13 @@ interface HeatmapData {
   }[]
 }
 
+const CARD_STYLE: React.CSSProperties = {
+  background: '#0a1628',
+  border: '1px solid #1e2d4a',
+  borderRadius: 12,
+  padding: 24,
+}
+
 function StatCard({
   label,
   value,
@@ -51,10 +58,10 @@ function StatCard({
   sub?: string
 }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-      <p className="text-sm text-zinc-500 mb-1">{label}</p>
-      <p className="text-3xl font-bold text-white">{value}</p>
-      {sub && <p className="text-xs text-zinc-500 mt-1">{sub}</p>}
+    <div style={CARD_STYLE}>
+      <p style={{ fontSize: 12, color: '#4a6a9a', marginBottom: 4 }}>{label}</p>
+      <p style={{ fontSize: 28, fontWeight: 700, color: '#fff' }}>{value}</p>
+      {sub && <p style={{ fontSize: 11, color: '#4a6a9a', marginTop: 4 }}>{sub}</p>}
     </div>
   )
 }
@@ -62,16 +69,20 @@ function StatCard({
 function LockedCard({ label, onUnlock }: { label: string; onUnlock: () => void }) {
   return (
     <div
-      className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 relative cursor-pointer group"
+      style={{ ...CARD_STYLE, position: 'relative', cursor: 'pointer' }}
       onClick={onUnlock}
     >
-      <div className="blur-sm select-none">
-        <p className="text-sm text-zinc-500 mb-1">{label}</p>
-        <p className="text-3xl font-bold text-white">—</p>
+      <div style={{ filter: 'blur(4px)', userSelect: 'none' }}>
+        <p style={{ fontSize: 12, color: '#4a6a9a', marginBottom: 4 }}>{label}</p>
+        <p style={{ fontSize: 28, fontWeight: 700, color: '#fff' }}>—</p>
       </div>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="rounded-full border border-zinc-700 bg-zinc-800/80 px-3 py-1 text-xs text-zinc-300 group-hover:border-zinc-500 transition-colors">
-          Plus only — upgrade to unlock
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{
+          borderRadius: 99, border: '1px solid #1e3a6e',
+          background: 'rgba(10,22,40,0.85)', padding: '4px 12px',
+          fontSize: 12, color: '#4f8ef7',
+        }}>
+          Plus — upgraden zum Freischalten
         </span>
       </div>
     </div>
@@ -136,42 +147,33 @@ export default function StatsPage() {
   const co2Comparison = stats?.co2_saved_kg ? findClosestComparison(stats.co2_saved_kg) : null
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl">
-      <h1 className="text-2xl font-bold text-white mb-1">Statistik</h1>
-      <p className="text-zinc-500 text-sm mb-6">Zurückgelegte Strecke, besuchte Länder, CO₂ gespart und mehr.</p>
+    <div style={{ padding: '24px 16px', maxWidth: 900 }} className="md:p-8">
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Statistik</h1>
+      <p style={{ fontSize: 13, color: '#4a6a9a', marginBottom: 24 }}>Zurückgelegte Strecke, besuchte Länder, CO₂ gespart und mehr.</p>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-zinc-800">
-        <button
-          onClick={() => setActiveTab('overview')}
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-            activeTab === 'overview'
-              ? 'text-white'
-              : 'text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          Übersicht
-          {activeTab === 'overview' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('heatmap')}
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${
-            activeTab === 'heatmap'
-              ? 'text-white'
-              : 'text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          Heatmap
-          {activeTab === 'heatmap' && (
-            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />
-          )}
-        </button>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid #1e2d4a' }}>
+        {(['overview', 'heatmap'] as Tab[]).map(t => (
+          <button
+            key={t}
+            onClick={() => setActiveTab(t)}
+            style={{
+              padding: '8px 16px', fontSize: 14, fontWeight: 500,
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: activeTab === t ? '#fff' : '#4a6a9a',
+              position: 'relative', transition: 'color 0.15s',
+            }}
+          >
+            {t === 'overview' ? 'Übersicht' : 'Heatmap'}
+            {activeTab === t && (
+              <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: '#4f8ef7', borderRadius: 2 }} />
+            )}
+          </button>
+        ))}
       </div>
 
       {isError && (
-        <p className="text-red-400 text-sm mb-6">Failed to load statistics.</p>
+        <p style={{ color: '#e25555', fontSize: 13, marginBottom: 24 }}>Fehler beim Laden der Statistik.</p>
       )}
 
       {activeTab === 'overview' && (

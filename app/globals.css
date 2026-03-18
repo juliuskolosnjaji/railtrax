@@ -197,6 +197,41 @@ button svg, a svg {
   flex-shrink: 0;
 }
 
+/* ─── Settings Dark Theme ──────────────────────────────────────────────────────── */
+
+.settings-page h1, .settings-page h2, .settings-page h3 {
+  color: #ffffff !important;
+}
+
+.settings-page p, .settings-page span:not([class*="badge"]) {
+  color: #8ba3c7;
+}
+
+.settings-page label,
+.settings-page [class*="Label"] {
+  color: #8ba3c7 !important;
+}
+
+.settings-page input,
+.settings-page textarea,
+.settings-page select {
+  background: #080d1a !important;
+  border-color: #1e2d4a !important;
+  color: #fff !important;
+}
+
+.settings-page input::placeholder,
+.settings-page textarea::placeholder {
+  color: #4a6a9a !important;
+}
+
+.settings-page [class*="Card"],
+.settings-page .card {
+  background: #0a1628 !important;
+  border-color: #1e2d4a !important;
+  color: #fff !important;
+}
+
 /* ─── Mobile Padding Consistency ───────────────────────────────────────────────── */
 
 @media (max-width: 767px) {

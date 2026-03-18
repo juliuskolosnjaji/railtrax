@@ -16,10 +16,19 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const pathname = usePathname()
 
   return (
-    <div className="flex flex-col md:flex-row h-full">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+         className="md:flex-row">
       {/* Settings Sidebar */}
-      <aside className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-950/50 p-6 space-y-2">
-        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 px-3">
+      <aside style={{
+        flexShrink: 0, padding: 24,
+        borderBottom: '1px solid #1e2d4a',
+        background: '#080d1a',
+      }} className="w-full md:w-64 md:border-b-0 md:border-r md:border-[#1e2d4a]">
+        <h2 style={{
+          fontSize: 11, fontWeight: 600, color: '#4a6a9a',
+          textTransform: 'uppercase', letterSpacing: '0.08em',
+          marginBottom: 16, paddingLeft: 12,
+        }}>
           Einstellungen
         </h2>
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0">
@@ -31,14 +40,18 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={cn(
-                  'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap',
-                  isActive
-                    ? 'bg-zinc-800 text-white'
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'
-                )}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '8px 12px', borderRadius: 8,
+                  fontSize: 14, fontWeight: 500,
+                  textDecoration: 'none', whiteSpace: 'nowrap',
+                  transition: 'background 0.15s, color 0.15s',
+                  background: isActive ? '#0d1f3c' : 'transparent',
+                  color: isActive ? '#fff' : '#4a6a9a',
+                  border: isActive ? '1px solid #1e3a6e' : '1px solid transparent',
+                }}
               >
-                <Icon className={cn('h-4 w-4', isActive ? 'text-zinc-200' : 'text-zinc-500')} />
+                <Icon style={{ width: 16, height: 16, color: isActive ? '#4f8ef7' : '#4a6a9a' }} />
                 {tab.name}
               </Link>
             )
@@ -47,8 +60,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       </aside>
 
       {/* Main Settings Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 md:p-8 max-w-4xl">
+      <div style={{ flex: 1, overflowY: 'auto', background: '#080d1a' }}>
+        <div style={{ padding: '24px 16px', maxWidth: 768 }}
+             className="md:p-8">
           {children}
         </div>
       </div>

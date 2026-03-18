@@ -1,34 +1,90 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getJourneyByTrainNumber } from '@/lib/vendo'
+import { getTripById } from '@/lib/vendo'
+
+const SCAN_HUBS = [
+  '8000105', // Frankfurt Hbf
+  '8011160', // Berlin Hbf
+  '8000261', // München Hbf
+  '8000091', // Hamburg Hbf
+  '8000286', // Köln Hbf
+  '8000155', // Düsseldorf Hbf
+  '8000119', // Stuttgart Hbf
+  '8000107', // Frankfurt Airport
+]
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const q = searchParams.get('q') ?? ''
-  const date = searchParams.get('date') ?? new Date().toISOString().slice(0,10)
+  const dateStr = searchParams.get('date')
+  
+  // Default to current time
+  const date = dateStr ? new Date(dateStr) : new Date()
   
   if (q.length < 2) return NextResponse.json({ data: [] })
 
-  try {
-    const normalized = q.toUpperCase().replace(/\s+/g,'')
-    const trip = await getJourneyByTrainNumber(normalized, new Date(date))
+  const normalized = q.toUpperCase().replace(/\s+/g,'')
 
-    if (!trip) {
-      return NextResponse.json({ data: [] })
+  try {
+    // Create fresh client for scanning
+    const { createClient } = await import('db-vendo-client')
+    const { profile: dbnavProfile } = await import('db-vendo-client/p/dbnav/index.js')
+    const client = createClient(dbnavProfile, 'railtrax/1.0 (contact@railtrax.eu)')
+    
+    const results: Array<{
+      tripId: string
+      trainNumber: string
+      operator: string | null
+      origin: string | null
+      destination: string | null
+      departure: string | null
+      delay: number
+      station: string
+    }> = []
+
+    for (const hubId of SCAN_HUBS) {
+      try {
+        const { departures } = await client.departures(hubId, {
+          when: date,
+          duration: 180,
+          results: 60,
+        })
+        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const matches = (departures as any[]).filter((dep: any) => {
+          if (!dep.tripId || dep.cancelled) return false
+          const lineName = (dep.line?.name ?? '').replace(/\s+/g, '').toUpperCase()
+          return lineName.includes(normalized.replace(/\s+/g, ''))
+        })
+
+        for (const dep of matches.slice(0, 3)) {
+          if (!results.find(r => r.tripId === dep.tripId)) {
+            results.push({
+              tripId: dep.tripId,
+              trainNumber: dep.line?.name ?? q,
+              operator: null,
+              origin: hubId === '8000105' ? 'Frankfurt Hbf' : 
+                      hubId === '8011160' ? 'Berlin Hbf' :
+                      hubId === '8000261' ? 'München Hbf' :
+                      hubId === '8000091' ? 'Hamburg Hbf' :
+                      hubId === '8000286' ? 'Köln Hbf' :
+                      hubId === '8000155' ? 'Düsseldorf Hbf' :
+                      hubId === '8000119' ? 'Stuttgart Hbf' :
+                      hubId === '8000107' ? 'Frankfurt Airport' : 'Unknown',
+              destination: dep.direction,
+              departure: dep.plannedWhen,
+              delay: dep.delay ?? 0,
+              station: hubId,
+            })
+          }
+        }
+
+        if (results.length >= 10) break
+      } catch (e) {
+        console.error(`Error scanning ${hubId}:`, e)
+      }
     }
 
-    // Return mock data for now since getJourneyByTrainNumber returns a single trip
-    // In a real implementation, you'd want to search for multiple trips
-    return NextResponse.json({
-      data: [{
-        tripId: trip.tripId,
-        trainNumber: trip.lineName || normalized,
-        operator: trip.operator,
-        origin: trip.stops[0]?.name,
-        destination: trip.stops[trip.stops.length - 1]?.name,
-        departure: trip.stops[0]?.plannedDep,
-        delay: 0, // Would calculate from real-time data
-      }]
-    })
+    return NextResponse.json({ data: results.slice(0, 10) })
   } catch (err) {
     console.error('Train search error:', err)
     return NextResponse.json(

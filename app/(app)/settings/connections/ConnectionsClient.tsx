@@ -63,7 +63,7 @@ export function ConnectionsClient({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 settings-page">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Connections</h1>
         <p className="text-zinc-400">Manage connections to external train services.</p>

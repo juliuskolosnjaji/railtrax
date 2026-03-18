@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bell, Calendar, Train, Clock, Plus } from 'lucide-react'
 import { NewTripSheet } from '@/components/trips/NewTripSheet'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
@@ -501,8 +501,11 @@ export default function DashboardPage() {
   const router = useRouter()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [deleteMode, setDeleteMode] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   const { getLimit } = useEntitlements()
 
+  const qc = useQueryClient()
   const { data: trips, isLoading } = useQuery<TripWithLegs[]>({
     queryKey: ['trips', 'with-legs'],
     queryFn: async () => {
@@ -520,6 +523,24 @@ export default function DashboardPage() {
   function handleNewTrip() {
     if (atLimit) setUpgradeOpen(true)
     else setSheetOpen(true)
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`${selected.size} Reise(n) wirklich löschen?`)) return
+    await Promise.all([...selected].map(id =>
+      fetch(`/api/trips/${id}`, { method: 'DELETE' })
+    ))
+    qc.invalidateQueries({ queryKey: ['trips'] })
+    setSelected(new Set())
+    setDeleteMode(false)
+  }
+
+  function toggleSelect(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
   }
 
   return (
@@ -544,26 +565,55 @@ export default function DashboardPage() {
         }}>
           Meine Reisen
         </h1>
-        <button
-          onClick={handleNewTrip}
-          style={{
-            background: '#2563eb', 
-            color: '#fff', 
-            border: 'none',
-            borderRadius: 8, 
-            padding: '9px 14px',
-            fontSize: 13, 
-            fontWeight: 500, 
-            cursor: 'pointer',
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 5,
-            flexShrink: 0, 
-            whiteSpace: 'nowrap',
-          }}
-        >
-          + Neue Reise
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          {deleteMode && selected.size > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              style={{
+                background: '#1f0d0d', color: '#e25555',
+                border: '1px solid #3a1515', borderRadius: 8,
+                padding: '9px 14px', fontSize: 13, fontWeight: 500,
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}
+            >
+              {selected.size} löschen
+            </button>
+          )}
+          <button
+            onClick={() => { setDeleteMode(d => !d); setSelected(new Set()) }}
+            style={{
+              background: deleteMode ? '#1f0d0d' : '#0d1f3c',
+              color: deleteMode ? '#e25555' : '#4f8ef7',
+              border: `1px solid ${deleteMode ? '#3a1515' : '#1e3a6e'}`,
+              borderRadius: 8, padding: '9px 14px',
+              fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {deleteMode ? 'Abbrechen' : 'Auswählen'}
+          </button>
+          {!deleteMode && (
+            <button
+              onClick={handleNewTrip}
+              style={{
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                padding: '9px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              + Neue Reise
+            </button>
+          )}
+        </div>
       </div>
 
       <NotifBanner />
@@ -616,10 +666,26 @@ export default function DashboardPage() {
           boxSizing: 'border-box',
         }}>
           {trips.map(trip => (
-            <div key={trip.id} style={{ width: '100%', boxSizing: 'border-box' }}>
+            <div key={trip.id} style={{ width: '100%', boxSizing: 'border-box', position: 'relative' }}>
+              {deleteMode && (
+                <div
+                  onClick={() => toggleSelect(trip.id)}
+                  style={{
+                    position: 'absolute', top: 10, left: 10, zIndex: 10,
+                    width: 20, height: 20, borderRadius: 4, cursor: 'pointer',
+                    background: selected.has(trip.id) ? '#e25555' : '#0d1f3c',
+                    border: `2px solid ${selected.has(trip.id) ? '#e25555' : '#1e3a6e'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  {selected.has(trip.id) && (
+                    <span style={{ color: '#fff', fontSize: 12, lineHeight: 1 }}>✓</span>
+                  )}
+                </div>
+              )}
               <TripCard
                 trip={trip}
-                onClick={() => router.push(`/trips/${trip.id}`)}
+                onClick={() => deleteMode ? toggleSelect(trip.id) : router.push(`/trips/${trip.id}`)}
               />
             </div>
           ))}

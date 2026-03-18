@@ -123,7 +123,7 @@ function StationInput({
   icon: React.ReactNode
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 5, position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 5, position: 'relative', width: '100%', maxWidth: 280 }}>
       <div style={{
         fontSize: 10, color: '#4a6a9a', textTransform: 'uppercase',
         letterSpacing: '1px', fontWeight: 500,
@@ -135,7 +135,7 @@ function StationInput({
         border: `1px solid ${value ? '#4f8ef7' : '#1e2d4a'}`,
         borderRadius: 8, padding: '9px 12px',
         display: 'flex', alignItems: 'center', gap: 7,
-        minWidth: 200, cursor: 'text',
+        width: '100%', cursor: 'text',
       }}>
         {icon}
         <input

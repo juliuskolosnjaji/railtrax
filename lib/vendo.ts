@@ -204,7 +204,7 @@ export async function getDepartures(
     const { departures } = await client.departures(ibnr, {
       when,
       duration,
-      results: 30,
+      results: 50,
       products: TRAIN_PRODUCTS,
     })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -225,6 +225,41 @@ export async function getDepartures(
         cancelled: d.cancelled ?? false,
       }))
   })
+}
+
+/**
+ * Get departures WITHOUT caching — used for train number search.
+ * Always fetches fresh data from the API.
+ */
+export async function getDeparturesFresh(
+  ibnr: string,
+  when: Date,
+  duration = 180,
+): Promise<Departure[]> {
+  const client = await getClient()
+  const { departures } = await client.departures(ibnr, {
+    when,
+    duration,
+    results: 60,
+    products: TRAIN_PRODUCTS,
+  })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (departures as any[])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((d: any) => d.tripId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((d: any): Departure => ({
+      tripId: d.tripId,
+      trainNumber: d.line?.name ?? '',
+      lineName: d.line?.name ?? '',
+      direction: d.direction ?? '',
+      plannedWhen: d.plannedWhen ?? d.when ?? '',
+      actualWhen: d.when ?? null,
+      delayMinutes: Math.round((d.delay ?? 0) / 60),
+      plannedPlatform: d.plannedPlatform ?? null,
+      actualPlatform: d.platform ?? null,
+      cancelled: d.cancelled ?? false,
+    }))
 }
 
 // ─── c. getTripById ───────────────────────────────────────────────────────────

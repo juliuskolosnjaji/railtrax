@@ -144,7 +144,9 @@ export async function GET(
       totalDuration = `${Math.floor(totalMins/60)}h ${totalMins%60}m`
     }
   }
-  const shareUrl = trip.shareToken ? `railtrax.eu/trip/${trip.shareToken}` : null
+  const shareUrl = trip.shareToken 
+    ? `${process.env.NEXT_PUBLIC_URL}/trip/${trip.shareToken}` 
+    : null
 
   const buffer = await renderToBuffer(
     <TripDocument

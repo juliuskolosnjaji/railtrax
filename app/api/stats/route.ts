@@ -35,10 +35,12 @@ export async function GET() {
     }
     
     const trips = await prisma().trip.findMany({
-      where: { userId: user.id, status: 'completed' },
+      where: {
+        userId: user.id,
+        status: { in: ['completed', 'active'] },
+      },
       include: {
         legs: {
-          where: { status: 'completed' },
           select: {
             distanceKm: true,
             plannedDeparture: true,

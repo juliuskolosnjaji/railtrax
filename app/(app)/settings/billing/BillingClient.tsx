@@ -80,7 +80,7 @@ export function BillingClient({
     : null
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 settings-page">
       <div>
         <h1 className="text-2xl font-bold text-white">Abonnement</h1>
         <p className="text-zinc-400 mt-1">Verwalte dein Abonnement und deinen Speicherplatz.</p>

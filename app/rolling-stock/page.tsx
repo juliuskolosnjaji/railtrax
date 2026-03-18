@@ -1,3 +1,5 @@
+export const revalidate = 3600
+
 import { prisma } from '@/lib/prisma'
 import { RollingStockChip } from '@/components/rolling-stock/RollingStockChip'
 import { SearchIcon } from '@/components/ui/icons/SearchIcon'

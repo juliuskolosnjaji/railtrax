@@ -129,7 +129,7 @@ export function NotificationsClient({
   }
 
   return (
-    <>
+    <div className="settings-page space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Push Notifications</CardTitle>
@@ -220,6 +220,6 @@ export function NotificationsClient({
           feature="notifications"
         />
       )}
-    </>
+    </div>
   )
 }

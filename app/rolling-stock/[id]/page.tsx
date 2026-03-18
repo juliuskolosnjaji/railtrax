@@ -1,3 +1,5 @@
+export const revalidate = 3600
+
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
@@ -11,8 +13,6 @@ import { GaugeIcon } from '@/components/ui/icons/GaugeIcon'
 import { UsersIcon } from '@/components/ui/icons/UsersIcon'
 import { ExternalLinkIcon } from '@/components/ui/icons/ExternalLinkIcon'
 import { ArrowLeftIcon } from '@/components/ui/icons/ArrowLeftIcon'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 
 interface LegWithTrip {
   id: string
@@ -80,152 +80,184 @@ export default async function RollingStockPage({ params }: PageProps) {
 
   const hasFeatures = rollingStock.hasWifi || rollingStock.hasBistro || rollingStock.hasBikeSpace || !!rollingStock.powerSystem
 
+  const card: React.CSSProperties = {
+    background: '#0a1628',
+    border: '1px solid #1e2d4a',
+    borderRadius: 12,
+    padding: 24,
+    marginBottom: 24,
+  }
+
+  const label: React.CSSProperties = {
+    fontSize: 12,
+    fontWeight: 500,
+    color: '#8ba3c7',
+    marginBottom: 2,
+  }
+
+  const value: React.CSSProperties = {
+    fontSize: 14,
+    color: '#ffffff',
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <div style={{ background: '#080d1a', minHeight: '100vh', color: '#fff' }}>
+      <div style={{ maxWidth: 896, margin: '0 auto', padding: '32px 16px' }}>
+
         {/* Back button */}
         <Link
           href="/rolling-stock"
-          className="inline-flex items-center gap-2 text-[#4a6a9a] hover:text-white text-sm mb-6 transition-colors"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            color: '#4a6a9a', fontSize: 14, marginBottom: 24,
+            textDecoration: 'none', transition: 'color 0.15s',
+          }}
         >
           <ArrowLeftIcon size={16} />
           Zurück
         </Link>
 
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-sm">
+        {/* Header card */}
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
+                  background: '#0d1f3c', border: '1px solid #1e3a6e', color: '#4f8ef7',
+                }}>
                   {rollingStock.operator}
-                </Badge>
-                <span className="text-slate-500">•</span>
-                <span className="text-slate-600">{rollingStock.series}</span>
+                </span>
               </div>
-              <h1 className="text-3xl font-bold text-slate-900">
-                {rollingStock.operator} {rollingStock.series}
+              <h1 style={{ fontSize: 28, fontWeight: 700, color: '#fff', margin: 0, marginBottom: 6 }}>
+                {rollingStock.series}
               </h1>
               {rollingStock.description && (
-                <p className="text-slate-600">{rollingStock.description}</p>
+                <p style={{ fontSize: 14, color: '#8ba3c7', margin: 0 }}>
+                  {rollingStock.description}
+                </p>
               )}
             </div>
             {rollingStock.photoUrl && (
-              <img 
-                src={rollingStock.photoUrl} 
+              <img
+                src={rollingStock.photoUrl}
                 alt={`${rollingStock.operator} ${rollingStock.series}`}
-                className="w-32 h-20 object-cover rounded-lg border border-slate-200"
+                style={{ width: 128, height: 80, objectFit: 'cover', borderRadius: 8, border: '1px solid #1e2d4a', flexShrink: 0 }}
               />
             )}
           </div>
 
           {/* Features */}
           {hasFeatures && (
-            <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-200">
+            <div style={{
+              display: 'flex', flexWrap: 'wrap', gap: 16,
+              marginTop: 20, paddingTop: 20, borderTop: '1px solid #1e2d4a',
+            }}>
               {rollingStock.hasWifi && (
-                <div className="flex items-center gap-2 text-sm">
-                  <WifiIcon className="h-4 w-4 text-blue-600" />
-                  <span className="text-slate-700">WiFi</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8ba3c7' }}>
+                  <WifiIcon className="h-4 w-4 text-blue-400" />
+                  WiFi
                 </div>
               )}
               {rollingStock.hasBistro && (
-                <div className="flex items-center gap-2 text-sm">
-                  <UtensilsIcon className="h-4 w-4 text-orange-600" />
-                  <span className="text-slate-700">Bistro/Restaurant</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8ba3c7' }}>
+                  <UtensilsIcon className="h-4 w-4 text-orange-400" />
+                  Bistro/Restaurant
                 </div>
               )}
               {rollingStock.hasBikeSpace && (
-                <div className="flex items-center gap-2 text-sm">
-                  <BikeIcon className="h-4 w-4 text-purple-600" />
-                  <span className="text-slate-700">Fahrradplätze</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8ba3c7' }}>
+                  <BikeIcon className="h-4 w-4 text-purple-400" />
+                  Fahrradplätze
                 </div>
               )}
               {!!rollingStock.powerSystem && (
-                <div className="flex items-center gap-2 text-sm">
-                  <ZapIcon className="h-4 w-4 text-yellow-600" />
-                  <span className="text-slate-700">Stromsystem: {rollingStock.powerSystem}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8ba3c7' }}>
+                  <ZapIcon className="h-4 w-4 text-yellow-400" />
+                  Stromsystem: {rollingStock.powerSystem}
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Specifications */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Specifications</h2>
-            <div className="space-y-3">
+        {/* Specs + Capacity grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 24, marginBottom: 24 }}>
+          {/* Technische Daten */}
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 20, marginTop: 0 }}>
+              Technische Daten
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {rollingStock.manufacturer && (
-                <div className="flex items-center gap-3">
-                  <FactoryIcon className="h-4 w-4 text-slate-400" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <FactoryIcon className="h-4 w-4 text-[#4a6a9a] mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Manufacturer</p>
-                    <p className="text-sm text-slate-600">{rollingStock.manufacturer}</p>
+                    <p style={label}>Hersteller</p>
+                    <p style={value}>{rollingStock.manufacturer}</p>
                   </div>
                 </div>
               )}
-              
               {rollingStock.introducedYear && (
-                <div className="flex items-center gap-3">
-                  <CalendarIcon className="h-4 w-4 text-slate-400" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <CalendarIcon className="h-4 w-4 text-[#4a6a9a] mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Introduced</p>
-                    <p className="text-sm text-slate-600">{rollingStock.introducedYear}</p>
+                    <p style={label}>In Betrieb seit</p>
+                    <p style={value}>{rollingStock.introducedYear}</p>
                   </div>
                 </div>
               )}
-              
               {rollingStock.maxSpeedKmh && (
-                <div className="flex items-center gap-3">
-                  <GaugeIcon className="h-4 w-4 text-slate-400" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <GaugeIcon className="h-4 w-4 text-[#4a6a9a] mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Max Speed</p>
-                    <p className="text-sm text-slate-600">{rollingStock.maxSpeedKmh} km/h</p>
+                    <p style={label}>Höchstgeschwindigkeit</p>
+                    <p style={value}>{rollingStock.maxSpeedKmh} km/h</p>
                   </div>
                 </div>
               )}
-              
               {rollingStock.powerSystem && (
-                <div className="flex items-center gap-3">
-                  <ZapIcon className="h-4 w-4 text-slate-400" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <ZapIcon className="h-4 w-4 text-[#4a6a9a] mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Power System</p>
-                    <p className="text-sm text-slate-600">{rollingStock.powerSystem}</p>
+                    <p style={label}>Stromsystem</p>
+                    <p style={value}>{rollingStock.powerSystem}</p>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Capacity</h2>
-            <div className="space-y-3">
+          {/* Kapazität */}
+          <div style={card}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: '#fff', marginBottom: 20, marginTop: 0 }}>
+              Kapazität
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {rollingStock.seats1st && (
-                <div className="flex items-center gap-3">
-                  <UsersIcon className="h-4 w-4 text-slate-400" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <UsersIcon className="h-4 w-4 text-[#4a6a9a] mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">First Class Seats</p>
-                    <p className="text-sm text-slate-600">{rollingStock.seats1st}</p>
+                    <p style={label}>Plätze 1. Klasse</p>
+                    <p style={value}>{rollingStock.seats1st}</p>
                   </div>
                 </div>
               )}
-              
               {rollingStock.seats2nd && (
-                <div className="flex items-center gap-3">
-                  <UsersIcon className="h-4 w-4 text-slate-400" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <UsersIcon className="h-4 w-4 text-[#4a6a9a] mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Second Class Seats</p>
-                    <p className="text-sm text-slate-600">{rollingStock.seats2nd}</p>
+                    <p style={label}>Plätze 2. Klasse</p>
+                    <p style={value}>{rollingStock.seats2nd}</p>
                   </div>
                 </div>
               )}
-              
               {rollingStock.hasWheelchair && (
-                <div className="flex items-center gap-3">
-                  <div className="h-4 w-4 text-slate-400">♿</div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ fontSize: 16, lineHeight: 1, marginTop: 2, flexShrink: 0 }}>♿</div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">Wheelchair Accessible</p>
-                    <p className="text-sm text-slate-600">Yes</p>
+                    <p style={label}>Rollstuhlgerecht</p>
+                    <p style={value}>Ja</p>
                   </div>
                 </div>
               )}
@@ -235,40 +267,56 @@ export default async function RollingStockPage({ params }: PageProps) {
 
         {/* Recent Sightings */}
         {rollingStock.legs.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-900">Recent Sightings</h2>
-              <Badge variant="secondary">
-                {rollingStock._count.legs} total
-              </Badge>
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#fff', margin: 0 }}>
+                Gesichtete Fahrten
+              </h2>
+              <span style={{
+                fontSize: 11, padding: '3px 8px', borderRadius: 4,
+                background: '#0d1f3c', border: '1px solid #1e3a6e', color: '#4a6a9a',
+              }}>
+                {rollingStock._count.legs} gesamt
+              </span>
             </div>
-            
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {rollingStock.legs.map((link: RollingStockLeg) => (
-                <div key={link.leg.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-slate-900">
-                        {link.leg.trainNumber}
-                      </span>
-                      <span className="text-sm text-slate-600">
+                <div key={link.leg.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 12px', borderRadius: 8, background: '#080d1a',
+                  border: '1px solid #1e2d4a',
+                }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                      {link.leg.trainNumber && (
+                        <span style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>
+                          {link.leg.trainNumber}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 13, color: '#8ba3c7' }}>
                         {link.leg.originName} → {link.leg.destName}
                       </span>
                     </div>
-                    <div className="text-xs text-slate-500">
-                      {new Date(link.leg.plannedDeparture).toLocaleDateString()} • {link.leg.trip.title}
+                    <div style={{ fontSize: 11, color: '#4a6a9a' }}>
+                      {new Date(link.leg.plannedDeparture).toLocaleDateString('de-DE')} · {link.leg.trip.title}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {link.setNumber && (
-                      <Badge variant="outline" className="text-xs">
+                      <span style={{
+                        fontSize: 11, padding: '2px 6px', borderRadius: 4,
+                        background: '#0d1f3c', border: '1px solid #1e3a6e', color: '#4a6a9a',
+                      }}>
                         {link.setNumber}
-                      </Badge>
+                      </span>
                     )}
                     {!link.confirmed && (
-                      <Badge variant="secondary" className="text-xs">
-                        Unconfirmed
-                      </Badge>
+                      <span style={{
+                        fontSize: 11, padding: '2px 6px', borderRadius: 4,
+                        background: '#1a1a0d', border: '1px solid #2a2a1a', color: '#8b7a4a',
+                      }}>
+                        Unbestätigt
+                      </span>
                     )}
                   </div>
                 </div>
@@ -279,12 +327,17 @@ export default async function RollingStockPage({ params }: PageProps) {
 
         {/* Wikipedia Link */}
         {rollingStock.wikiUrl && (
-          <div className="flex justify-center mt-6">
-            <a href={rollingStock.wikiUrl} target="_blank" rel="noopener noreferrer">
-              <Button className="bg-[#0d1f3c] border border-[#1e3a6e] text-[#4f8ef7] hover:bg-[#1a3a5e] gap-2">
-                <ExternalLinkIcon className="h-4 w-4" />
-                Wikipedia öffnen →
-              </Button>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+            <a href={rollingStock.wikiUrl} target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: '#0d1f3c', border: '1px solid #1e3a6e', color: '#4f8ef7',
+                borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 500,
+                textDecoration: 'none', transition: 'background 0.15s',
+              }}
+            >
+              <ExternalLinkIcon className="h-4 w-4" />
+              Wikipedia öffnen →
             </a>
           </div>
         )}

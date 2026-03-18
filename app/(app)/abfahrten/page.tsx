@@ -45,7 +45,7 @@ export default function AbfahrtenPage() {
     id: string, name: string
   } | null>(null)
   const [trainQuery, setTrainQuery] = useState('')
-  const [selectedTrain, setSelectedTrain] = useState<string|null>(null)
+  const [selectedTrain, setSelectedTrain] = useState<{ trainNumber: string; tripId?: string; date?: string } | null>(null)
   const [lastRefresh, setLastRefresh] = useState(new Date())
 
   const debouncedStation = useDebounce(stationQuery, 300)
@@ -310,7 +310,7 @@ export default function AbfahrtenPage() {
 
             return (
               <div key={i}
-                onClick={() => setSelectedTrain(dep.trainNumber)}
+                onClick={() => setSelectedTrain({ trainNumber: dep.trainNumber, tripId: dep.tripId, date: new Date(dep.plannedTime).toISOString().slice(0, 10) })}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '48px 80px 1fr 52px',
@@ -412,7 +412,7 @@ export default function AbfahrtenPage() {
           )}
           {trainResults?.map((t, i: number) => (
             <div key={i}
-              onClick={() => setSelectedTrain(t.trainNumber)}
+              onClick={() => setSelectedTrain({ trainNumber: t.trainNumber, tripId: t.tripId })}
               style={{
                 background: '#0a1628', border: '1px solid #1e2d4a',
                 borderRadius: 10, padding: '14px',
@@ -466,7 +466,9 @@ export default function AbfahrtenPage() {
       {/* Train detail sheet */}
       {selectedTrain && (
         <TrainDetailSheet
-          trainNumber={selectedTrain}
+          trainNumber={selectedTrain.trainNumber}
+          tripId={selectedTrain.tripId}
+          date={selectedTrain.date}
           onClose={() => setSelectedTrain(null)}
         />
       )}
