@@ -268,57 +268,31 @@ export default function TripDetailPage() {
 
           {/* Timeline */}
           <div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 20px',
-                gap: 10,
-                flexWrap: 'nowrap',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10,
-                              minWidth: 0, flex: 1 }}>
-                  <h2 style={{ fontSize: 16, fontWeight: 600, color: '#fff',
-                               margin: 0, whiteSpace: 'nowrap' }}>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 p-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 min-w-0">
+                  <h2 className="text-base font-semibold text-white whitespace-nowrap">
                     Zeitlinie
                   </h2>
-                  {/* Count badge — smaller, doesn't wrap */}
-                  <span style={{
-                    fontSize: 11, color: '#4a6a9a',
-                    background: '#0d1f3c', border: '1px solid #1e2d4a',
-                    borderRadius: 5, padding: '2px 8px', whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}>
+                  {/* Count badge */}
+                  <span className="text-xs text-[#4a6a9a] bg-[#0d1f3c] border border-[#1e2d4a] rounded-sm px-2 py-1 whitespace-nowrap">
                     {trip.legs.length} Abschnitte · {entries.length} Einträge
                   </span>
                 </div>
 
-                {/* Action buttons — right side */}
-                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                {/* Action buttons */}
+                <div className="flex gap-2 flex-shrink-0">
                   <button
                     onClick={() => openNewEntry()}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      gap: 5, height: 34, padding: '0 12px',
-                      background: '#0d1f3c', border: '1px solid #1e3a6e',
-                      borderRadius: 7, cursor: 'pointer',
-                      fontSize: 12, fontWeight: 500, color: '#4f8ef7',
-                    }}
+                    className="flex items-center justify-center gap-1.5 h-8 px-3 bg-[#0d1f3c] border border-[#1e3a6e] rounded cursor-pointer text-xs font-medium text-[#4f8ef7]"
                   >
-                    <BookOpen size={13} />
+                    <BookOpen size={12} />
                     Eintrag
                   </button>
                   <button
                     onClick={() => setAddLegOpen(true)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      gap: 5, height: 34, padding: '0 12px',
-                      background: '#2563eb', border: 'none',
-                      borderRadius: 7, cursor: 'pointer',
-                      fontSize: 12, fontWeight: 600, color: '#fff',
-                    }}
+                    className="flex items-center justify-center gap-1.5 h-8 px-3 bg-[#2563eb] border-none rounded cursor-pointer text-xs font-semibold text-white"
                   >
-                    <Plus size={13} />
+                    <Plus size={12} />
                     Abschnitt
                   </button>
                 </div>

@@ -255,14 +255,9 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
               ) : (
                 <button
                   onClick={() => setRollingStockOpen(true)}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    fontSize: 12, color: '#4a6a9a',
-                    background: 'none', border: '1px dashed #1e2d4a',
-                    borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
-                  }}
+                  className="inline-flex items-center gap-1 text-xs text-[#4a6a9a] hover:text-[#4f8ef7] transition-colors"
                 >
-                  <Plus size={11} />
+                  <Plus size={10} />
                   Zugtyp verknüpfen
                 </button>
               )}

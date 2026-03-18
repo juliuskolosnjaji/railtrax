@@ -71,7 +71,7 @@ export function RollingStockChip({
   return (
     <div 
       className={cn(
-        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm",
+        "inline-flex items-center gap-1 px-2 py-1 rounded text-xs",
         "bg-slate-100 hover:bg-slate-200 transition-colors",
         "border border-slate-200",
         !confirmed && "opacity-60 border-dashed",
@@ -81,19 +81,19 @@ export function RollingStockChip({
       onClick={handleClick}
     >
       {/* Train icon and basic info */}
-      <div className="flex items-center gap-2">
-        <Train className="h-4 w-4 text-slate-600" />
+      <div className="flex items-center gap-1">
+        <Train className="h-3 w-3 text-slate-600" />
         <span className="font-medium text-slate-900">
           {rollingStock.operator} {rollingStock.series}
         </span>
         {setNumber && (
-          <span className="text-xs text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">
+          <span className="text-xs text-slate-500 bg-slate-200 px-1 py-0.5 rounded-sm">
             {setNumber}
           </span>
         )}
         {!confirmed && (
           <div className="relative group">
-            <Clock className="h-3 w-3 text-amber-500" />
+            <Clock className="h-2.5 w-2.5 text-amber-500" />
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-slate-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
               Unconfirmed - needs verification
             </div>
@@ -103,10 +103,10 @@ export function RollingStockChip({
 
       {/* Feature icons */}
       {features.length > 0 && (
-        <div className="flex items-center gap-1 border-l border-slate-300 pl-2">
+        <div className="flex items-center gap-0.5 border-l border-slate-300 pl-1.5">
           {features.map((feature, index) => (
             <div key={index} className="relative group">
-              <feature.icon className={cn("h-3.5 w-3.5", feature.color)} />
+              <feature.icon className={cn("h-3 w-3", feature.color)} />
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-slate-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                 {feature.label}
               </div>
@@ -117,7 +117,7 @@ export function RollingStockChip({
 
       {/* Speed badge */}
       {rollingStock.maxSpeedKmh && rollingStock.maxSpeedKmh > 0 && (
-        <div className="border-l border-slate-300 pl-2">
+        <div className="border-l border-slate-300 pl-1.5">
           <span className="text-xs font-medium text-slate-600">
             {rollingStock.maxSpeedKmh} km/h
           </span>
