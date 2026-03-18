@@ -39,6 +39,10 @@ export interface Leg {
   lineName: string | null
   trainType: string | null
   trainNumber: string | null
+  platformPlanned: string | null
+  platformActual: string | null
+  arrivalPlatformPlanned: string | null
+  arrivalPlatformActual: string | null
   status: string | null
   delayMinutes: number
   cancelled: boolean

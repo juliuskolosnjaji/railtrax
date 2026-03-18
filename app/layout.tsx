@@ -1,8 +1,16 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { QueryProvider } from '@/components/shared/QueryProvider'
 import { CookieBanner } from '@/components/legal/CookieBanner'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#080d1a',
+}
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
 
@@ -20,8 +28,8 @@ export default function RootLayout({
     <html lang="de">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#080d1a" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className={inter.className}>
         <QueryProvider>{children}</QueryProvider>

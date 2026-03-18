@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SignOutButton } from '@/components/shared/SignOutButton'
 import { getPlan } from '@/lib/entitlements'
 import { Logo } from '@/components/ui/Logo'
+import { de } from '@/lib/i18n/de'
+import { MobileBottomNav } from '@/components/shared/MobileBottomNav'
 
 function LegalFooter() {
   return (
@@ -37,17 +39,17 @@ function LegalFooter() {
 }
 
 const NAV_ITEMS = [
-  { href: '/dashboard',     label: 'Dashboard',      icon: LayoutDashboard },
-  { href: '/search',        label: 'Suche',           icon: Search },
-  { href: '/stats',         label: 'Statistik',       icon: BarChart2 },
-  { href: '/rolling-stock', label: 'Züge',            icon: Train },
-  { href: '/settings',      label: 'Einstellungen',   icon: Settings },
+  { href: '/dashboard',     label: de.nav.dashboard,  icon: LayoutDashboard },
+  { href: '/search',        label: de.nav.search,     icon: Search },
+  { href: '/stats',         label: de.nav.stats,      icon: BarChart2 },
+  { href: '/rolling-stock', label: de.nav.trains,     icon: Train },
+  { href: '/settings',      label: de.nav.settings,   icon: Settings },
 ]
 
 const PLAN_BADGE: Record<string, string> = {
-  free: 'Free',
-  plus: 'Plus',
-  pro:  'Pro',
+  free: de.settings.free,
+  plus: de.settings.plus,
+  pro:  de.settings.pro,
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -65,9 +67,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#080d1a', color: '#fff' }}>
-      {/* Sidebar */}
+      {/* Desktop sidebar */}
       <aside
-        className="flex flex-col w-56 shrink-0"
+        className="hidden md:flex flex-col w-56 shrink-0"
         style={{ backgroundColor: '#080d1a', borderRight: '1px solid #1e2d4a' }}
       >
         {/* Logo */}
@@ -109,7 +111,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate" style={{ color: '#fff' }}>{displayName}</p>
               <p className="text-xs" style={{ color: '#4a6a9a' }}>
-                {PLAN_BADGE[plan] ?? 'Free'}
+                {PLAN_BADGE[plan] ?? de.settings.free}
               </p>
             </div>
           </div>
@@ -118,10 +120,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto" style={{ backgroundColor: '#080d1a' }}>
+      <main
+        className="flex-1 overflow-y-auto"
+        style={{ backgroundColor: '#080d1a', paddingBottom: 'var(--bottom-nav-height, 0px)' }}
+      >
         {children}
         <LegalFooter />
       </main>
+
+      {/* Mobile bottom nav (rendered client-side) */}
+      <MobileBottomNav navItems={NAV_ITEMS.filter(n => n.href !== '/rolling-stock')} />
     </div>
   )
 }

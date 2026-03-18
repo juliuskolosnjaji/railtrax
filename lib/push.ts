@@ -90,3 +90,22 @@ export function getVapidPublicKey(): string {
   }
   return process.env.VAPID_PUBLIC_KEY
 }
+
+export const PUSH_TEMPLATES = {
+  delay: (train: string, min: number, dest: string) => ({
+    title: `⏱ ${train} hat ${min} Min. Verspätung`,
+    body: `Ankunft in ${dest} verzögert sich.`,
+  }),
+  platformChange: (train: string, oldPl: string, newPl: string) => ({
+    title: `🚉 Gleisänderung: ${train}`,
+    body: `Nicht Gleis ${oldPl} — jetzt Gleis ${newPl}.`,
+  }),
+  cancelled: (train: string, origin: string) => ({
+    title: `❌ ${train} fällt aus`,
+    body: `Zug ab ${origin} ist gestrichen.`,
+  }),
+  checkinReminder: (train: string, min: number) => ({
+    title: `🎫 Abfahrt in ${min} Min.`,
+    body: `${train} fährt bald ab — jetzt einchecken.`,
+  }),
+}

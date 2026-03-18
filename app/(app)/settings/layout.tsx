@@ -20,7 +20,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       {/* Settings Sidebar */}
       <aside className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-950/50 p-6 space-y-2">
         <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 px-3">
-          Settings
+          Einstellungen
         </h2>
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0">
           {SETTINGS_TABS.map((tab: any) => {

@@ -82,8 +82,10 @@ model Leg {
   lineName            String?   @map("line_name")
   trainType           String?   @map("train_type")
   trainNumber         String?   @map("train_number")
-  platformPlanned     String?   @map("platform_planned")
-  platformActual      String?   @map("platform_actual")
+  platformPlanned          String?   @map("platform_planned")
+  platformActual           String?   @map("platform_actual")
+  arrivalPlatformPlanned   String?   @map("arrival_platform_planned")
+  arrivalPlatformActual    String?   @map("arrival_platform_actual")
 
   status              String?   @default("planned")
   delayMinutes        Int       @default(0) @map("delay_minutes")

@@ -14,6 +14,8 @@ import { RollingStockSelectorSheet } from '@/components/rolling-stock/RollingSto
 import { StaticRollingStockChip } from '@/components/rolling-stock/StaticRollingStockChip'
 import { identifyRollingStock } from '@/lib/rollingStock'
 import { getWagenreihungUrl } from '@/lib/wagenreihung'
+import { PlatformBadge } from '@/components/ui/PlatformBadge'
+import { formatDate as fmtDate, formatDelay } from '@/lib/i18n/format'
 
 const OPERATOR_STYLES: Record<string, string> = {
   DB: 'bg-red-950 text-red-300 border-red-800',
@@ -27,10 +29,6 @@ const OPERATOR_STYLES: Record<string, string> = {
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
 function durationMinutes(dep: string, arr: string) {
@@ -121,7 +119,7 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
     }
   }
 
-  const depDate = formatDate(leg.plannedDeparture)
+  const depDate = fmtDate(leg.plannedDeparture)
   const depTime = formatTime(leg.plannedDeparture)
   const arrTime = formatTime(leg.plannedArrival)
   const duration = durationMinutes(leg.plannedDeparture, leg.plannedArrival)
@@ -190,10 +188,11 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
                 <Clock className="h-3 w-3" />
                 {durationStr}
               </span>
+              <PlatformBadge planned={leg.platformPlanned} actual={leg.platformActual} />
               {leg.delayMinutes > 0 && (
-                <span className="flex items-center gap-1 text-xs bg-[#1f0d0d] text-[#e25555] px-2 py-0.5 rounded">
+                <span className="tap-small flex items-center gap-1 text-xs bg-[#1f0d0d] text-[#e25555] px-2 py-0.5 rounded">
                   <AlertTriangle className="h-3 w-3" />
-                  +{leg.delayMinutes} min
+                  {formatDelay(leg.delayMinutes)}
                 </span>
               )}
               {leg.seat && (

@@ -189,20 +189,20 @@ export default function StatsPage() {
             ) : (
               <>
                 <StatCard
-                  label="Total distance"
-                  value={stats ? `${stats.total_km.toLocaleString()} km` : '—'}
+                  label="Gesamtstrecke"
+                  value={stats ? `${stats.total_km.toLocaleString('de-DE')} km` : '—'}
                 />
                 <StatCard
-                  label="Completed trips"
+                  label="Abgeschlossene Reisen"
                   value={stats?.total_trips ?? '—'}
-                  sub={stats ? `${stats.total_legs} legs` : undefined}
+                  sub={stats ? `${stats.total_legs} Abschnitte` : undefined}
                 />
                 <StatCard
-                  label="Time on trains"
-                  value={stats ? `${stats.total_hours} h` : '—'}
+                  label="Zeit im Zug"
+                  value={stats ? `${stats.total_hours} Std.` : '—'}
                 />
                 <StatCard
-                  label="Countries visited"
+                  label="Besuchte Länder"
                   value={stats?.countries.length ?? '—'}
                   sub={stats?.countries.join(' · ') || undefined}
                 />
@@ -218,10 +218,10 @@ export default function StatsPage() {
                 <div className="h-8 w-16 bg-zinc-700 rounded" />
               </div>
             ) : stats?.upgradeRequired ? (
-              <LockedCard label="CO₂ saved" onUnlock={() => setUpgradeOpen(true)} />
+              <LockedCard label="CO₂ eingespart" onUnlock={() => setUpgradeOpen(true)} />
             ) : (
               <div className="rounded-xl border border-green-900/50 bg-green-950/30 p-6">
-                <p className="text-sm text-green-400 mb-1">CO₂ saved</p>
+                <p className="text-sm text-green-400 mb-1">CO₂ eingespart</p>
                 <p className="text-3xl font-bold text-green-400">{stats?.co2_saved_kg} kg</p>
                 {co2Comparison && (
                   <p className="text-xs text-green-500/70 mt-1">
@@ -241,14 +241,14 @@ export default function StatsPage() {
               </>
             ) : stats?.upgradeRequired ? (
               <>
-                <LockedCard label="Monthly distance" onUnlock={() => setUpgradeOpen(true)} />
-                <LockedCard label="Top operators" onUnlock={() => setUpgradeOpen(true)} />
+                <LockedCard label="Monatliche Strecke" onUnlock={() => setUpgradeOpen(true)} />
+                <LockedCard label="Top-Betreiber" onUnlock={() => setUpgradeOpen(true)} />
               </>
             ) : (
               <>
                 {/* Monthly distance bar chart */}
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-                  <p className="text-sm text-zinc-500 mb-4">Monthly distance</p>
+                  <p className="text-sm text-zinc-500 mb-4">Monatliche Strecke</p>
                   {monthlyData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart data={monthlyData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>

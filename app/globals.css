@@ -82,3 +82,40 @@
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 }
+
+/* ─── Mobile / Touch ──────────────────────────────────────────────────────── */
+
+/* Remove tap highlight on mobile */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Minimum tap target size for touch usability */
+button, a[href], [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Exception: small inline badges/chips don't need 44px */
+.tap-small { min-height: unset; min-width: unset; }
+
+/* Scrollable route strip on touch */
+.route-strip {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #1e2d4a transparent;
+}
+
+/* Bottom nav safe area */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Cookie banner safe area */
+.cookie-banner {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Fixed action button above bottom nav on mobile */
+.fixed-action-btn {
+  bottom: calc(64px + env(safe-area-inset-bottom));
+}
