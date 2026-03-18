@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { LayoutDashboard, Search, BarChart2, Settings, Train } from 'lucide-react'
+import type { ComponentType } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SignOutButton } from '@/components/shared/SignOutButton'
@@ -69,7 +70,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#080d1a', color: '#fff' }}>
       {/* Desktop sidebar */}
       <aside
-        className="hidden md:flex flex-col w-56 shrink-0"
+        className="sidebar-wrapper hidden md:flex flex-col w-56 shrink-0"
         style={{ backgroundColor: '#080d1a', borderRight: '1px solid #1e2d4a' }}
       >
         {/* Logo */}
@@ -121,7 +122,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
       {/* Main content */}
       <main
-        className="flex-1 overflow-y-auto"
+        className="main-content flex-1 overflow-y-auto"
         style={{ backgroundColor: '#080d1a', paddingBottom: 'var(--bottom-nav-height, 0px)' }}
       >
         {children}

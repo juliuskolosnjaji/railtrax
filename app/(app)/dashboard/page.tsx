@@ -211,6 +211,8 @@ function TripCard({ trip, onClick }: { trip: TripWithLegs; onClick: () => void }
     new Date(a.plannedDeparture).getTime() - new Date(b.plannedDeparture).getTime()
   )
   const { stations, livePositionPct, currentTrainNumber, etaMinutes } = buildProgressLine(sortedLegs, now)
+  
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
   const isActive  = trip.status === 'active'
   const isPlanned = trip.status === 'planned' || !trip.status
@@ -285,6 +287,10 @@ function TripCard({ trip, onClick }: { trip: TripWithLegs; onClick: () => void }
             const isLast  = i === stations.length - 1
             const dotSize = (isFirst || isLast) ? 9 : 7
             const labelAlign = isFirst ? 'translateX(0)' : isLast ? 'translateX(-100%)' : 'translateX(-50%)'
+            
+            // Only show label if it's the first or last station on mobile
+            const showLabel = !isMobile || isFirst || isLast
+            
             return (
               <div key={i}>
                 <div style={{
@@ -298,19 +304,24 @@ function TripCard({ trip, onClick }: { trip: TripWithLegs; onClick: () => void }
                   border: `2px solid ${st.isPassed ? '#4f8ef7' : '#1e3a6e'}`,
                   zIndex: 2,
                 }} />
-                <div style={{
-                  position: 'absolute',
-                  left: `${st.positionPct}%`,
-                  top: 'calc(50% + 8px)',
-                  transform: labelAlign,
-                  fontSize: 9,
-                  color: st.isPassed ? '#4f8ef7' : '#4a6a9a',
-                  whiteSpace: 'nowrap',
-                  fontWeight: st.isPassed ? 500 : 400,
-                  lineHeight: 1,
-                }}>
-                  {st.shortName}
-                </div>
+                {showLabel && (
+                  <div style={{
+                    position: 'absolute',
+                    left: `${st.positionPct}%`,
+                    top: 'calc(50% + 8px)',
+                    transform: labelAlign,
+                    fontSize: isMobile ? 8 : 9,
+                    color: st.isPassed ? '#4f8ef7' : '#4a6a9a',
+                    whiteSpace: 'nowrap',
+                    fontWeight: st.isPassed ? 500 : 400,
+                    lineHeight: 1,
+                    maxWidth: isMobile ? 36 : 'none',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
+                    {st.shortName}
+                  </div>
+                )}
               </div>
             )
           })}
@@ -440,9 +451,16 @@ function NotifBanner() {
 
   return (
     <div style={{
-      background: '#111e35', border: '1px solid #1e3a6e', borderRadius: 10,
-      padding: '12px 16px', marginBottom: 24,
-      display: 'flex', alignItems: 'center', gap: 12,
+      margin: '0 16px 16px',
+      background: '#111e35',
+      border: '1px solid #1e3a6e',
+      borderRadius: 10,
+      padding: '12px 14px',
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 10,
+      width: 'calc(100% - 32px)',
+      boxSizing: 'border-box',
     }}>
       <div style={{
         width: 32, height: 32, background: '#1c1508', borderRadius: 8, flexShrink: 0,
@@ -505,31 +523,46 @@ export default function DashboardPage() {
   }
 
   return (
-    <div style={{ padding: '28px 32px', minHeight: '100%', background: '#080d1a' }}>
+    <div style={{ minHeight: '100%', background: '#080d1a' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 500, color: '#ffffff', margin: 0 }}>
-            Meine Reisen
-          </h1>
-          {maxTrips !== Infinity && (
-            <p style={{ fontSize: 12, color: '#4a6a9a', margin: '4px 0 0' }}>
-              {trips?.length ?? 0} / {maxTrips} genutzt
-            </p>
-          )}
-        </div>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        padding: '20px 16px',
+        flexWrap: 'nowrap',
+        gap: 12,
+        borderBottom: '1px solid #1e2d4a'
+      }}>
+        <h1 style={{
+          fontSize: 'clamp(18px, 5vw, 24px)',
+          fontWeight: 600,
+          color: '#fff',
+          margin: 0,
+          whiteSpace: 'nowrap',
+        }}>
+          Meine Reisen
+        </h1>
         <button
           onClick={handleNewTrip}
           style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            background: '#4f8ef7', color: '#fff', border: 'none',
-            borderRadius: 8, padding: '9px 16px', fontSize: 13,
-            fontWeight: 500, cursor: 'pointer',
+            background: '#2563eb', 
+            color: '#fff', 
+            border: 'none',
+            borderRadius: 8, 
+            padding: '9px 14px',
+            fontSize: 13, 
+            fontWeight: 500, 
+            cursor: 'pointer',
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 5,
+            flexShrink: 0, 
+            whiteSpace: 'nowrap',
           }}
         >
-          <Plus size={15} />
-          Neue Reise
+          + Neue Reise
         </button>
       </div>
 
@@ -537,7 +570,14 @@ export default function DashboardPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+        <div style={{ 
+          padding: '0 16px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          width: '100%',
+          boxSizing: 'border-box',
+        }}>
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       )}
@@ -567,13 +607,21 @@ export default function DashboardPage() {
 
       {/* Grid */}
       {!isLoading && trips && trips.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+        <div style={{ 
+          padding: '0 16px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          width: '100%',
+          boxSizing: 'border-box',
+        }}>
           {trips.map(trip => (
-            <TripCard
-              key={trip.id}
-              trip={trip}
-              onClick={() => router.push(`/trips/${trip.id}`)}
-            />
+            <div key={trip.id} style={{ width: '100%', boxSizing: 'border-box' }}>
+              <TripCard
+                trip={trip}
+                onClick={() => router.push(`/trips/${trip.id}`)}
+              />
+            </div>
           ))}
         </div>
       )}
