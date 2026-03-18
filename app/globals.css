@@ -120,6 +120,30 @@ button, a[href], [role="button"] {
   bottom: calc(64px + env(safe-area-inset-bottom));
 }
 
+/* Mobile nav responsive display */
+.mobile-bottom-nav {
+  display: none !important;
+}
+
+/* Mobile: show bottom nav, hide sidebar */
+@media (max-width: 767px) {
+  .sidebar-wrapper {
+    display: none !important;
+  }
+  
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding-bottom: 72px !important;
+  }
+}
+
 /* ─── Global Mobile Fixes ─────────────────────────────────────────────────────── */
 
 /* Prevent horizontal overflow globally */
