@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Search, BarChart2, Settings } from 'lucide-react'
-import { useBreakpoint } from '@/hooks/useBreakpoint'
 
 const ICON_MAP = {
   dashboard: LayoutDashboard,
@@ -12,21 +11,19 @@ const ICON_MAP = {
   settings: Settings,
 } as const
 
-interface NavItem {
-  href: string
-  label: string
-  iconKey: keyof typeof ICON_MAP
-}
+const NAV_ITEMS = [
+  { href: '/dashboard',     label: 'Dashboard',  iconKey: 'dashboard' },
+  { href: '/search',        label: 'Suche',     iconKey: 'search' },
+  { href: '/stats',         label: 'Statistik',  iconKey: 'stats' },
+  { href: '/settings',      label: 'Einstellungen', iconKey: 'settings' },
+] as const
 
-export function MobileBottomNav({ navItems }: { navItems: NavItem[] }) {
-  const bp = useBreakpoint()
+export function MobileBottomNav() {
   const pathname = usePathname()
 
-  if (bp !== 'mobile') return null
-
-  return (
+return (
     <nav
-      className="bottom-nav"
+      className="bottom-nav mobile-bottom-nav"
       style={{
         position: 'fixed',
         bottom: 0,
@@ -39,8 +36,8 @@ export function MobileBottomNav({ navItems }: { navItems: NavItem[] }) {
         height: 64,
       }}
     >
-      {navItems.map(({ href, iconKey, label }) => {
-        const Icon = ICON_MAP[iconKey]
+      {NAV_ITEMS.map(({ href, iconKey, label }) => {
+        const Icon = ICON_MAP[iconKey as keyof typeof ICON_MAP]
         const isActive = pathname === href || pathname.startsWith(href + '/')
         return (
           <Link

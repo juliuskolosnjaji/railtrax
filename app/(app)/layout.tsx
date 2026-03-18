@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { LayoutDashboard, Search, BarChart2, Settings, Train } from 'lucide-react'
-import type { ComponentType } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SignOutButton } from '@/components/shared/SignOutButton'
@@ -130,7 +129,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </main>
 
       {/* Mobile bottom nav (rendered client-side) */}
-      <MobileBottomNav navItems={NAV_ITEMS.filter(n => n.href !== '/rolling-stock').map(({ href, label, iconKey }) => ({ href, label, iconKey }))} />
+      <MobileBottomNav />
     </div>
   )
 }
