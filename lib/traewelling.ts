@@ -234,58 +234,60 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
       }
 
       const stopovers: any[] = trip?.stopovers ?? trip?.stops ?? []
-      if (stopovers.length > 0) {
-        console.log('First stopover sample:', JSON.stringify(stopovers[0], null, 2))
-        console.log('Trip stopovers:', stopovers.map((s: any) =>
-          `${s.stop?.name ?? s.station?.name} (id:${s.stop?.id ?? s.station?.id})`
-        ).slice(0, 10))
+      console.log('Trip stopovers count:', stopovers.length)
+      console.log('Stopovers:', stopovers.map((s: any) =>
+        `${s.name} (id:${s.id}) dep:${s.departurePlanned}`
+      ).slice(0, 15))
 
+      if (stopovers.length > 0) {
         const legDepTime = new Date(leg.plannedDeparture).getTime()
         const legArrTime = new Date(leg.plannedArrival).getTime()
 
-        // Find start stopover by matching departure time (within 3 min)
+        // Find start stopover by departure time (within 5 min)
         const startStopover = stopovers.find((s: any) => {
-          const stopDep = s.plannedDeparture ?? s.departure
-          if (!stopDep) return false
-          return Math.abs(new Date(stopDep).getTime() - legDepTime) < 3 * 60 * 1000
+          const dep = s.departurePlanned ?? s.departure
+          if (!dep) return false
+          return Math.abs(new Date(dep).getTime() - legDepTime) < 5 * 60 * 1000
         })
-        if (startStopover) {
-          const sid = startStopover.stop?.id ?? startStopover.station?.id
-          if (sid) {
-            correctStartId = typeof sid === 'string' ? parseInt(sid) : sid
-            console.log('Start station from stopovers:',
-              startStopover.stop?.name ?? startStopover.station?.name, correctStartId)
-          }
+        if (startStopover?.id) {
+          correctStartId = typeof startStopover.id === 'string'
+            ? parseInt(startStopover.id) : startStopover.id
+          console.log('Start from stopovers:', startStopover.name, correctStartId)
         }
 
-        // Find destination stopover by matching arrival time (within 3 min)
+        // Find destination stopover by arrival time (within 5 min)
         const destStopover = stopovers.find((s: any) => {
-          const stopArr = s.plannedArrival ?? s.arrival
-          if (!stopArr) return false
-          return Math.abs(new Date(stopArr).getTime() - legArrTime) < 3 * 60 * 1000
+          const arr = s.arrivalPlanned ?? s.arrival
+          if (!arr) return false
+          return Math.abs(new Date(arr).getTime() - legArrTime) < 5 * 60 * 1000
         })
-        if (destStopover) {
-          const did = destStopover.stop?.id ?? destStopover.station?.id
-          if (did) {
-            correctDestId = typeof did === 'string' ? parseInt(did) : did
-            console.log('Destination station from stopovers:',
-              destStopover.stop?.name ?? destStopover.station?.name, correctDestId)
-          }
+        if (destStopover?.id) {
+          correctDestId = typeof destStopover.id === 'string'
+            ? parseInt(destStopover.id) : destStopover.id
+          console.log('Dest from stopovers:', destStopover.name, correctDestId)
         }
 
         // Fallback: match destination by name
         if (!correctDestId) {
-          const destByName = stopovers.find((s: any) => {
-            const name = (s.stop?.name ?? s.station?.name ?? '').toLowerCase()
-            return name.includes(leg.destName.toLowerCase().slice(0, 6))
-          })
-          if (destByName) {
-            const did = destByName.stop?.id ?? destByName.station?.id
-            if (did) {
-              correctDestId = typeof did === 'string' ? parseInt(did) : did
-              console.log('Destination by name match in stopovers:',
-                destByName.stop?.name, correctDestId)
-            }
+          const destByName = stopovers.find((s: any) =>
+            (s.name ?? '').toLowerCase().includes(
+              leg.destName.toLowerCase().slice(0, 5)
+            )
+          )
+          if (destByName?.id) {
+            correctDestId = typeof destByName.id === 'string'
+              ? parseInt(destByName.id) : destByName.id
+            console.log('Dest by name fallback:', destByName.name, correctDestId)
+          }
+        }
+
+        // Hard fallback: use last stopover
+        if (correctDestId === null) {
+          const last = stopovers[stopovers.length - 1]
+          if (last?.id) {
+            correctDestId = typeof last.id === 'string'
+              ? parseInt(last.id) : last.id
+            console.log('Dest fallback to last stopover:', last.name, correctDestId)
           }
         }
       } else {
@@ -301,17 +303,21 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
   // ── STEP 6: Build payload with correct IDs ────────────────────
   // Always ibnr: false — use Träwelling internal IDs from stopovers.
 
-  const payload: Record<string, unknown> = {
-    tripId:    String(tripIdForCheckin),
-    lineName:  matchingDep.line.name,
-    start:     correctStartId,
-    departure: new Date(leg.plannedDeparture).toISOString(),
-    arrival:   new Date(leg.plannedArrival).toISOString(),
-    ibnr:      false,
+  if (correctDestId === null) {
+    throw new TraewellingError(
+      'train_not_found',
+      `Zielbahnhof "${leg.destName}" nicht im Zugfahrplan gefunden.`
+    )
   }
 
-  if (correctDestId !== null) {
-    payload.destination = correctDestId
+  const payload: Record<string, unknown> = {
+    tripId:      String(tripIdForCheckin),
+    lineName:    matchingDep.line.name,
+    start:       correctStartId,
+    destination: correctDestId,
+    departure:   new Date(leg.plannedDeparture).toISOString(),
+    arrival:     new Date(leg.plannedArrival).toISOString(),
+    ibnr:        false,
   }
 
   console.log('Final checkin payload:', JSON.stringify(payload))
