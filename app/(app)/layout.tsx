@@ -40,11 +40,11 @@ function LegalFooter() {
 }
 
 const NAV_ITEMS = [
-  { href: '/dashboard',     label: de.nav.dashboard,  icon: LayoutDashboard },
-  { href: '/search',        label: de.nav.search,     icon: Search },
-  { href: '/stats',         label: de.nav.stats,      icon: BarChart2 },
-  { href: '/rolling-stock', label: de.nav.trains,     icon: Train },
-  { href: '/settings',      label: de.nav.settings,   icon: Settings },
+  { href: '/dashboard',     label: de.nav.dashboard,  icon: LayoutDashboard, iconKey: 'dashboard' as const },
+  { href: '/search',        label: de.nav.search,     icon: Search,          iconKey: 'search'    as const },
+  { href: '/stats',         label: de.nav.stats,      icon: BarChart2,       iconKey: 'stats'     as const },
+  { href: '/rolling-stock', label: de.nav.trains,     icon: Train,           iconKey: 'settings'  as const },
+  { href: '/settings',      label: de.nav.settings,   icon: Settings,        iconKey: 'settings'  as const },
 ]
 
 const PLAN_BADGE: Record<string, string> = {

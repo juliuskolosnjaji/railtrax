@@ -2,13 +2,20 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { type LucideIcon } from 'lucide-react'
+import { LayoutDashboard, Search, BarChart2, Settings } from 'lucide-react'
 import { useBreakpoint } from '@/hooks/useBreakpoint'
+
+const ICON_MAP = {
+  dashboard: LayoutDashboard,
+  search: Search,
+  stats: BarChart2,
+  settings: Settings,
+} as const
 
 interface NavItem {
   href: string
   label: string
-  icon: LucideIcon
+  iconKey: keyof typeof ICON_MAP
 }
 
 export function MobileBottomNav({ navItems }: { navItems: NavItem[] }) {
@@ -32,7 +39,8 @@ export function MobileBottomNav({ navItems }: { navItems: NavItem[] }) {
         height: 64,
       }}
     >
-      {navItems.map(({ href, icon: Icon, label }) => {
+      {navItems.map(({ href, iconKey, label }) => {
+        const Icon = ICON_MAP[iconKey]
         const isActive = pathname === href || pathname.startsWith(href + '/')
         return (
           <Link
