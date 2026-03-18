@@ -44,9 +44,9 @@ if [ ! -L "$ENV_LINK" ]; then
   ln -sf "$ENV_FILE" "$ENV_LINK"
 fi
 
-# ── 5. Install dependencies ─────────────────────────────────────────────────
+# ── 5. Install dependencies (devDeps needed for build: tailwindcss etc.) ────
 echo "==> npm install"
-npm install --omit=dev
+npm install
 
 # ── 6. Build ────────────────────────────────────────────────────────────────
 echo "==> npm run build"
