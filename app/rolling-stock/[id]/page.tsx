@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma'
 import { Wifi, Utensils, Bike, Zap, Calendar, Factory, Gauge, Users, ExternalLink, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
 
 interface LegWithTrip {
   id: string
@@ -70,32 +69,7 @@ export default async function RollingStockPage({ params }: PageProps) {
     notFound()
   }
 
-  const features = [
-    { 
-      enabled: rollingStock.hasWifi, 
-      icon: Wifi, 
-      label: 'WiFi',
-      color: 'text-blue-600'
-    },
-    { 
-      enabled: rollingStock.hasBistro, 
-      icon: Utensils, 
-      label: 'Bistro/Restaurant',
-      color: 'text-orange-600'
-    },
-    { 
-      enabled: rollingStock.hasBikeSpace, 
-      icon: Bike, 
-      label: 'Bike spaces',
-      color: 'text-purple-600'
-    },
-    { 
-      enabled: !!rollingStock.powerSystem, 
-      icon: Zap, 
-      label: `Power system: ${rollingStock.powerSystem}`,
-      color: 'text-yellow-600'
-    },
-  ].filter(f => f.enabled)
+  const hasFeatures = rollingStock.hasWifi || rollingStock.hasBistro || rollingStock.hasBikeSpace || !!rollingStock.powerSystem
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -137,14 +111,32 @@ export default async function RollingStockPage({ params }: PageProps) {
           </div>
 
           {/* Features */}
-          {features.length > 0 && (
+          {hasFeatures && (
             <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-200">
-              {features.map((feature, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm">
-                  <feature.icon className={cn("h-4 w-4", feature.color)} />
-                  <span className="text-slate-700">{feature.label}</span>
+              {rollingStock.hasWifi && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Wifi className="h-4 w-4 text-blue-600" />
+                  <span className="text-slate-700">WiFi</span>
                 </div>
-              ))}
+              )}
+              {rollingStock.hasBistro && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Utensils className="h-4 w-4 text-orange-600" />
+                  <span className="text-slate-700">Bistro/Restaurant</span>
+                </div>
+              )}
+              {rollingStock.hasBikeSpace && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Bike className="h-4 w-4 text-purple-600" />
+                  <span className="text-slate-700">Fahrradplätze</span>
+                </div>
+              )}
+              {!!rollingStock.powerSystem && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Zap className="h-4 w-4 text-yellow-600" />
+                  <span className="text-slate-700">Stromsystem: {rollingStock.powerSystem}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
