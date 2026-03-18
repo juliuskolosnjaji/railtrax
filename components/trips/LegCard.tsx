@@ -35,7 +35,7 @@ function durationMinutes(dep: string, arr: string) {
   return Math.round((new Date(arr).getTime() - new Date(dep).getTime()) / 60000)
 }
 
-export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
+export function LegCard({ leg, tripId, onTrainClick }: { leg: Leg; tripId: string; onTrainClick?: (trainNumber: string, departure?: string, operator?: string | null) => void }) {
   const [editOpen, setEditOpen] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [rollingStockOpen, setRollingStockOpen] = useState(false)
@@ -174,12 +174,22 @@ export function LegCard({ leg, tripId }: { leg: Leg; tripId: string }) {
             {/* Meta row */}
             <div className="flex items-center gap-2 flex-wrap">
               {leg.operator && (
-                <Badge variant="outline" className={`text-xs px-2 py-0 ${operatorStyle}`}>
-                  {leg.operator}
-                </Badge>
+                <div 
+                  onClick={() => onTrainClick?.(leg.trainNumber || '', leg.plannedDeparture, leg.operator)}
+                  className="cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                  <Badge variant="outline" className={`text-xs px-2 py-0 ${operatorStyle}`}>
+                    {leg.operator}
+                  </Badge>
+                </div>
               )}
               {leg.trainNumber && (
-                <span className="text-xs text-[#8ba3c7]">{leg.trainNumber}</span>
+                <span 
+                  onClick={() => onTrainClick?.(leg.trainNumber!, leg.plannedDeparture, leg.operator)}
+                  className="text-xs text-[#8ba3c7] cursor-pointer hover:text-[#4f8ef7] transition-colors"
+                >
+                  {leg.trainNumber}
+                </span>
               )}
               {displayFormation && (
                 <StaticRollingStockChip formation={displayFormation} />

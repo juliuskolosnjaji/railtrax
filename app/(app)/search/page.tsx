@@ -6,6 +6,8 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { Search, ArrowLeftRight, Calendar, Clock, ChevronDown } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { getWagenreihungUrl } from '@/lib/wagenreihung'
+import { JourneyDetailSheet } from '@/components/trains/JourneyDetailSheet'
+import { TrainDetailSheet } from '@/components/trains/TrainDetailSheet'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +43,25 @@ interface Journey {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function convertToDetailJourney(journey: Journey): any {
+  return {
+    legs: journey.legs.map(leg => ({
+      ...leg,
+      tripId: null,
+      plannedDeparturePlatform: leg.platform,
+      plannedArrivalPlatform: leg.platform,
+      departurePlatform: leg.platform,
+      arrivalPlatform: leg.platform,
+      line: {
+        name: leg.trainNumber,
+        operator: leg.operator ? { name: leg.operator } : undefined
+      }
+    })),
+    totalDuration: journey.totalDuration,
+    changes: journey.changes
+  }
+}
 
 function formatTime(iso: string | null | undefined): string {
   if (!iso) return '–'
@@ -174,7 +195,7 @@ function StationInput({
 
 // ─── RouteStrip ───────────────────────────────────────────────────────────────
 
-function RouteStrip({ legs }: { legs: JourneyLeg[] }) {
+function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?: (trainNumber: string, departure?: string, operator?: string | null) => void }) {
   return (
     <div style={{
       overflowX: 'auto', paddingBottom: 4,
@@ -226,11 +247,15 @@ function RouteStrip({ legs }: { legs: JourneyLeg[] }) {
                 minWidth: 80, paddingBottom: 20, paddingTop: 3,
               }}>
                 <div style={{ height: 2, width: '100%', background: colors.line, borderRadius: 1 }} />
-                <div style={{
-                  fontSize: 9, fontWeight: 500, padding: '2px 6px',
-                  borderRadius: 3, whiteSpace: 'nowrap', marginTop: 4,
-                  background: colors.badge, color: colors.text,
-                }}>
+                <div 
+                  onClick={() => onTrainClick?.(leg.trainNumber, leg.departure, leg.operator)}
+                  style={{
+                    fontSize: 9, fontWeight: 500, padding: '2px 6px',
+                    borderRadius: 3, whiteSpace: 'nowrap', marginTop: 4,
+                    background: colors.badge, color: colors.text,
+                    cursor: 'pointer',
+                  }}
+                >
                   {leg.trainNumber ?? '?'}
                 </div>
                 {(() => {
@@ -364,7 +389,17 @@ function TripPickerModal({
 
 // ─── JourneyCard ──────────────────────────────────────────────────────────────
 
-function JourneyCard({ journey, onAdd }: { journey: Journey; onAdd: (j: Journey) => void }) {
+function JourneyCard({ 
+  journey, 
+  onAdd, 
+  onDetail,
+  onTrainClick 
+}: { 
+  journey: Journey; 
+  onAdd: (j: Journey) => void; 
+  onDetail?: (j: Journey) => void;
+  onTrainClick?: (trainNumber: string, departure?: string, operator?: string | null) => void;
+}) {
   const firstLeg = journey.legs[0]
   const lastLeg = journey.legs[journey.legs.length - 1]
   const depTime = formatTime(firstLeg?.departure)
@@ -460,7 +495,10 @@ function JourneyCard({ journey, onAdd }: { journey: Journey; onAdd: (j: Journey)
         </div>
 
         {/* Route strip */}
-        <RouteStrip legs={journey.legs} />
+        <RouteStrip 
+          legs={journey.legs} 
+          onTrainClick={onTrainClick} 
+        />
       </div>
 
       {/* Footer */}
@@ -471,11 +509,14 @@ function JourneyCard({ journey, onAdd }: { journey: Journey; onAdd: (j: Journey)
             background: '#0d1f3c', color: '#8ba3c7', border: '1px solid #1e2d4a',
           }}>{op}</span>
         ))}
-        <button style={{
-          marginLeft: 'auto', fontSize: 11, color: '#4a6a9a',
-          background: 'none', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 3,
-        }}>
+        <button 
+          onClick={() => onDetail?.(journey)}
+          style={{
+            marginLeft: 'auto', fontSize: 11, color: '#4a6a9a',
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 3,
+          }}
+        >
           Alle Halte <ChevronDown size={10} />
         </button>
       </div>
@@ -489,6 +530,8 @@ function JourneyCard({ journey, onAdd }: { journey: Journey; onAdd: (j: Journey)
 export default function SearchPage() {
   const router = useRouter()
   const [pickerJourney, setPickerJourney] = useState<Journey | null>(null)
+  const [detailJourney, setDetailJourney] = useState<Journey | null>(null)
+  const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
 
   const addLegsMutation = useMutation({
     mutationFn: async ({ journey, tripId }: { journey: Journey; tripId: string }) => {
@@ -986,7 +1029,13 @@ export default function SearchPage() {
             </div>
           ) : (
             filtered.map((journey, i) => (
-              <JourneyCard key={i} journey={journey} onAdd={j => setPickerJourney(j)} />
+              <JourneyCard 
+                key={i} 
+                journey={journey} 
+                onAdd={j => setPickerJourney(j)} 
+                onDetail={j => setDetailJourney(j)} 
+                onTrainClick={(trainNumber, departure, operator) => setDetailTrain({ trainNumber, departure, operator })}
+              />
             ))
           )}
         </div>
@@ -998,6 +1047,25 @@ export default function SearchPage() {
       <TripPickerModal
         onSelect={tripId => addLegsMutation.mutate({ journey: pickerJourney, tripId })}
         onClose={() => setPickerJourney(null)}
+      />
+    )}
+    
+    {detailJourney && (
+      <JourneyDetailSheet
+        journey={convertToDetailJourney(detailJourney)}
+        onClose={() => setDetailJourney(null)}
+        onAddToTrip={() => {
+          // This would open trip picker, but for now just close
+          setDetailJourney(null);
+        }}
+      />
+    )}
+    
+    {detailTrain && (
+      <TrainDetailSheet
+        trainNumber={detailTrain.trainNumber}
+        date={detailTrain.departure ? new Date(detailTrain.departure).toISOString().slice(0, 10) : undefined}
+        onClose={() => setDetailTrain(null)}
       />
     )}
     </>

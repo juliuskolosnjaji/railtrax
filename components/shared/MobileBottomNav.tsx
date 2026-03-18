@@ -2,18 +2,20 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Search, BarChart2, Settings } from 'lucide-react'
+import { LayoutDashboard, Search, BarChart2, Settings, Clock } from 'lucide-react'
 
 const ICON_MAP = {
   dashboard: LayoutDashboard,
   search: Search,
   stats: BarChart2,
+  abfahrten: Clock,
   settings: Settings,
 } as const
 
 const NAV_ITEMS = [
   { href: '/dashboard',     label: 'Dashboard',  iconKey: 'dashboard' },
   { href: '/search',        label: 'Suche',     iconKey: 'search' },
+  { href: '/abfahrten',     label: 'Abfahrten', iconKey: 'abfahrten' },
   { href: '/stats',         label: 'Statistik',  iconKey: 'stats' },
   { href: '/settings',      label: 'Einstellungen', iconKey: 'settings' },
 ] as const

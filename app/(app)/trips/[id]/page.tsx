@@ -13,6 +13,7 @@ import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
 import { TripEditorSheet } from '@/components/trips/TripEditorSheet'
 import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
 import { SharingSheet } from '@/components/trips/SharingSheet'
+import { TrainDetailSheet } from '@/components/trains/TrainDetailSheet'
 const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor').then(m => m.JournalEditor), { ssr: false })
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip, type Leg } from '@/hooks/useTrips'
@@ -59,6 +60,7 @@ export default function TripDetailPage() {
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [tripEditOpen, setTripEditOpen] = useState(false)
+  const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
 
   const handleShareTrip = async () => {
     await shareTrip.mutateAsync()
@@ -315,7 +317,11 @@ export default function TripDetailPage() {
                     const legEntries = entries.filter((e) => e.legId === leg.id)
                     return (
                       <div key={leg.id}>
-                        <LegCard leg={leg} tripId={trip.id} />
+                        <LegCard 
+                          leg={leg} 
+                          tripId={trip.id} 
+                          onTrainClick={(trainNumber, departure, operator) => setDetailTrain({ trainNumber, departure, operator })}
+                        />
                         {legEntries.map((entry) => (
                           <div key={entry.id} className="ml-6 mb-3 -mt-2">
                             <JournalEntryCard entry={entry} tripId={trip.id} onEdit={openEditEntry} indented />

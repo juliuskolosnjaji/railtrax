@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Search, BarChart2, Train, Settings } from 'lucide-react'
+import { LayoutDashboard, Search, BarChart2, Train, Settings, Clock } from 'lucide-react'
 
 const ICON_MAP = {
   dashboard:     LayoutDashboard,
   search:        Search,
   stats:         BarChart2,
   trains:        Train,
+  abfahrten:     Clock,
   settings:      Settings,
 } as const
 
@@ -23,6 +24,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard',     label: 'Übersicht',         iconKey: 'dashboard' },
   { href: '/search',        label: 'Verbindungssuche',  iconKey: 'search'    },
+  { href: '/abfahrten',     label: 'Live Abfahrten',    iconKey: 'abfahrten'  },
   { href: '/stats',         label: 'Statistik',         iconKey: 'stats'     },
   { href: '/rolling-stock', label: 'Meine Züge',        iconKey: 'trains'    },
   { href: '/settings',      label: 'Einstellungen',     iconKey: 'settings'  },
