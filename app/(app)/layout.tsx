@@ -1,6 +1,4 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { LayoutDashboard, Search, BarChart2, Settings, Train } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SignOutButton } from '@/components/shared/SignOutButton'
@@ -8,6 +6,7 @@ import { getPlan } from '@/lib/entitlements'
 import { Logo } from '@/components/ui/Logo'
 import { de } from '@/lib/i18n/de'
 import { MobileBottomNav } from '@/components/shared/MobileBottomNav'
+import { SidebarNav } from '@/components/shared/SidebarNav'
 
 function LegalFooter() {
   return (
@@ -37,14 +36,6 @@ function LegalFooter() {
     </footer>
   )
 }
-
-const NAV_ITEMS = [
-  { href: '/dashboard',     label: de.nav.dashboard,  icon: LayoutDashboard, iconKey: 'dashboard' as const },
-  { href: '/search',        label: de.nav.search,     icon: Search,          iconKey: 'search'    as const },
-  { href: '/stats',         label: de.nav.stats,      icon: BarChart2,       iconKey: 'stats'     as const },
-  { href: '/rolling-stock', label: de.nav.trains,     icon: Train,           iconKey: 'settings'  as const },
-  { href: '/settings',      label: de.nav.settings,   icon: Settings,        iconKey: 'settings'  as const },
-]
 
 const PLAN_BADGE: Record<string, string> = {
   free: de.settings.free,
@@ -79,20 +70,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
         <div style={{ height: 1, backgroundColor: '#1e2d4a', margin: '0 16px' }} />
 
-        {/* Nav */}
-        <nav className="flex-1 px-2 py-4 space-y-0.5">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-[#111e35] hover:text-white"
-              style={{ color: '#4a6a9a' }}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
-            </Link>
-          ))}
-        </nav>
+        {/* Nav — client component to avoid RSC serialization of forwardRef icons */}
+        <SidebarNav />
 
         <div style={{ height: 1, backgroundColor: '#1e2d4a' }} />
 
@@ -128,7 +107,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <LegalFooter />
       </main>
 
-      {/* Mobile bottom nav (rendered client-side) */}
+      {/* Mobile bottom nav */}
       <MobileBottomNav />
     </div>
   )
