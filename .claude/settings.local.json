@@ -13,7 +13,21 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git stash:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(ls /home/julius/Dokumente/railtripper/app/\\\\\\(app\\\\\\)/settings/)",
+      "Bash(ls /home/julius/Dokumente/railtripper/app/\\\\\\(app\\\\\\)/)",
+      "Bash(npm audit:*)",
+      "Bash(chmod +x /home/julius/Dokumente/railtripper/scripts/deploy.sh)",
+      "Bash(cat /home/julius/Dokumente/railtripper/app/api/trips/[id]/route.ts)",
+      "Bash(cat /home/julius/Dokumente/railtripper/app/api/legs/[id]/route.ts)",
+      "Bash(cat /home/julius/Dokumente/railtripper/app/\\\\\\(app\\\\\\)/dashboard/page.tsx)",
+      "Bash(cat /home/julius/Dokumente/railtripper/app/\\\\\\(app\\\\\\)/settings/layout.tsx)",
+      "Bash(npm run:*)",
+      "Bash(git rm:*)",
+      "Bash(rg -n '\\\\{[^}]*:.*[A-Z][a-zA-Z]+,.*\\\\}' /home/julius/Dokumente/railtripper/app/\\\\\\(app\\\\\\)/layout.tsx)",
+      "Bash(head -10 /home/julius/Dokumente/railtripper/app/rolling-stock/[id]/page.tsx)",
+      "Bash(grep -n \"^import\" /home/julius/Dokumente/railtripper/app/rolling-stock/[id]/page.tsx)",
+      "Bash(grep -n \"cn\\(\" /home/julius/Dokumente/railtripper/app/rolling-stock/[id]/page.tsx)"
     ]
   }
 }

@@ -1,7 +1,16 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { Wifi, Utensils, Bike, Zap, Calendar, Factory, Gauge, Users, ExternalLink, ArrowLeft } from 'lucide-react'
+import { WifiIcon } from '@/components/ui/icons/WifiIcon'
+import { UtensilsIcon } from '@/components/ui/icons/UtensilsIcon'
+import { BikeIcon } from '@/components/ui/icons/BikeIcon'
+import { ZapIcon } from '@/components/ui/icons/ZapIcon'
+import { CalendarIcon } from '@/components/ui/icons/CalendarIcon'
+import { FactoryIcon } from '@/components/ui/icons/FactoryIcon'
+import { GaugeIcon } from '@/components/ui/icons/GaugeIcon'
+import { UsersIcon } from '@/components/ui/icons/UsersIcon'
+import { ExternalLinkIcon } from '@/components/ui/icons/ExternalLinkIcon'
+import { ArrowLeftIcon } from '@/components/ui/icons/ArrowLeftIcon'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
@@ -79,7 +88,7 @@ export default async function RollingStockPage({ params }: PageProps) {
           href="/rolling-stock"
           className="inline-flex items-center gap-2 text-[#4a6a9a] hover:text-white text-sm mb-6 transition-colors"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeftIcon size={16} />
           Zurück
         </Link>
 
@@ -115,25 +124,25 @@ export default async function RollingStockPage({ params }: PageProps) {
             <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-200">
               {rollingStock.hasWifi && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Wifi className="h-4 w-4 text-blue-600" />
+                  <WifiIcon className="h-4 w-4 text-blue-600" />
                   <span className="text-slate-700">WiFi</span>
                 </div>
               )}
               {rollingStock.hasBistro && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Utensils className="h-4 w-4 text-orange-600" />
+                  <UtensilsIcon className="h-4 w-4 text-orange-600" />
                   <span className="text-slate-700">Bistro/Restaurant</span>
                 </div>
               )}
               {rollingStock.hasBikeSpace && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Bike className="h-4 w-4 text-purple-600" />
+                  <BikeIcon className="h-4 w-4 text-purple-600" />
                   <span className="text-slate-700">Fahrradplätze</span>
                 </div>
               )}
               {!!rollingStock.powerSystem && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Zap className="h-4 w-4 text-yellow-600" />
+                  <ZapIcon className="h-4 w-4 text-yellow-600" />
                   <span className="text-slate-700">Stromsystem: {rollingStock.powerSystem}</span>
                 </div>
               )}
@@ -148,7 +157,7 @@ export default async function RollingStockPage({ params }: PageProps) {
             <div className="space-y-3">
               {rollingStock.manufacturer && (
                 <div className="flex items-center gap-3">
-                  <Factory className="h-4 w-4 text-slate-400" />
+                  <FactoryIcon className="h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium text-slate-900">Manufacturer</p>
                     <p className="text-sm text-slate-600">{rollingStock.manufacturer}</p>
@@ -158,7 +167,7 @@ export default async function RollingStockPage({ params }: PageProps) {
               
               {rollingStock.introducedYear && (
                 <div className="flex items-center gap-3">
-                  <Calendar className="h-4 w-4 text-slate-400" />
+                  <CalendarIcon className="h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium text-slate-900">Introduced</p>
                     <p className="text-sm text-slate-600">{rollingStock.introducedYear}</p>
@@ -168,7 +177,7 @@ export default async function RollingStockPage({ params }: PageProps) {
               
               {rollingStock.maxSpeedKmh && (
                 <div className="flex items-center gap-3">
-                  <Gauge className="h-4 w-4 text-slate-400" />
+                  <GaugeIcon className="h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium text-slate-900">Max Speed</p>
                     <p className="text-sm text-slate-600">{rollingStock.maxSpeedKmh} km/h</p>
@@ -178,7 +187,7 @@ export default async function RollingStockPage({ params }: PageProps) {
               
               {rollingStock.powerSystem && (
                 <div className="flex items-center gap-3">
-                  <Zap className="h-4 w-4 text-slate-400" />
+                  <ZapIcon className="h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium text-slate-900">Power System</p>
                     <p className="text-sm text-slate-600">{rollingStock.powerSystem}</p>
@@ -193,7 +202,7 @@ export default async function RollingStockPage({ params }: PageProps) {
             <div className="space-y-3">
               {rollingStock.seats1st && (
                 <div className="flex items-center gap-3">
-                  <Users className="h-4 w-4 text-slate-400" />
+                  <UsersIcon className="h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium text-slate-900">First Class Seats</p>
                     <p className="text-sm text-slate-600">{rollingStock.seats1st}</p>
@@ -203,7 +212,7 @@ export default async function RollingStockPage({ params }: PageProps) {
               
               {rollingStock.seats2nd && (
                 <div className="flex items-center gap-3">
-                  <Users className="h-4 w-4 text-slate-400" />
+                  <UsersIcon className="h-4 w-4 text-slate-400" />
                   <div>
                     <p className="text-sm font-medium text-slate-900">Second Class Seats</p>
                     <p className="text-sm text-slate-600">{rollingStock.seats2nd}</p>
@@ -273,7 +282,7 @@ export default async function RollingStockPage({ params }: PageProps) {
           <div className="flex justify-center mt-6">
             <a href={rollingStock.wikiUrl} target="_blank" rel="noopener noreferrer">
               <Button className="bg-[#0d1f3c] border border-[#1e3a6e] text-[#4f8ef7] hover:bg-[#1a3a5e] gap-2">
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLinkIcon className="h-4 w-4" />
                 Wikipedia öffnen →
               </Button>
             </a>

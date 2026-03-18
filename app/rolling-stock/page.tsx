@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { RollingStockChip } from '@/components/rolling-stock/RollingStockChip'
-import { Search } from 'lucide-react'
+import { SearchIcon } from '@/components/ui/icons/SearchIcon'
 import Link from 'next/link'
 import { BackButton } from '@/components/ui/BackButton'
 
@@ -91,7 +91,7 @@ export default async function RollingStockDirectoryPage({ searchParams }: PagePr
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Search input */}
             <form action="/rolling-stock" method="GET" style={{ position: 'relative' }}>
-              <Search
+              <SearchIcon
                 style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#4a6a9a', pointerEvents: 'none' }}
               />
               <input

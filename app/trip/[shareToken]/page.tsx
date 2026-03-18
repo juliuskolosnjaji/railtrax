@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { TripMap } from '@/components/map/TripMapClient'
 import { Logo } from '@/components/ui/Logo'
-import { Leaf } from 'lucide-react'
+import { LeafIcon } from '@/components/ui/icons/LeafIcon'
 import Link from 'next/link'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -319,7 +319,7 @@ export default async function PublicTripPage({ params }: PageProps) {
             {/* CO₂ */}
             {co2SavedKg > 0 && (
               <div style={{ background: '#0d2618', border: '1px solid #1a4a2e', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <Leaf size={16} style={{ color: '#3ecf6e', marginTop: 1, flexShrink: 0 }} />
+                <LeafIcon size={16} style={{ color: '#3ecf6e', marginTop: 1, flexShrink: 0 }} />
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 600, color: '#3ecf6e', margin: 0 }}>
                     {co2SavedKg.toLocaleString('de-DE')} kg CO₂ gespart vs. Fliegen
