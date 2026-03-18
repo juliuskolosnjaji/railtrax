@@ -72,7 +72,7 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
 
   const depTime = new Date(leg.plannedDeparture)
   const whenParam = new Date(depTime.getTime() - 5 * 60000).toISOString()
-  const depUrl = `https://traewelling.de/api/v1/station/${stationId}/departures?when=${encodeURIComponent(whenParam)}&travelType=express,regional,suburban,bus,ferry,subway,tram,taxi`
+  const depUrl = `https://traewelling.de/api/v1/station/${stationId}/departures?when=${encodeURIComponent(whenParam)}`
   console.log('Fetching departures:', depUrl)
 
   const depRes = await fetch(depUrl, {
