@@ -119,3 +119,24 @@ button, a[href], [role="button"] {
 .fixed-action-btn {
   bottom: calc(64px + env(safe-area-inset-bottom));
 }
+
+/* ─── Landing Page Mobile Fixes ─────────────────────────────────────────────── */
+
+/* Prevent horizontal overflow globally */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Mobile: remove large horizontal padding */
+@media (max-width: 767px) {
+  .hero-content {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+/* Ensure images and canvases don't overflow */
+img, canvas, video, iframe {
+  max-width: 100%;
+}
