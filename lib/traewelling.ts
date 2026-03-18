@@ -17,33 +17,66 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
   console.log('Train:', leg.trainNumber, 'Line:', leg.lineName)
   console.log('Departure:', leg.plannedDeparture)
 
-  // ── STEP 1: Find origin station ──────────────────────────────
+  // ── STEP 1: Find station using IBNR via direct endpoint ──────
 
   let stationId: number | null = null
+  let stationName: string = leg.originName
 
   if (leg.originIbnr) {
-    const ibnrRes = await fetch(
-      `https://traewelling.de/api/v1/stations?query=${leg.originIbnr}`,
-      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
-    )
-    if (ibnrRes.ok) {
-      const ibnrData = await ibnrRes.json()
-      const stations: any[] = ibnrData.data ?? []
-      const match = stations.find((s: any) =>
-        s.ibnr === parseInt(leg.originIbnr!) ||
-        s.ibnr === leg.originIbnr ||
-        s.identifiers?.some((id: any) =>
-          id.type === 'de_db_ibnr' && id.identifier === leg.originIbnr
-        )
+    // Try multiple Träwelling IBNR endpoint formats
+    const ibnrEndpoints = [
+      `https://traewelling.de/api/v1/station/${leg.originIbnr}`,
+      `https://traewelling.de/api/v1/stations/${leg.originIbnr}`,
+    ]
+    for (const url of ibnrEndpoints) {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      })
+      console.log(`${url} → ${res.status}`)
+      if (res.ok) {
+        const data = await res.json()
+        const station = data.data ?? data
+        if (station?.id) {
+          stationId = station.id
+          stationName = station.name
+          console.log('IBNR endpoint success:', station.name, station.id)
+          break
+        }
+      }
+    }
+
+    if (!stationId) {
+      console.log('Direct IBNR lookup failed, trying autocomplete...')
+      const autoRes = await fetch(
+        `https://traewelling.de/api/v1/stations/autocomplete/${leg.originIbnr}`,
+        { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
       )
-      if (match) {
-        stationId = match.id
-        console.log('Found station by IBNR:', match.name, stationId)
+      if (autoRes.ok) {
+        const autoData = await autoRes.json()
+        const stations: any[] = autoData.data ?? autoData ?? []
+        console.log('Autocomplete results:',
+          stations.map((s: any) => `${s.name} (${s.id})`))
+        const match = stations.find((s: any) =>
+          s.identifiers?.some((id: any) =>
+            id.type === 'de_db_ibnr' && id.identifier === leg.originIbnr
+          )
+        )
+        if (match) {
+          stationId = match.id
+          stationName = match.name
+          console.log('Autocomplete IBNR match:', match.name, match.id)
+        } else if (stations.length > 0) {
+          stationId = stations[0].id
+          stationName = stations[0].name
+          console.log('Autocomplete first result:', stations[0].name)
+        }
       }
     }
   }
 
+  // Final fallback: name-based search
   if (!stationId) {
+    console.log('Falling back to name search for:', leg.originName)
     const nameRes = await fetch(
       `https://traewelling.de/api/v1/stations?query=${encodeURIComponent(leg.originName)}`,
       { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
@@ -51,21 +84,25 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
     if (!nameRes.ok) {
       const txt = await nameRes.text()
       console.error('Station search failed:', nameRes.status, txt)
-      throw new TraewellingError('api_error', `Station search failed: ${nameRes.status}`)
+      throw new TraewellingError('api_error', `Bahnhofssuche fehlgeschlagen: ${nameRes.status}`)
     }
     const nameData = await nameRes.json()
     const stations: any[] = nameData.data ?? []
-    console.log('Station search results for', leg.originName, ':',
-      stations.map((s: any) => `${s.name} (id:${s.id} ibnr:${s.ibnr})`))
-
+    console.log('Name search results:',
+      stations.map((s: any) => `${s.name} (id:${s.id} ibnr:${s.ibnr})`).slice(0, 5))
     if (stations.length === 0) {
       throw new TraewellingError(
         'train_not_found',
         `Bahnhof "${leg.originName}" nicht in Träwelling gefunden.`
       )
     }
-    stationId = stations[0].id
-    console.log('Using first station:', stations[0].name, stationId)
+    const exact = stations.find((s: any) =>
+      s.name.toLowerCase() === leg.originName.toLowerCase()
+    )
+    const station = exact ?? stations[0]
+    stationId = station.id
+    stationName = station.name
+    console.log('Using station from name search:', stationName, stationId)
   }
 
   // ── STEP 2: Fetch departures ─────────────────────────────────
@@ -108,30 +145,50 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
   const normalize = (s: string | null | undefined) =>
     (s ?? '').toLowerCase().replace(/\s+/g, '').replace(/^0+/, '')
 
-  const legTrainNorm = normalize(leg.trainNumber)
-  const legLineNorm  = normalize(leg.lineName)
-  const legNumeric   = (leg.trainNumber ?? leg.lineName ?? '').replace(/[^0-9]/g, '')
-
-  console.log('Looking for train:', { legTrainNorm, legLineNorm, legNumeric })
+  console.log('Looking for train:', { trainNumber: leg.trainNumber, lineName: leg.lineName })
 
   const matchingDep = departures.find((dep: any) => {
-    const depLineName = normalize(dep.line?.name)
-    const depFahrtNr  = normalize(dep.line?.fahrtNr)
-    const depId       = normalize(dep.line?.id)
-    const depNumeric  = (dep.line?.fahrtNr ?? dep.line?.name ?? '').replace(/[^0-9]/g, '')
+    const depName    = (dep.line?.name ?? '').trim()
+    const depFahrtNr = (dep.line?.fahrtNr ?? '').trim()
+    const depNorm    = normalize(depName)
+    const depFNorm   = normalize(depFahrtNr)
 
-    const m1 = !!(legLineNorm  && depLineName === legLineNorm)
-    const m2 = !!(legTrainNorm && depLineName === legTrainNorm)
-    const m3 = !!(legNumeric   && depFahrtNr  === legNumeric)
-    const m4 = !!(legNumeric   && depNumeric  === legNumeric)
-    const m5 = !!(legLineNorm  && depId       === legLineNorm)
-    const m6 = !!(legTrainNorm && depFahrtNr.includes(legTrainNorm))
+    const legTrain   = (leg.trainNumber ?? '').trim()
+    const legLine    = (leg.lineName ?? '').trim()
+    const legNorm    = normalize(legTrain || legLine)
 
-    const matched = m1 || m2 || m3 || m4 || m5 || m6
+    // Numeric only: "RE12" → "12", "ICE521" → "521"
+    const legNum  = legNorm.replace(/[^0-9]/g, '')
+    const depNum  = depNorm.replace(/[^0-9]/g, '')
+    const depFNum = depFNorm.replace(/[^0-9]/g, '')
+
+    // Alphabetic prefix: "RE12" → "RE"
+    const legPrefix = legNorm.replace(/[0-9]/g, '').toUpperCase()
+    const depPrefix = depNorm.replace(/[0-9]/g, '').toUpperCase()
+
+    // s1: exact full match "re12" === "re12"
+    const s1 = !!(legNorm && depNorm === legNorm)
+
+    // s2: Träwelling strips prefix → dep="12", leg="re12" → legNum="12"
+    const hasPrefix = legPrefix.length > 0 &&
+      ['RE','RB','IC','ICE','EC','IR','S','U','TGV','RJ','RJX',
+       'NJ','EN','FR','FA','FB','EST'].includes(legPrefix)
+    const s2 = !!(hasPrefix && legNum && depNorm === legNum)
+
+    // s3: fahrtNr numeric match
+    const s3 = !!(legNum && depFNum && depFNum === legNum)
+
+    // s4: dep name contains our full identifier
+    const s4 = !!(legNorm && depNorm.includes(legNorm))
+
+    // s5: our identifier contains dep name (short dep like "re")
+    const s5 = !!(depNorm.length > 1 && legNorm.includes(depNorm) &&
+      depNorm.length >= legNorm.length - 3)
+
+    const matched = s1 || s2 || s3 || s4 || s5
     if (matched) {
-      console.log('Matched departure:', dep.line?.name,
-        'fahrtNr:', dep.line?.fahrtNr,
-        'by strategies:', { m1, m2, m3, m4, m5, m6 })
+      console.log('Matched:', depName, 'fahrtNr:', depFahrtNr,
+        'strategies:', { s1, s2, s3, s4, s5 })
     }
     return matched
   })
