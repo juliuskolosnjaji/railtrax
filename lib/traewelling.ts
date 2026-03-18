@@ -204,99 +204,117 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
     )
   }
 
-  // ── STEP 4: Get trip details for tripId ──────────────────────
+  // ── STEP 4 + 5: Fetch trip stopovers to get correct station IDs ─
 
   let tripIdForCheckin: string = matchingDep.tripId
+  let correctStartId: number = stationId ?? 0
+  let correctDestId: number | null = null
 
   try {
-    const tripRes = await fetch(
+    const tripDetailRes = await fetch(
       `https://traewelling.de/api/v1/trains/trip?` +
       `hafasTripId=${encodeURIComponent(matchingDep.tripId)}` +
       `&lineName=${encodeURIComponent(matchingDep.line.name)}` +
       `&start=${stationId}`,
       { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
     )
-    if (tripRes.ok) {
-      const tripData = await tripRes.json()
-      const trip = Array.isArray(tripData.data) ? tripData.data[0] : tripData.data
+
+    if (tripDetailRes.ok) {
+      const tripDetail = await tripDetailRes.json()
+      const trip = Array.isArray(tripDetail.data) ? tripDetail.data[0] : tripDetail.data
+
+      console.log('Full trip response keys:', Object.keys(tripDetail?.data ?? tripDetail ?? {}))
+
+      // Get dataSource UUID
       if (trip?.dataSource?.id) {
         tripIdForCheckin = trip.dataSource.id
         console.log('Using dataSource UUID:', tripIdForCheckin)
       } else {
         console.log('No dataSource UUID, using hafasTripId:', tripIdForCheckin)
       }
+
+      const stopovers: any[] = trip?.stopovers ?? trip?.stops ?? []
+      if (stopovers.length > 0) {
+        console.log('First stopover sample:', JSON.stringify(stopovers[0], null, 2))
+        console.log('Trip stopovers:', stopovers.map((s: any) =>
+          `${s.stop?.name ?? s.station?.name} (id:${s.stop?.id ?? s.station?.id})`
+        ).slice(0, 10))
+
+        const legDepTime = new Date(leg.plannedDeparture).getTime()
+        const legArrTime = new Date(leg.plannedArrival).getTime()
+
+        // Find start stopover by matching departure time (within 3 min)
+        const startStopover = stopovers.find((s: any) => {
+          const stopDep = s.plannedDeparture ?? s.departure
+          if (!stopDep) return false
+          return Math.abs(new Date(stopDep).getTime() - legDepTime) < 3 * 60 * 1000
+        })
+        if (startStopover) {
+          const sid = startStopover.stop?.id ?? startStopover.station?.id
+          if (sid) {
+            correctStartId = typeof sid === 'string' ? parseInt(sid) : sid
+            console.log('Start station from stopovers:',
+              startStopover.stop?.name ?? startStopover.station?.name, correctStartId)
+          }
+        }
+
+        // Find destination stopover by matching arrival time (within 3 min)
+        const destStopover = stopovers.find((s: any) => {
+          const stopArr = s.plannedArrival ?? s.arrival
+          if (!stopArr) return false
+          return Math.abs(new Date(stopArr).getTime() - legArrTime) < 3 * 60 * 1000
+        })
+        if (destStopover) {
+          const did = destStopover.stop?.id ?? destStopover.station?.id
+          if (did) {
+            correctDestId = typeof did === 'string' ? parseInt(did) : did
+            console.log('Destination station from stopovers:',
+              destStopover.stop?.name ?? destStopover.station?.name, correctDestId)
+          }
+        }
+
+        // Fallback: match destination by name
+        if (!correctDestId) {
+          const destByName = stopovers.find((s: any) => {
+            const name = (s.stop?.name ?? s.station?.name ?? '').toLowerCase()
+            return name.includes(leg.destName.toLowerCase().slice(0, 6))
+          })
+          if (destByName) {
+            const did = destByName.stop?.id ?? destByName.station?.id
+            if (did) {
+              correctDestId = typeof did === 'string' ? parseInt(did) : did
+              console.log('Destination by name match in stopovers:',
+                destByName.stop?.name, correctDestId)
+            }
+          }
+        }
+      } else {
+        console.log('No stopovers in trip response, using fallback station IDs')
+      }
     } else {
-      console.log('Trip fetch failed, using hafasTripId:', tripIdForCheckin)
+      console.log('Trip detail fetch failed:', tripDetailRes.status, '— using stationId fallback')
     }
   } catch (e) {
-    console.log('Trip fetch error (non-fatal):', e)
+    console.log('Trip detail fetch error (non-fatal):', e)
   }
 
-  // ── STEP 5: Find destination station (Träwelling internal ID) ──
-
-  let destinationStationId: number | null = null
-
-  if (leg.destIbnr) {
-    for (const url of [
-      `https://traewelling.de/api/v1/station/${leg.destIbnr}`,
-      `https://traewelling.de/api/v1/stations/${leg.destIbnr}`,
-    ]) {
-      const r = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-      })
-      if (r.ok) {
-        const d = await r.json()
-        const s = d.data ?? d
-        if (s?.id) {
-          destinationStationId = s.id
-          console.log('Destination by IBNR lookup:', s.name, s.id)
-          break
-        }
-      }
-    }
-  }
-
-  if (!destinationStationId) {
-    try {
-      const r = await fetch(
-        `https://traewelling.de/api/v1/stations?query=${encodeURIComponent(leg.destName)}`,
-        { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
-      )
-      if (r.ok) {
-        const d = await r.json()
-        const stations: any[] = d.data ?? []
-        if (stations.length > 0) {
-          const exact = stations.find((s: any) =>
-            s.name.toLowerCase() === leg.destName.toLowerCase()
-          )
-          const best = exact ?? stations[0]
-          destinationStationId = best.id
-          console.log('Destination by name search:', best.name, best.id)
-        }
-      }
-    } catch (e) {
-      console.log('Destination lookup failed (non-fatal):', e)
-    }
-  }
-
-  // ── STEP 6: Build checkin payload ────────────────────────────
-  // Always use ibnr: false with Träwelling internal IDs.
-  // Using ibnr: true with DB IBNRs causes 500 errors.
+  // ── STEP 6: Build payload with correct IDs ────────────────────
+  // Always ibnr: false — use Träwelling internal IDs from stopovers.
 
   const payload: Record<string, unknown> = {
     tripId:    String(tripIdForCheckin),
     lineName:  matchingDep.line.name,
-    start:     stationId,
+    start:     correctStartId,
     departure: new Date(leg.plannedDeparture).toISOString(),
     arrival:   new Date(leg.plannedArrival).toISOString(),
     ibnr:      false,
   }
 
-  if (destinationStationId !== null) {
-    payload.destination = destinationStationId
+  if (correctDestId !== null) {
+    payload.destination = correctDestId
   }
 
-  console.log('Checkin payload:', JSON.stringify(payload))
+  console.log('Final checkin payload:', JSON.stringify(payload))
 
   // ── STEP 7: POST checkin ──────────────────────────────────────
 
