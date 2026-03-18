@@ -130,7 +130,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </main>
 
       {/* Mobile bottom nav (rendered client-side) */}
-      <MobileBottomNav navItems={NAV_ITEMS.filter(n => n.href !== '/rolling-stock')} />
+      <MobileBottomNav navItems={NAV_ITEMS.filter(n => n.href !== '/rolling-stock').map(({ href, label, iconKey }) => ({ href, label, iconKey }))} />
     </div>
   )
 }
