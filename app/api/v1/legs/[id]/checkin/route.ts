@@ -8,12 +8,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await authenticateRequest(req)
-  if ('userId' in auth === false) return auth as Response
+  if (!auth.userId) return auth.response
 
   const { id } = await params
 
   const dbUser = await prisma().user.findUnique({
-    where: { id: (auth as { userId: string }).userId },
+    where: { id: auth.userId },
     select: { traewellingToken: true },
   })
 
@@ -27,7 +27,7 @@ export async function POST(
   })
 
   if (!leg) return v1Error('Abschnitt nicht gefunden.', 404, 'NOT_FOUND')
-  if (leg.trip.userId !== (auth as { userId: string }).userId) {
+  if (leg.trip.userId !== auth.userId) {
     return v1Error('Kein Zugriff.', 403, 'FORBIDDEN')
   }
 
