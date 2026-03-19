@@ -50,7 +50,7 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDet
   const [selectedTrain, setSelectedTrain] = useState<string|null>(null)
 
   const totalDelayMin = journey.legs.reduce((sum, l) =>
-    sum + Math.round((l.delayMinutes ?? 0) / 60), 0)
+    sum + (l.delayMinutes ?? 0), 0)
 
   return (
     <>

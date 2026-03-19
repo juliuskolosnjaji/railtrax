@@ -404,7 +404,7 @@ function JourneyCard({
   const lastLeg = journey.legs[journey.legs.length - 1]
   const depTime = formatTime(firstLeg?.departure)
   const arrTime = formatTime(lastLeg?.arrival)
-  const totalDelay = lastLeg?.delayMinutes ?? 0
+  const totalDelay = journey.legs.reduce((sum, l) => sum + (l.delayMinutes ?? 0), 0)
   const uniqueOps = [...new Set(journey.legs.map(l => resolveOperator(l)).filter(Boolean))]
 
   return (

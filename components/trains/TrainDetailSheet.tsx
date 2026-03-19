@@ -251,8 +251,7 @@ function StopRow({ stop, isFirst, isLast, isCurrent,
     ? new Date(stop.departure).toLocaleTimeString('de-DE',
         { hour: '2-digit', minute: '2-digit' })
     : null
-  const totalDelay = (stop.departureDelay ?? 0) + (stop.arrivalDelay ?? 0)
-  const delayMin = Math.round(totalDelay / 60)
+  const delayMin = stop.departureDelay ?? 0
 
   return (
     <div style={{
