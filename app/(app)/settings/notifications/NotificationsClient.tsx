@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { Bell, TestTube2 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useUser } from '@/hooks/useUser'
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
 
@@ -29,26 +30,26 @@ export function NotificationsClient({
 
   const subscribeToPush = useCallback(async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      alert('Push notifications are not supported in your browser')
+      alert('Push-Benachrichtigungen werden von deinem Browser nicht unterstützt.')
       return
     }
 
     try {
       const permission = await navigator.permissions.query({ name: 'notifications' as PermissionName })
       if (permission.state === 'denied') {
-        alert('Please enable notifications in your browser settings')
+        alert('Bitte aktiviere Benachrichtigungen in den Browser-Einstellungen.')
         return
       }
 
       const granted = await Notification.requestPermission()
       if (granted !== 'granted') {
-        alert('Notification permission denied')
+        alert('Berechtigung für Benachrichtigungen verweigert.')
         return
       }
 
       const registration = await navigator.serviceWorker.ready
       const vapidPublicKey = await fetch('/api/push/vapid-key').then((r) => r.text())
-      
+
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: Uint8Array.from(atob(vapidPublicKey), (c) => c.charCodeAt(0)),
@@ -64,7 +65,7 @@ export function NotificationsClient({
       await savePreferences({ ...prefs, notificationsEnabled: true })
     } catch (err) {
       console.error('Failed to subscribe:', err)
-      alert('Failed to enable notifications')
+      alert('Benachrichtigungen konnten nicht aktiviert werden.')
     }
   }, [prefs])
 
@@ -102,7 +103,7 @@ export function NotificationsClient({
 
   const handleToggle = async (key: keyof Preferences, value: boolean) => {
     if (key !== 'notificationsEnabled' && !prefs.notificationsEnabled) return
-    
+
     if (key === 'notificationsEnabled' && value && !canNotify) {
       setShowUpgradeModal(true)
       return
@@ -125,87 +126,85 @@ export function NotificationsClient({
   }
 
   if (userLoading) {
-    return <div className="p-6" style={{ color: '#4a6a9a' }}>Laden...</div>
+    return <div className="p-6 text-muted-foreground">Laden...</div>
   }
 
   return (
-    <div className="settings-page space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Push-Benachrichtigungen</CardTitle>
-          <CardDescription>
-            Echtzeit-Updates zu deinen Zugfahrten erhalten
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Benachrichtigungen aktivieren</p>
-              <p className="text-sm text-muted-foreground">
-                Push-Benachrichtigungen im Browser erhalten
-              </p>
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-semibold text-foreground mb-1">Benachrichtigungen</h1>
+        <p className="text-sm text-muted-foreground">Echtzeit-Updates zu deinen Zugfahrten.</p>
+      </div>
+
+      {/* Push notifications master toggle */}
+      <Card className="border">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
+              <Bell className="h-5 w-5 text-brand" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-base">Push-Benachrichtigungen</CardTitle>
+              <CardDescription className="mt-0.5 text-xs">
+                Echtzeit-Updates direkt im Browser erhalten.
+              </CardDescription>
             </div>
             {prefs.notificationsEnabled ? (
-              <Button variant="outline" onClick={unsubscribeFromPush}>
+              <Button variant="outline" size="sm" onClick={unsubscribeFromPush} className="h-8 text-xs shrink-0">
                 Deaktivieren
               </Button>
             ) : (
-              <Button onClick={subscribeToPush}>Aktivieren</Button>
+              <Button size="sm" onClick={subscribeToPush} className="h-8 text-xs shrink-0">
+                Aktivieren
+              </Button>
             )}
           </div>
+        </CardHeader>
+      </Card>
 
-          <div className="space-y-4">
-            <p className="font-medium">Benachrichtigungstypen</p>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm">Verspätungen</p>
-                  <p className="text-xs text-muted-foreground">
-                    Benachrichtigung wenn dein Zug verspätet ist
-                  </p>
-                </div>
-                <Switch
-                  checked={prefs.delayAlerts}
-                  onCheckedChange={(v) => handleToggle('delayAlerts', v)}
-                  disabled={!prefs.notificationsEnabled || isLoading}
-                />
+      {/* Notification types */}
+      <Card className="border">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+            Benachrichtigungstypen
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Wähle aus, welche Ereignisse du benachrichtigt bekommst.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {[
+            { key: 'delayAlerts' as const, label: 'Verspätungen', desc: 'Benachrichtigung wenn dein Zug verspätet ist.' },
+            { key: 'platformChanges' as const, label: 'Gleisänderungen', desc: 'Bei Änderungen des Abfahrtsgleises.' },
+            { key: 'cancellations' as const, label: 'Zugausfälle', desc: 'Wenn dein Zug ausfällt.' },
+          ].map(({ key, label, desc }) => (
+            <div
+              key={key}
+              className="flex items-center justify-between py-3 px-1 border-b border-border last:border-0"
+            >
+              <div>
+                <p className="text-sm text-foreground">{label}</p>
+                <p className="text-xs text-muted-foreground">{desc}</p>
               </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm">Gleisänderungen</p>
-                  <p className="text-xs text-muted-foreground">
-                    Benachrichtigung bei Änderungen des Abfahrtsgleises
-                  </p>
-                </div>
-                <Switch
-                  checked={prefs.platformChanges}
-                  onCheckedChange={(v) => handleToggle('platformChanges', v)}
-                  disabled={!prefs.notificationsEnabled || isLoading}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm">Zugausfälle</p>
-                  <p className="text-xs text-muted-foreground">
-                    Benachrichtigung wenn dein Zug ausfällt
-                  </p>
-                </div>
-                <Switch
-                  checked={prefs.cancellations}
-                  onCheckedChange={(v) => handleToggle('cancellations', v)}
-                  disabled={!prefs.notificationsEnabled || isLoading}
-                />
-              </div>
+              <Switch
+                checked={prefs[key]}
+                onCheckedChange={(v) => handleToggle(key, v)}
+                disabled={!prefs.notificationsEnabled || isLoading}
+              />
             </div>
-          </div>
+          ))}
 
           {prefs.notificationsEnabled && (
-            <div className="pt-4 border-t">
+            <div className="pt-4">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={handleTestNotification}
                 disabled={isLoading}
+                className="gap-1.5 text-xs h-8"
               >
+                <TestTube2 className="h-3 w-3" />
                 {testSent ? 'Testbenachrichtigung gesendet!' : 'Testbenachrichtigung senden'}
               </Button>
             </div>
@@ -214,9 +213,9 @@ export function NotificationsClient({
       </Card>
 
       {showUpgradeModal && (
-        <UpgradeModal 
-          open={showUpgradeModal} 
-          onOpenChange={setShowUpgradeModal} 
+        <UpgradeModal
+          open={showUpgradeModal}
+          onOpenChange={setShowUpgradeModal}
           feature="notifications"
         />
       )}

@@ -3,107 +3,10 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-
-const S = {
-  page: { maxWidth: 600, padding: '40px 0' } as React.CSSProperties,
-  h1: { fontSize: 22, fontWeight: 600, color: '#fff', marginBottom: 4 } as React.CSSProperties,
-  subtitle: { fontSize: 13, color: '#4a6a9a', marginBottom: 40 } as React.CSSProperties,
-  section: { marginBottom: 36 } as React.CSSProperties,
-  h2: { fontSize: 15, fontWeight: 600, color: '#8ba3c7', marginBottom: 8 } as React.CSSProperties,
-  description: { fontSize: 13, color: '#4a6a9a', lineHeight: 1.65, marginBottom: 14 } as React.CSSProperties,
-  btn: {
-    background: '#0d1f3c',
-    border: '1px solid #1e3a6e',
-    color: '#4f8ef7',
-    borderRadius: 8,
-    padding: '9px 18px',
-    fontSize: 13,
-    fontWeight: 500,
-    cursor: 'pointer',
-    textDecoration: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 6,
-  } as React.CSSProperties,
-  dangerZone: {
-    border: '1px solid #3a1515',
-    borderRadius: 10,
-    padding: '24px',
-    background: '#1f0d0d',
-  } as React.CSSProperties,
-  dangerH2: { fontSize: 15, fontWeight: 600, color: '#e25555', marginBottom: 8 } as React.CSSProperties,
-  links: {
-    marginTop: 48,
-    display: 'flex',
-    gap: 20,
-    flexWrap: 'wrap' as const,
-    borderTop: '1px solid #1e2d4a',
-    paddingTop: 20,
-  },
-  link: { fontSize: 12, color: '#4a6a9a', textDecoration: 'none' } as React.CSSProperties,
-}
-
-export default function PrivacyPage() {
-  return (
-    <div style={S.page}>
-      <h1 style={S.h1}>Daten &amp; Privatsphäre</h1>
-      <p style={S.subtitle}>
-        Verwalte deine Daten und kontrolliere dein Konto gemäß DSGVO.
-      </p>
-
-      {/* Data export */}
-      <section style={S.section}>
-        <h2 style={S.h2}>Daten exportieren</h2>
-        <p style={S.description}>
-          Lade alle deine Reisedaten, Journaleinträge und Profileinformationen als JSON-Datei
-          herunter (DSGVO Art. 20 — Datenübertragbarkeit).
-        </p>
-        <a href="/api/user/export" download style={S.btn}>
-          Alle Daten herunterladen
-        </a>
-      </section>
-
-      <div style={{ height: 1, background: '#1e2d4a', marginBottom: 36 }} />
-
-      {/* Legal links */}
-      <section style={S.section}>
-        <h2 style={S.h2}>Rechtliche Dokumente</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[
-            { href: '/datenschutz', label: 'Datenschutzerklärung' },
-            { href: '/impressum', label: 'Impressum' },
-            { href: '/nutzungsbedingungen', label: 'AGB' },
-          ].map(({ href, label }) => (
-            <Link key={href} href={href} style={{ ...S.btn, width: 'fit-content' }}>
-              {label} →
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <div style={{ height: 1, background: '#1e2d4a', marginBottom: 36 }} />
-
-      {/* Danger zone */}
-      <section>
-        <div style={S.dangerZone}>
-          <h2 style={S.dangerH2}>Konto löschen</h2>
-          <p style={S.description}>
-            Diese Aktion ist unwiderruflich. Alle deine Reisen, Abschnitte, Fotos und
-            Einstellungen werden dauerhaft gelöscht. Ein aktives Abonnement wird sofort
-            gekündigt. Die vollständige Löschung erfolgt binnen 30 Tagen.
-          </p>
-          <DeleteAccountButton />
-        </div>
-      </section>
-
-      <div style={S.links}>
-        <a href="/datenschutz" style={S.link}>Datenschutz</a>
-        <a href="/impressum" style={S.link}>Impressum</a>
-        <a href="/nutzungsbedingungen" style={S.link}>AGB</a>
-      </div>
-    </div>
-  )
-}
+import { Download, FileText, Trash2, Shield, ArrowRight } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 function DeleteAccountButton() {
   const router = useRouter()
@@ -130,112 +33,161 @@ function DeleteAccountButton() {
 
   return (
     <>
-      <button
+      <Button
+        variant="outline"
         onClick={() => setOpen(true)}
-        style={{
-          background: '#1f0d0d',
-          border: '1px solid #3a1515',
-          color: '#e25555',
-          borderRadius: 8,
-          padding: '9px 18px',
-          fontSize: 13,
-          fontWeight: 500,
-          cursor: 'pointer',
-        }}
+        className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive h-9 text-xs gap-1.5"
       >
-        Konto unwiderruflich löschen
-      </button>
+        <Trash2 className="h-3.5 w-3.5" />
+        Konto löschen
+      </Button>
 
       {open && (
         <div
           onClick={() => { if (!loading) setOpen(false) }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 200,
-            background: 'rgba(0,0,0,0.65)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-          }}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: '#0a1628',
-              border: '1px solid #3a1515',
-              borderRadius: 12,
-              padding: 28,
-              width: '100%',
-              maxWidth: 400,
-            }}
+            className="bg-surface border border-destructive/30 rounded-xl p-6 w-full max-w-sm"
           >
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#e25555', marginBottom: 12 }}>
+            <h3 className="text-base font-semibold text-destructive mb-2">
               Konto wirklich löschen?
             </h3>
-            <p style={{ fontSize: 13, color: '#8ba3c7', lineHeight: 1.65, marginBottom: 20 }}>
+            <p className="text-sm text-secondary leading-relaxed mb-5">
               Diese Aktion kann nicht rückgängig gemacht werden. Gib{' '}
-              <strong style={{ color: '#fff' }}>LÖSCHEN</strong> ein, um fortzufahren.
+              <strong className="text-foreground">LÖSCHEN</strong> ein, um fortzufahren.
             </p>
-            <input
+            <Input
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
               placeholder="LÖSCHEN"
               autoFocus
-              style={{
-                width: '100%',
-                background: '#080d1a',
-                border: `1px solid ${confirmed ? '#e25555' : '#1e2d4a'}`,
-                borderRadius: 7,
-                padding: '9px 12px',
-                color: '#fff',
-                fontSize: 13,
-                outline: 'none',
-                boxSizing: 'border-box',
-                marginBottom: 16,
-              }}
+              className={`mb-4 bg-background border-border text-foreground placeholder:text-muted-foreground ${confirmed ? 'border-destructive' : ''}`}
             />
             {error && (
-              <p style={{ fontSize: 12, color: '#e25555', marginBottom: 12 }}>{error}</p>
+              <p className="text-xs text-destructive mb-3">{error}</p>
             )}
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
                 onClick={() => setOpen(false)}
                 disabled={loading}
-                style={{
-                  background: 'none',
-                  border: '1px solid #1e2d4a',
-                  color: '#4a6a9a',
-                  borderRadius: 7,
-                  padding: '8px 16px',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
+                className="h-9 text-xs"
               >
                 Abbrechen
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleDelete}
                 disabled={!confirmed || loading}
-                style={{
-                  background: confirmed ? '#7f1d1d' : '#1f0d0d',
-                  border: `1px solid ${confirmed ? '#e25555' : '#3a1515'}`,
-                  color: confirmed ? '#fff' : '#4a6a9a',
-                  borderRadius: 7,
-                  padding: '8px 16px',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: confirmed && !loading ? 'pointer' : 'not-allowed',
-                }}
+                variant="destructive"
+                className="h-9 text-xs"
               >
                 {loading ? 'Wird gelöscht…' : 'Konto löschen'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
     </>
+  )
+}
+
+export default function PrivacyPage() {
+  return (
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-semibold text-foreground mb-1">Daten &amp; Privatsphäre</h1>
+        <p className="text-sm text-muted-foreground">
+          Verwalte deine Daten gemäß DSGVO.
+        </p>
+      </div>
+
+      {/* Data export */}
+      <Card className="border">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
+              <Download className="h-5 w-5 text-brand" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Daten exportieren</CardTitle>
+              <CardDescription className="mt-0.5 text-xs">
+                DSGVO Art. 20 — Alle deine Daten als JSON herunterladen.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <a
+            href="/api/user/export"
+            download
+            className="inline-flex items-center gap-2 text-sm text-brand hover:text-brand/80 transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            Alle Daten herunterladen
+          </a>
+        </CardContent>
+      </Card>
+
+      {/* Legal documents */}
+      <Card className="border">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-surface flex items-center justify-center shrink-0 border border-border">
+              <FileText className="h-5 w-5 text-secondary" />
+            </div>
+            <div>
+              <CardTitle className="text-base">Rechtliche Dokumente</CardTitle>
+              <CardDescription className="mt-0.5 text-xs">
+                Unsere AGB, Datenschutzerklärung und Impressum.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {[
+            { href: '/datenschutz', label: 'Datenschutzerklärung' },
+            { href: '/impressum', label: 'Impressum' },
+            { href: '/nutzungsbedingungen', label: 'AGB' },
+          ].map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center justify-between py-2.5 px-1 border-b border-border last:border-0 text-sm text-secondary hover:text-foreground transition-colors"
+            >
+              {label}
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Danger zone */}
+      <Card className="border border-destructive/20">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+              <Shield className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <CardTitle className="text-base text-destructive">Konto löschen</CardTitle>
+              <CardDescription className="mt-0.5 text-xs text-muted-foreground">
+                Diese Aktion ist unwiderruflich.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-secondary leading-relaxed mb-4">
+            Alle Reisen, Abschnitte, Fotos und Einstellungen werden dauerhaft gelöscht.
+            Ein aktives Abonnement wird sofort gekündigt. Die vollständige Löschung erfolgt
+            binnen 30 Tagen.
+          </p>
+          <DeleteAccountButton />
+        </CardContent>
+      </Card>
+    </div>
   )
 }

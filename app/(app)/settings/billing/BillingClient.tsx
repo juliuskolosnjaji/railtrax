@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { CheckCircle2, AlertTriangle, ExternalLink, Zap, Star, Crown, Calendar, Train, HardDrive, Copy, Check } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import type { Plan } from '@/lib/entitlements'
 
 const PLAN_LABELS: Record<Plan, string> = {
@@ -15,28 +17,24 @@ const PLAN_CONFIG: Record<Plan, {
   color: string
   border: string
   bg: string
-  glow: string
 }> = {
   free: {
     icon: <Zap size={16} />,
     color: '#4a6a9a',
     border: '#1e2d4a',
     bg: '#0a1628',
-    glow: 'rgba(74,106,154,0.15)',
   },
   plus: {
     icon: <Star size={16} />,
     color: '#4f8ef7',
     border: '#1e3a6e',
     bg: '#0a1628',
-    glow: 'rgba(79,142,247,0.15)',
   },
   pro: {
     icon: <Crown size={16} />,
     color: '#a78bfa',
     border: '#4c1d95',
     bg: '#0d0a1f',
-    glow: 'rgba(167,139,250,0.15)',
   },
 }
 
@@ -60,7 +58,7 @@ interface BillingClientProps {
 }
 
 function UsageRow({
-  icon, label, value, max, pct, valueLabel, infinite,
+  icon, label, value, max, pct, valueLabel,
 }: {
   icon: React.ReactNode
   label: string
@@ -68,30 +66,25 @@ function UsageRow({
   max: number
   pct: number
   valueLabel: string
-  infinite?: boolean
 }) {
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: '#4a6a9a' }}>{icon}</span>
-          <span style={{ fontSize: 13, color: '#8ba3c7' }}>{label}</span>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">{icon}</span>
+          <span className="text-sm text-secondary">{label}</span>
         </div>
-        <span style={{ fontSize: 13, fontWeight: 500, color: infinite ? '#3ecf6e' : '#fff' }}>
-          {valueLabel}
-        </span>
+        <span className="text-sm font-medium text-foreground">{valueLabel}</span>
       </div>
-      {!infinite && (
-        <div style={{ height: 4, background: '#1e2d4a', borderRadius: 2, overflow: 'hidden' }}>
-          <div style={{
-            height: '100%',
+      <div className="h-1 bg-border rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
             width: `${pct}%`,
             background: pct > 80 ? '#e25555' : pct > 60 ? '#f59e0b' : '#4f8ef7',
-            borderRadius: 2,
-            transition: 'width 0.4s ease',
-          }} />
-        </div>
-      )}
+          }}
+        />
+      </div>
     </div>
   )
 }
@@ -145,117 +138,84 @@ export function BillingClient({
   const cfg = PLAN_CONFIG[plan]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="space-y-4">
+      {/* Page header */}
+      <div>
+        <h1 className="text-xl font-semibold text-foreground mb-1">Abonnement</h1>
+        <p className="text-sm text-muted-foreground">Deinen Tarif und deine Nutzung verwalten.</p>
+      </div>
 
-      {/* Success banner */}
       {showSuccess && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          background: '#0d2618', border: '1px solid #1a4a2e',
-          borderRadius: 12, padding: '12px 16px', color: '#3ecf6e',
-        }}>
-          <CheckCircle2 size={16} />
-          <span style={{ fontSize: 13 }}>Abonnement aktiviert — willkommen bei {PLAN_LABELS[plan]}!</span>
+        <div className="flex items-center gap-2.5 bg-emerald-950/50 border border-emerald-900/50 rounded-xl px-4 py-3 text-emerald-400 text-sm">
+          <CheckCircle2 size={15} className="shrink-0" />
+          Abonnement aktiviert — willkommen bei {PLAN_LABELS[plan]}!
         </div>
       )}
 
-      {/* Current plan card */}
-      <div style={{
-        background: cfg.bg,
-        border: `1px solid ${cfg.border}`,
-        borderRadius: 14,
-        padding: 24,
-        boxShadow: `0 0 40px ${cfg.glow}`,
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Subtle background glow */}
-        <div style={{
-          position: 'absolute', top: -40, right: -40,
-          width: 160, height: 160, borderRadius: '50%',
-          background: cfg.glow, pointerEvents: 'none',
-        }} />
-
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 11, color: '#4a6a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-              Aktueller Tarif
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: `${cfg.glow}`,
-                border: `1px solid ${cfg.border}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: cfg.color,
-              }}>
-                {cfg.icon}
-              </div>
-              <span style={{ fontSize: 26, fontWeight: 700, color: cfg.color, lineHeight: 1 }}>
-                {PLAN_LABELS[plan]}
-              </span>
-            </div>
-            {plan !== 'free' && periodEnd && !subscription?.cancel_at_period_end && (
-              <p style={{ fontSize: 12, color: '#4a6a9a', marginTop: 8 }}>
-                Verlängerung am{' '}
-                <span style={{ color: '#8ba3c7' }}>{periodEnd}</span>
-                {subscription?.billing_interval && (
-                  <span style={{ color: '#1e3a6e', marginLeft: 4 }}>
-                    ({subscription.billing_interval === 'yearly' ? 'jährlich' : 'monatlich'})
-                  </span>
-                )}
+      {/* Current plan */}
+      <Card
+        className="border"
+        style={{ background: cfg.bg, borderColor: cfg.border }}
+      >
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-semibold text-muted uppercase tracking-widest mb-3">
+                Aktueller Tarif
               </p>
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center border"
+                  style={{ background: 'transparent', borderColor: cfg.border, color: cfg.color }}
+                >
+                  {cfg.icon}
+                </div>
+                <span className="text-2xl font-bold" style={{ color: cfg.color }}>
+                  {PLAN_LABELS[plan]}
+                </span>
+              </div>
+              {plan !== 'free' && periodEnd && !subscription?.cancel_at_period_end && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Verlängerung am{' '}
+                  <span className="text-secondary">{periodEnd}</span>
+                  {subscription?.billing_interval && (
+                    <span className="text-muted ml-1">
+                      ({subscription.billing_interval === 'yearly' ? 'jährlich' : 'monatlich'})
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {plan !== 'free' && portalUrl && (
+              <a
+                href={portalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-brand bg-surface border border-brand/20 rounded-lg px-3 py-1.5 hover:bg-brand/10 transition-colors shrink-0"
+              >
+                Verwalten <ExternalLink size={11} />
+              </a>
             )}
           </div>
 
-          {plan !== 'free' && portalUrl && (
-            <a
-              href={portalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                fontSize: 12, color: '#4f8ef7',
-                background: '#0d1f3c', border: '1px solid #1e3a6e',
-                borderRadius: 8, padding: '7px 12px',
-                textDecoration: 'none', flexShrink: 0,
-              }}
-            >
-              Verwalten
-              <ExternalLink size={12} />
-            </a>
-          )}
-        </div>
-
-        {/* Cancellation warning */}
-        {subscription?.cancel_at_period_end && periodEnd && (
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: 10,
-            background: '#1c1508', border: '1px solid #78350f',
-            borderRadius: 8, padding: '10px 14px', marginTop: 16,
-            color: '#f59e0b', fontSize: 13,
-          }}>
-            <AlertTriangle size={14} style={{ marginTop: 1, flexShrink: 0 }} />
-            <span>
+          {subscription?.cancel_at_period_end && periodEnd && (
+            <div className="flex items-start gap-2.5 bg-warning-bg border border-warning/20 rounded-lg px-3 py-2.5 mt-4 text-warning text-xs">
+              <AlertTriangle size={13} className="shrink-0 mt-0.5" />
               Abo endet am <strong>{periodEnd}</strong>. Zugang bleibt bis dahin erhalten.
-            </span>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Usage card */}
-      <div style={{
-        background: '#0a1628', border: '1px solid #1e2d4a',
-        borderRadius: 14, padding: 24,
-      }}>
-        <div style={{
-          fontSize: 11, fontWeight: 600, color: '#4a6a9a',
-          textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20,
-        }}>
-          Nutzung
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {/* Usage */}
+      <Card className="border">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm font-semibold text-muted uppercase tracking-widest">
+            Nutzung
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5 pt-0">
           <UsageRow
             icon={<Train size={13} />}
             label="Reisen"
@@ -263,7 +223,6 @@ export function BillingClient({
             max={maxTrips}
             pct={tripsUsagePct}
             valueLabel={maxTrips === Infinity ? `${tripsCount}` : `${tripsCount} / ${maxTrips}`}
-            infinite={maxTrips === Infinity}
           />
           <UsageRow
             icon={<HardDrive size={13} />}
@@ -272,218 +231,133 @@ export function BillingClient({
             max={maxStorageMb}
             pct={storageUsagePct}
             valueLabel={plan === 'free' ? '—' : `${storageMbUsed} / ${maxStorageMb} MB`}
-            infinite={false}
           />
-        </div>
 
-        {/* Calendar feed */}
-        {calendarUrl && (
-          <div style={{
-            marginTop: 20, paddingTop: 20,
-            borderTop: '1px solid #1e2d4a',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Calendar size={13} style={{ color: '#4a6a9a' }} />
-              <div>
-                <div style={{ fontSize: 13, color: '#8ba3c7' }}>Kalender-Feed</div>
-                <div style={{ fontSize: 11, color: '#4a6a9a' }}>Reisen in Kalender-App importieren</div>
+          {calendarUrl && (
+            <div className="flex items-center justify-between pt-4 border-t border-border">
+              <div className="flex items-center gap-2">
+                <Calendar size={13} className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-secondary">Kalender-Feed</p>
+                  <p className="text-xs text-muted-foreground">Reisen in Kalender-App importieren</p>
+                </div>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyCalendar}
+                className="text-xs h-8 gap-1.5"
+              >
+                {calCopied ? <Check size={11} /> : <Copy size={11} />}
+                {calCopied ? 'Kopiert!' : 'iCal kopieren'}
+              </Button>
             </div>
-            <button
-              onClick={handleCopyCalendar}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 5,
-                fontSize: 12, color: calCopied ? '#3ecf6e' : '#4f8ef7',
-                background: '#0d1f3c', border: `1px solid ${calCopied ? '#1a4a2e' : '#1e3a6e'}`,
-                borderRadius: 7, padding: '6px 10px', cursor: 'pointer',
-              }}
-            >
-              {calCopied ? <Check size={12} /> : <Copy size={12} />}
-              {calCopied ? 'Kopiert!' : 'iCal kopieren'}
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Upgrade section — free users only */}
+      {/* Upgrade */}
       {plan === 'free' && (
-        <div style={{
-          background: '#0a1628', border: '1px solid #1e2d4a',
-          borderRadius: 14, padding: 24,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <div style={{
-              fontSize: 11, fontWeight: 600, color: '#4a6a9a',
-              textTransform: 'uppercase', letterSpacing: '0.08em',
-            }}>
-              Upgraden
+        <Card className="border">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold text-muted uppercase tracking-widest">
+                Upgraden
+              </CardTitle>
+              <div className="flex bg-background rounded-lg border border-border p-0.5 gap-0.5">
+                {(['monthly', 'yearly'] as const).map(b => (
+                  <button
+                    key={b}
+                    onClick={() => setBilling(b)}
+                    className={`text-xs font-medium px-3 py-1.5 rounded-md transition-all ${billing === b ? 'bg-surface text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    {b === 'monthly' ? 'Monatlich' : 'Jährlich'}
+                    {b === 'yearly' && (
+                      <span className="ml-1.5 text-[10px] text-emerald-400">−17%</span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
-
-            {/* Interval toggle */}
-            <div style={{
-              display: 'flex', background: '#080d1a',
-              border: '1px solid #1e2d4a', borderRadius: 8,
-              padding: 3, gap: 3,
-            }}>
-              {(['monthly', 'yearly'] as const).map(b => (
-                <button
-                  key={b}
-                  onClick={() => setBilling(b)}
-                  style={{
-                    fontSize: 12, fontWeight: 500,
-                    padding: '5px 12px', borderRadius: 6,
-                    cursor: 'pointer', border: 'none',
-                    background: billing === b ? '#0d1f3c' : 'transparent',
-                    color: billing === b ? '#fff' : '#4a6a9a',
-                    transition: 'all 0.15s',
-                  }}
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Plus */}
+              <div className="rounded-xl border border-brand/30 bg-surface p-5 flex flex-col gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-7 h-7 rounded-lg bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+                      <Star size={13} />
+                    </div>
+                    <span className="text-base font-semibold text-foreground">Plus</span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-brand">
+                      {billing === 'monthly' ? '€4' : '€40'}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      /{billing === 'monthly' ? 'Monat' : 'Jahr'}
+                    </span>
+                  </div>
+                </div>
+                <ul className="space-y-2 flex-1">
+                  {['Unbegrenzte Reisen', 'Reisetagebuch + Fotos', 'Ticket-Wallet', 'Vollständige Statistik', 'Verspätungs-Alerts'].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-secondary">
+                      <CheckCircle2 size={13} className="text-brand shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => handleUpgrade('plus')}
+                  disabled={isLoading}
+                  className="w-full bg-brand hover:bg-brand/90 text-primary-foreground"
                 >
-                  {b === 'monthly' ? 'Monatlich' : 'Jährlich'}
-                  {b === 'yearly' && (
-                    <span style={{ marginLeft: 5, fontSize: 10, color: '#3ecf6e' }}>−17%</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-            {/* Plus */}
-            <div style={{
-              background: '#080d1a', border: '1px solid #1e3a6e',
-              borderRadius: 12, padding: 20,
-              display: 'flex', flexDirection: 'column', gap: 16,
-            }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: 8,
-                    background: 'rgba(79,142,247,0.12)', border: '1px solid #1e3a6e',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#4f8ef7',
-                  }}>
-                    <Star size={13} />
-                  </div>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Plus</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ fontSize: 28, fontWeight: 700, color: '#4f8ef7' }}>
-                    {billing === 'monthly' ? '€4' : '€40'}
-                  </span>
-                  <span style={{ fontSize: 12, color: '#4a6a9a' }}>
-                    /{billing === 'monthly' ? 'Monat' : 'Jahr'}
-                  </span>
-                </div>
+                  Plus wählen
+                </Button>
               </div>
 
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {[
-                  'Unbegrenzte Reisen',
-                  'Reisetagebuch + Fotos',
-                  'Ticket-Wallet',
-                  'Vollständige Statistik',
-                  'Verspätungs-Alerts',
-                ].map(f => (
-                  <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#8ba3c7' }}>
-                    <CheckCircle2 size={13} style={{ color: '#4f8ef7', flexShrink: 0 }} />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => handleUpgrade('plus')}
-                disabled={isLoading}
-                style={{
-                  marginTop: 'auto', padding: '10px 16px',
-                  background: '#4f8ef7', color: '#fff', border: 'none',
-                  borderRadius: 9, fontSize: 13, fontWeight: 600,
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  opacity: isLoading ? 0.7 : 1,
-                }}
-              >
-                Plus wählen
-              </button>
-            </div>
-
-            {/* Pro */}
-            <div style={{
-              background: 'linear-gradient(135deg, #0d0a1f 0%, #0a0d1f 100%)',
-              border: '1px solid #4c1d95',
-              borderRadius: 12, padding: 20,
-              display: 'flex', flexDirection: 'column', gap: 16,
-              position: 'relative', overflow: 'hidden',
-            }}>
-              {/* Glow */}
-              <div style={{
-                position: 'absolute', top: -30, right: -30,
-                width: 120, height: 120, borderRadius: '50%',
-                background: 'rgba(167,139,250,0.08)', pointerEvents: 'none',
-              }} />
-
-              <div style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: 8,
-                    background: 'rgba(167,139,250,0.12)', border: '1px solid #4c1d95',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#a78bfa',
-                  }}>
-                    <Crown size={13} />
+              {/* Pro */}
+              <div className="rounded-xl border border-purple-900/50 bg-gradient-to-br from-[#0d0a1f] to-[#0a0d1f] p-5 flex flex-col gap-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 rounded-full bg-purple-900/10 pointer-events-none" />
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-900/50 flex items-center justify-center text-purple-400">
+                      <Crown size={13} />
+                    </div>
+                    <span className="text-base font-semibold text-foreground">Pro</span>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 border border-purple-900/50">
+                      BELIEBT
+                    </span>
                   </div>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Pro</span>
-                  <span style={{
-                    fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
-                    background: 'rgba(167,139,250,0.15)', color: '#a78bfa',
-                    border: '1px solid #4c1d95',
-                  }}>
-                    BELIEBT
-                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-purple-400">
+                      {billing === 'monthly' ? '€8' : '€80'}
+                    </span>
+                    <span className="text-xs text-purple-900">
+                      /{billing === 'monthly' ? 'Monat' : 'Jahr'}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span style={{ fontSize: 28, fontWeight: 700, color: '#a78bfa' }}>
-                    {billing === 'monthly' ? '€8' : '€80'}
-                  </span>
-                  <span style={{ fontSize: 12, color: '#6d28d9' }}>
-                    /{billing === 'monthly' ? 'Monat' : 'Jahr'}
-                  </span>
-                </div>
+                <ul className="space-y-2 flex-1 relative">
+                  {['Alles aus Plus', 'REST-API-Zugang', 'Gemeinsame Reisen', 'KI-Reisevorschläge', '5 GB Foto-Speicher'].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-secondary">
+                      <CheckCircle2 size={13} className="text-purple-400 shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => handleUpgrade('pro')}
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-violet-700 to-purple-500 hover:opacity-90 text-white"
+                >
+                  Pro wählen
+                </Button>
               </div>
-
-              <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, position: 'relative' }}>
-                {[
-                  'Alles aus Plus',
-                  'REST-API-Zugang',
-                  'Gemeinsame Reisen',
-                  'KI-Reisevorschläge',
-                  '5 GB Foto-Speicher',
-                ].map(f => (
-                  <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#8ba3c7' }}>
-                    <CheckCircle2 size={13} style={{ color: '#a78bfa', flexShrink: 0 }} />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => handleUpgrade('pro')}
-                disabled={isLoading}
-                style={{
-                  marginTop: 'auto', padding: '10px 16px',
-                  background: 'linear-gradient(135deg, #7c3aed, #a78bfa)',
-                  color: '#fff', border: 'none',
-                  borderRadius: 9, fontSize: 13, fontWeight: 600,
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  opacity: isLoading ? 0.7 : 1,
-                  position: 'relative',
-                }}
-              >
-                Pro wählen
-              </button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

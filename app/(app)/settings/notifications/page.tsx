@@ -22,16 +22,13 @@ export default async function NotificationsPage() {
   }
 
   return (
-    <div className="container max-w-2xl py-8">
-      <h1 className="text-2xl font-bold mb-6">Notification Settings</h1>
-      <NotificationsClient
-        initialPreferences={{
-          notificationsEnabled: preferences.notificationsEnabled,
-          delayAlerts: preferences.delayAlerts,
-          platformChanges: preferences.platformChanges,
-          cancellations: preferences.cancellations,
-        }}
-      />
-    </div>
+    <NotificationsClient
+      initialPreferences={{
+        notificationsEnabled: preferences.notificationsEnabled,
+        delayAlerts: preferences.delayAlerts,
+        platformChanges: preferences.platformChanges,
+        cancellations: preferences.cancellations,
+      }}
+    />
   )
 }

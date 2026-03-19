@@ -16,23 +16,14 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const pathname = usePathname()
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-         className="md:flex-row">
+    <div className="flex flex-col md:flex-row h-full bg-background">
       {/* Settings Sidebar */}
-      <aside style={{
-        flexShrink: 0, padding: 24,
-        borderBottom: '1px solid #1e2d4a',
-        background: '#080d1a',
-      }} className="w-full md:w-64 md:border-b-0 md:border-r md:border-[#1e2d4a]">
-        <h2 style={{
-          fontSize: 11, fontWeight: 600, color: '#4a6a9a',
-          textTransform: 'uppercase', letterSpacing: '0.08em',
-          marginBottom: 16, paddingLeft: 12,
-        }}>
+      <aside className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-border bg-surface px-4 py-6 md:px-5">
+        <p className="text-[11px] font-semibold text-muted uppercase tracking-widest mb-4 px-3">
           Einstellungen
-        </h2>
+        </p>
         <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0">
-          {SETTINGS_TABS.map((tab: any) => {
+          {SETTINGS_TABS.map((tab) => {
             const isActive = pathname === tab.href
             const Icon = tab.icon
 
@@ -40,18 +31,14 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
               <Link
                 key={tab.href}
                 href={tab.href}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '8px 12px', borderRadius: 8,
-                  fontSize: 14, fontWeight: 500,
-                  textDecoration: 'none', whiteSpace: 'nowrap',
-                  transition: 'background 0.15s, color 0.15s',
-                  background: isActive ? '#0d1f3c' : 'transparent',
-                  color: isActive ? '#fff' : '#4a6a9a',
-                  border: isActive ? '1px solid #1e3a6e' : '1px solid transparent',
-                }}
+                className={cn(
+                  'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors shrink-0',
+                  isActive
+                    ? 'bg-brand/10 text-brand border border-brand/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
               >
-                <Icon style={{ width: 16, height: 16, color: isActive ? '#4f8ef7' : '#4a6a9a' }} />
+                <Icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-brand' : 'text-muted-foreground')} />
                 {tab.name}
               </Link>
             )
@@ -60,12 +47,11 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       </aside>
 
       {/* Main Settings Content */}
-      <div style={{ flex: 1, overflowY: 'auto', background: '#080d1a' }}>
-        <div style={{ padding: '24px 16px', maxWidth: 768 }}
-             className="md:p-8">
+      <main className="flex-1 overflow-y-auto bg-background">
+        <div className="max-w-2xl mx-auto px-4 md:px-8 py-8">
           {children}
         </div>
-      </div>
+      </main>
     </div>
   )
 }
