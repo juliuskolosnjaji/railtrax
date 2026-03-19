@@ -122,6 +122,7 @@ export default function StatsPage() {
   const { data, isLoading, isError } = useQuery<{ data: StatsData }>({
     queryKey: ['stats'],
     queryFn: () => fetch('/api/stats').then((r) => r.json()),
+    staleTime: 60_000,
   })
 
   const { data: heatmapData } = useQuery<{ data: HeatmapData }>({
@@ -147,7 +148,7 @@ export default function StatsPage() {
   const co2Comparison = stats?.co2_saved_kg ? findClosestComparison(stats.co2_saved_kg) : null
 
   return (
-    <div style={{ padding: '24px 16px', maxWidth: 900 }} className="md:p-8">
+    <div style={{ background: '#080d1a', minHeight: '100vh', padding: '24px 16px', maxWidth: 900 }} className="md:p-8">
       <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Statistik</h1>
       <p style={{ fontSize: 13, color: '#4a6a9a', marginBottom: 24 }}>Zurückgelegte Strecke, besuchte Länder, CO₂ gespart und mehr.</p>
 
@@ -195,7 +196,7 @@ export default function StatsPage() {
                   value={stats ? `${stats.total_km.toLocaleString('de-DE')} km` : '—'}
                 />
                 <StatCard
-                  label="Abgeschlossene Reisen"
+                  label="Reisen gesamt"
                   value={stats?.total_trips ?? '—'}
                   sub={stats ? `${stats.total_legs} Abschnitte` : undefined}
                 />

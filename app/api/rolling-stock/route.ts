@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ data: rollingStock })
+    return NextResponse.json({ data: rollingStock }, { headers: { 'Cache-Control': 'public, max-age=3600' } })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'validation_error', details: error.flatten() }, { status: 422 })

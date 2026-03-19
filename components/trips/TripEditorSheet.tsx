@@ -134,8 +134,8 @@ export function TripEditorSheet({ open, onOpenChange, trip }: TripEditorSheetPro
               </SelectTrigger>
               <SelectContent className="bg-[#0a1628] border-[#1e2d4a]">
                 {TRIP_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s} className="text-white focus:bg-[#1e2d4a] capitalize">
-                    {s}
+                  <SelectItem key={s} value={s} className="text-white focus:bg-[#1e2d4a]">
+                    {s === 'planned' ? 'Geplant' : s === 'active' ? 'Aktiv' : s === 'completed' ? 'Abgeschlossen' : s === 'cancelled' ? 'Storniert' : s}
                   </SelectItem>
                 ))}
               </SelectContent>

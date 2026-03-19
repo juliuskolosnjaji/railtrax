@@ -514,6 +514,7 @@ export default function DashboardPage() {
       const json = await res.json() as { data: TripWithLegs[] }
       return json.data
     },
+    staleTime: 30_000,
     refetchInterval: 60_000,
   })
 

@@ -37,7 +37,7 @@ export async function GET() {
     const trips = await prisma().trip.findMany({
       where: {
         userId: user.id,
-        status: { in: ['completed', 'active'] },
+        status: { in: ['planned', 'active', 'completed'] },
       },
       include: {
         legs: {
@@ -93,9 +93,10 @@ export async function GET() {
     }
 
     if (!can(plan, 'fullStats')) {
-      return NextResponse.json({
-        data: { ...base, co2_saved_kg: null, upgradeRequired: true },
-      })
+      return NextResponse.json(
+        { data: { ...base, co2_saved_kg: null, upgradeRequired: true } },
+        { headers: { 'Cache-Control': 'private, max-age=60' } },
+      )
     }
 
     const monthlyDistances: Record<string, number> = {}
@@ -117,15 +118,18 @@ export async function GET() {
 
     const co2_saved_kg = Math.round(totalKm * 0.22)
 
-    return NextResponse.json({
-      data: {
-        ...base,
-        co2_saved_kg,
-        monthly_distances: monthlyDistances,
-        top_operators: topOperators,
-        countries_detail: countriesDetail,
+    return NextResponse.json(
+      {
+        data: {
+          ...base,
+          co2_saved_kg,
+          monthly_distances: monthlyDistances,
+          top_operators: topOperators,
+          countries_detail: countriesDetail,
+        },
       },
-    })
+      { headers: { 'Cache-Control': 'private, max-age=60' } },
+    )
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }

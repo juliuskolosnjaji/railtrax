@@ -72,7 +72,7 @@ export function BillingClient({
     maxStorageMb === 0 ? 0 : Math.min((storageMbUsed / maxStorageMb) * 100, 100)
 
   const periodEnd = subscription?.current_period_end
-    ? new Date(subscription.current_period_end).toLocaleDateString('en-GB', {
+    ? new Date(subscription.current_period_end).toLocaleDateString('de-DE', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -124,15 +124,15 @@ export function BillingClient({
           <div className="flex items-start gap-3 rounded-lg bg-amber-950/40 border border-amber-800/50 px-4 py-3 text-amber-300">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
             <p className="text-sm">
-              Your subscription cancels at the end of the current period on{' '}
-              <strong>{periodEnd}</strong>. You keep access until then.
+              Dein Abo endet am Ende des aktuellen Zeitraums am{' '}
+              <strong>{periodEnd}</strong>. Du behältst den Zugang bis dahin.
             </p>
           </div>
         )}
 
         {plan !== 'free' && periodEnd && !subscription?.cancel_at_period_end && (
           <p className="text-sm text-zinc-500">
-            Next renewal: <span className="text-zinc-300">{periodEnd}</span>
+            Nächste Verlängerung: <span className="text-zinc-300">{periodEnd}</span>
             {subscription?.billing_interval && (
               <span className="ml-1 text-zinc-600">({subscription.billing_interval})</span>
             )}
@@ -166,7 +166,7 @@ export function BillingClient({
           <div className="flex justify-between text-sm">
             <span className="text-zinc-400">Foto-Speicher</span>
             <span className="text-zinc-300">
-              {plan === 'free' ? 'Not included' : `${storageMbUsed} MB / ${maxStorageMb} MB`}
+              {plan === 'free' ? 'Nicht enthalten' : `${storageMbUsed} MB / ${maxStorageMb} MB`}
             </span>
           </div>
           {plan !== 'free' && (
@@ -178,16 +178,16 @@ export function BillingClient({
         {calendarUrl && (
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-zinc-400">Calendar feed</span>
+              <span className="text-zinc-400">Kalender-Feed</span>
               <button
                 onClick={() => navigator.clipboard.writeText(calendarUrl)}
                 className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
               >
-                Copy iCal URL
+                iCal-URL kopieren
               </button>
             </div>
             <p className="text-xs text-zinc-600">
-              Add your planned trips to your calendar app
+              Geplante Reisen in deine Kalender-App importieren
             </p>
           </div>
         )}
@@ -208,7 +208,7 @@ export function BillingClient({
                 billing === 'monthly' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Monthly
+              Monatlich
             </button>
             <button
               onClick={() => setBilling('yearly')}
@@ -216,8 +216,8 @@ export function BillingClient({
                 billing === 'yearly' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Yearly
-              <span className="ml-1.5 text-xs text-emerald-400">save 2 months</span>
+              Jährlich
+              <span className="ml-1.5 text-xs text-emerald-400">2 Monate sparen</span>
             </button>
           </div>
 
@@ -234,11 +234,11 @@ export function BillingClient({
                 </p>
               </div>
               <ul className="text-sm text-zinc-400 space-y-1.5">
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Unlimited trips</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Travel journal + photos</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Ticket wallet</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Full statistics + heatmap</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Live delay notifications</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Unbegrenzte Reisen</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Reisetagebuch + Fotos</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Ticket-Wallet</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Vollständige Statistik + Heatmap</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Live Verspätungsbenachrichtigungen</li>
               </ul>
               <Button
                 className="w-full bg-white text-zinc-900 hover:bg-zinc-100"
@@ -261,11 +261,11 @@ export function BillingClient({
                 </p>
               </div>
               <ul className="text-sm text-zinc-400 space-y-1.5">
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> Everything in Plus</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> REST API access</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> Collaborative trips</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> AI travel suggestions</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> 5 GB photo storage</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> Alles aus Plus</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> REST-API-Zugang</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> Gemeinsame Reisen</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> KI-Reisevorschläge</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> 5 GB Foto-Speicher</li>
               </ul>
               <Button
                 className="w-full bg-violet-600 text-white hover:bg-violet-500"

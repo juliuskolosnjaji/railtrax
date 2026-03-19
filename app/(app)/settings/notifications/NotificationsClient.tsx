@@ -125,43 +125,43 @@ export function NotificationsClient({
   }
 
   if (userLoading) {
-    return <div className="p-6">Loading...</div>
+    return <div className="p-6" style={{ color: '#4a6a9a' }}>Laden...</div>
   }
 
   return (
     <div className="settings-page space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Push Notifications</CardTitle>
+          <CardTitle>Push-Benachrichtigungen</CardTitle>
           <CardDescription>
-            Get real-time updates about your train journeys
+            Echtzeit-Updates zu deinen Zugfahrten erhalten
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Enable Notifications</p>
+              <p className="font-medium">Benachrichtigungen aktivieren</p>
               <p className="text-sm text-muted-foreground">
-                Receive push notifications in your browser
+                Push-Benachrichtigungen im Browser erhalten
               </p>
             </div>
             {prefs.notificationsEnabled ? (
               <Button variant="outline" onClick={unsubscribeFromPush}>
-                Disable
+                Deaktivieren
               </Button>
             ) : (
-              <Button onClick={subscribeToPush}>Enable</Button>
+              <Button onClick={subscribeToPush}>Aktivieren</Button>
             )}
           </div>
 
           <div className="space-y-4">
-            <p className="font-medium">Notification Types</p>
+            <p className="font-medium">Benachrichtigungstypen</p>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm">Delay Alerts</p>
+                  <p className="text-sm">Verspätungen</p>
                   <p className="text-xs text-muted-foreground">
-                    Get notified when your train is delayed
+                    Benachrichtigung wenn dein Zug verspätet ist
                   </p>
                 </div>
                 <Switch
@@ -172,9 +172,9 @@ export function NotificationsClient({
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm">Platform Changes</p>
+                  <p className="text-sm">Gleisänderungen</p>
                   <p className="text-xs text-muted-foreground">
-                    Get notified when the departure platform changes
+                    Benachrichtigung bei Änderungen des Abfahrtsgleises
                   </p>
                 </div>
                 <Switch
@@ -185,9 +185,9 @@ export function NotificationsClient({
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm">Cancellations</p>
+                  <p className="text-sm">Zugausfälle</p>
                   <p className="text-xs text-muted-foreground">
-                    Get notified if your train is cancelled
+                    Benachrichtigung wenn dein Zug ausfällt
                   </p>
                 </div>
                 <Switch
@@ -201,12 +201,12 @@ export function NotificationsClient({
 
           {prefs.notificationsEnabled && (
             <div className="pt-4 border-t">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleTestNotification}
                 disabled={isLoading}
               >
-                {testSent ? 'Test Sent!' : 'Send Test Notification'}
+                {testSent ? 'Testbenachrichtigung gesendet!' : 'Testbenachrichtigung senden'}
               </Button>
             </div>
           )}

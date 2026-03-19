@@ -65,8 +65,8 @@ export function ConnectionsClient({
   return (
     <div className="space-y-6 settings-page">
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Connections</h1>
-        <p className="text-zinc-400">Manage connections to external train services.</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Verbindungen</h1>
+        <p className="text-zinc-400">Externe Zug-Dienste verwalten.</p>
       </div>
 
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
@@ -78,7 +78,7 @@ export function ConnectionsClient({
             <div>
               <h2 className="text-lg font-semibold text-white">Träwelling</h2>
               <p className="text-sm text-zinc-400 max-w-md mt-1">
-                Link your Träwelling account to automatically check in to trains when a leg starts.
+                Verknüpfe dein Träwelling-Konto, um automatisch einzuchecken wenn ein Abschnitt beginnt.
               </p>
             </div>
           </div>
@@ -89,7 +89,7 @@ export function ConnectionsClient({
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
               <span className="text-sm text-zinc-300">
-                Connected as <strong className="text-white">@{username}</strong>
+                Verbunden als <strong className="text-white">@{username}</strong>
               </span>
             </div>
             <Button
@@ -100,27 +100,27 @@ export function ConnectionsClient({
               className="text-zinc-400 hover:text-red-400 hover:bg-zinc-800 border-zinc-700 h-8 font-normal"
             >
               {isLoading ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Unplug className="h-3.5 w-3.5 mr-2" />}
-              Disconnect
+              Trennen
             </Button>
           </div>
         ) : (
           <form onSubmit={handleConnect} className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="token" className="text-zinc-300">Personal Access Token</Label>
+                <Label htmlFor="token" className="text-zinc-300">Persönlicher Zugriffstoken</Label>
                 <a
                   href="https://traewelling.de/profile/token"
                   target="_blank"
                   rel="noreferrer"
                   className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors"
                 >
-                  Get token at traewelling.de <ExternalLink className="h-3 w-3" />
+                  Token bei traewelling.de holen <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
               <Input
                 id="token"
                 type="password"
-                placeholder="Paste your Träwelling token here..."
+                placeholder="Träwelling-Token hier einfügen..."
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600"
@@ -139,7 +139,7 @@ export function ConnectionsClient({
               ) : (
                 <Plug className="h-4 w-4 mr-2" />
               )}
-              Connect Träwelling
+              Träwelling verbinden
             </Button>
           </form>
         )}

@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ data: trips })
+    return NextResponse.json({ data: trips }, { headers: { 'Cache-Control': 'private, max-age=30' } })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
