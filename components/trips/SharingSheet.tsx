@@ -103,6 +103,7 @@ export function SharingSheet({ tripId, isPublic, shareToken, onShare, onUnshare 
                 }
               }}
               disabled={isLoading}
+              className="tap-small"
             />
           </div>
 

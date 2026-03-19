@@ -94,8 +94,11 @@ button, a[href], [role="button"] {
   min-width: 44px;
 }
 
-/* Exception: small inline badges/chips don't need 44px */
+/* Exception: small inline badges/chips and Switch toggles don't need 44px */
 .tap-small { min-height: unset; min-width: unset; }
+
+/* shadcn Switch — has its own sizing, don't inflate it */
+[role="switch"] { min-height: unset; min-width: unset; }
 
 /* Scrollable route strip on touch */
 .route-strip {
