@@ -1,10 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, AlertTriangle, ExternalLink } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { CheckCircle2, AlertTriangle, ExternalLink, Zap, Star, Crown, Calendar, Train, HardDrive, Copy, Check } from 'lucide-react'
 import type { Plan } from '@/lib/entitlements'
 
 const PLAN_LABELS: Record<Plan, string> = {
@@ -13,10 +10,34 @@ const PLAN_LABELS: Record<Plan, string> = {
   pro: 'Pro',
 }
 
-const PLAN_BADGE_STYLE: Record<Plan, string> = {
-  free: 'bg-zinc-700 text-zinc-300',
-  plus: 'bg-blue-900 text-blue-200',
-  pro: 'bg-violet-900 text-violet-200',
+const PLAN_CONFIG: Record<Plan, {
+  icon: React.ReactNode
+  color: string
+  border: string
+  bg: string
+  glow: string
+}> = {
+  free: {
+    icon: <Zap size={16} />,
+    color: '#4a6a9a',
+    border: '#1e2d4a',
+    bg: '#0a1628',
+    glow: 'rgba(74,106,154,0.15)',
+  },
+  plus: {
+    icon: <Star size={16} />,
+    color: '#4f8ef7',
+    border: '#1e3a6e',
+    bg: '#0a1628',
+    glow: 'rgba(79,142,247,0.15)',
+  },
+  pro: {
+    icon: <Crown size={16} />,
+    color: '#a78bfa',
+    border: '#4c1d95',
+    bg: '#0d0a1f',
+    glow: 'rgba(167,139,250,0.15)',
+  },
 }
 
 interface Subscription {
@@ -38,6 +59,43 @@ interface BillingClientProps {
   showSuccess: boolean
 }
 
+function UsageRow({
+  icon, label, value, max, pct, valueLabel, infinite,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: number
+  max: number
+  pct: number
+  valueLabel: string
+  infinite?: boolean
+}) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: '#4a6a9a' }}>{icon}</span>
+          <span style={{ fontSize: 13, color: '#8ba3c7' }}>{label}</span>
+        </div>
+        <span style={{ fontSize: 13, fontWeight: 500, color: infinite ? '#3ecf6e' : '#fff' }}>
+          {valueLabel}
+        </span>
+      </div>
+      {!infinite && (
+        <div style={{ height: 4, background: '#1e2d4a', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: `${pct}%`,
+            background: pct > 80 ? '#e25555' : pct > 60 ? '#f59e0b' : '#4f8ef7',
+            borderRadius: 2,
+            transition: 'width 0.4s ease',
+          }} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function BillingClient({
   plan,
   subscription,
@@ -51,6 +109,7 @@ export function BillingClient({
 }: BillingClientProps) {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
   const [isLoading, setIsLoading] = useState(false)
+  const [calCopied, setCalCopied] = useState(false)
 
   async function handleUpgrade(targetPlan: 'plus' | 'pro') {
     setIsLoading(true)
@@ -67,216 +126,364 @@ export function BillingClient({
     }
   }
 
+  async function handleCopyCalendar() {
+    if (!calendarUrl) return
+    await navigator.clipboard.writeText(calendarUrl)
+    setCalCopied(true)
+    setTimeout(() => setCalCopied(false), 2000)
+  }
+
   const tripsUsagePct = maxTrips === Infinity ? 0 : Math.min((tripsCount / maxTrips) * 100, 100)
-  const storageUsagePct =
-    maxStorageMb === 0 ? 0 : Math.min((storageMbUsed / maxStorageMb) * 100, 100)
+  const storageUsagePct = maxStorageMb === 0 ? 0 : Math.min((storageMbUsed / maxStorageMb) * 100, 100)
 
   const periodEnd = subscription?.current_period_end
     ? new Date(subscription.current_period_end).toLocaleDateString('de-DE', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
+        day: 'numeric', month: 'long', year: 'numeric',
       })
     : null
 
+  const cfg = PLAN_CONFIG[plan]
+
   return (
-    <div className="space-y-8 settings-page">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Abonnement</h1>
-        <p className="text-zinc-400 mt-1">Verwalte dein Abonnement und deinen Speicherplatz.</p>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* Success banner */}
       {showSuccess && (
-        <div className="flex items-center gap-3 rounded-lg bg-emerald-950/50 border border-emerald-800 px-4 py-3 text-emerald-300">
-          <CheckCircle2 className="h-5 w-5 shrink-0" />
-          <span className="text-sm">Abonnement aktiviert — willkommen bei {PLAN_LABELS[plan]}!</span>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          background: '#0d2618', border: '1px solid #1a4a2e',
+          borderRadius: 12, padding: '12px 16px', color: '#3ecf6e',
+        }}>
+          <CheckCircle2 size={16} />
+          <span style={{ fontSize: 13 }}>Abonnement aktiviert — willkommen bei {PLAN_LABELS[plan]}!</span>
         </div>
       )}
 
-      {/* Current plan */}
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
-        <div className="flex items-center justify-between">
+      {/* Current plan card */}
+      <div style={{
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
+        borderRadius: 14,
+        padding: 24,
+        boxShadow: `0 0 40px ${cfg.glow}`,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Subtle background glow */}
+        <div style={{
+          position: 'absolute', top: -40, right: -40,
+          width: 160, height: 160, borderRadius: '50%',
+          background: cfg.glow, pointerEvents: 'none',
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
-            <p className="text-sm text-zinc-400 mb-1">Aktueller Tarif</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-semibold text-white">{PLAN_LABELS[plan]}</span>
-              <Badge className={PLAN_BADGE_STYLE[plan]}>{PLAN_LABELS[plan]}</Badge>
+            <div style={{ fontSize: 11, color: '#4a6a9a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+              Aktueller Tarif
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: `${cfg.glow}`,
+                border: `1px solid ${cfg.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: cfg.color,
+              }}>
+                {cfg.icon}
+              </div>
+              <span style={{ fontSize: 26, fontWeight: 700, color: cfg.color, lineHeight: 1 }}>
+                {PLAN_LABELS[plan]}
+              </span>
+            </div>
+            {plan !== 'free' && periodEnd && !subscription?.cancel_at_period_end && (
+              <p style={{ fontSize: 12, color: '#4a6a9a', marginTop: 8 }}>
+                Verlängerung am{' '}
+                <span style={{ color: '#8ba3c7' }}>{periodEnd}</span>
+                {subscription?.billing_interval && (
+                  <span style={{ color: '#1e3a6e', marginLeft: 4 }}>
+                    ({subscription.billing_interval === 'yearly' ? 'jährlich' : 'monatlich'})
+                  </span>
+                )}
+              </p>
+            )}
           </div>
 
           {plan !== 'free' && portalUrl && (
-            <a href={portalUrl} target="_blank" rel="noopener noreferrer">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1.5"
-              >
-                Abonnement verwalten
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Button>
+            <a
+              href={portalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontSize: 12, color: '#4f8ef7',
+                background: '#0d1f3c', border: '1px solid #1e3a6e',
+                borderRadius: 8, padding: '7px 12px',
+                textDecoration: 'none', flexShrink: 0,
+              }}
+            >
+              Verwalten
+              <ExternalLink size={12} />
             </a>
           )}
         </div>
 
         {/* Cancellation warning */}
         {subscription?.cancel_at_period_end && periodEnd && (
-          <div className="flex items-start gap-3 rounded-lg bg-amber-950/40 border border-amber-800/50 px-4 py-3 text-amber-300">
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            <p className="text-sm">
-              Dein Abo endet am Ende des aktuellen Zeitraums am{' '}
-              <strong>{periodEnd}</strong>. Du behältst den Zugang bis dahin.
-            </p>
-          </div>
-        )}
-
-        {plan !== 'free' && periodEnd && !subscription?.cancel_at_period_end && (
-          <p className="text-sm text-zinc-500">
-            Nächste Verlängerung: <span className="text-zinc-300">{periodEnd}</span>
-            {subscription?.billing_interval && (
-              <span className="ml-1 text-zinc-600">({subscription.billing_interval})</span>
-            )}
-          </p>
-        )}
-      </section>
-
-      {/* Usage */}
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-5">
-        <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">NUTZUNG</h2>
-
-        {/* Trips */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-zinc-400">Reisen</span>
-            <span className="text-zinc-300">
-              {tripsCount}
-              {maxTrips !== Infinity ? ` / ${maxTrips}` : ''}
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10,
+            background: '#1c1508', border: '1px solid #78350f',
+            borderRadius: 8, padding: '10px 14px', marginTop: 16,
+            color: '#f59e0b', fontSize: 13,
+          }}>
+            <AlertTriangle size={14} style={{ marginTop: 1, flexShrink: 0 }} />
+            <span>
+              Abo endet am <strong>{periodEnd}</strong>. Zugang bleibt bis dahin erhalten.
             </span>
           </div>
-          {maxTrips !== Infinity && (
-            <Progress value={tripsUsagePct} className="h-1.5 bg-zinc-800" />
-          )}
-          {maxTrips === Infinity && (
-            <p className="text-xs text-zinc-600">Unbegrenzt</p>
-          )}
+        )}
+      </div>
+
+      {/* Usage card */}
+      <div style={{
+        background: '#0a1628', border: '1px solid #1e2d4a',
+        borderRadius: 14, padding: 24,
+      }}>
+        <div style={{
+          fontSize: 11, fontWeight: 600, color: '#4a6a9a',
+          textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 20,
+        }}>
+          Nutzung
         </div>
 
-        {/* Storage */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-zinc-400">Foto-Speicher</span>
-            <span className="text-zinc-300">
-              {plan === 'free' ? 'Nicht enthalten' : `${storageMbUsed} MB / ${maxStorageMb} MB`}
-            </span>
-          </div>
-          {plan !== 'free' && (
-            <Progress value={storageUsagePct} className="h-1.5 bg-zinc-800" />
-          )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <UsageRow
+            icon={<Train size={13} />}
+            label="Reisen"
+            value={tripsCount}
+            max={maxTrips}
+            pct={tripsUsagePct}
+            valueLabel={maxTrips === Infinity ? `${tripsCount}` : `${tripsCount} / ${maxTrips}`}
+            infinite={maxTrips === Infinity}
+          />
+          <UsageRow
+            icon={<HardDrive size={13} />}
+            label="Foto-Speicher"
+            value={storageMbUsed}
+            max={maxStorageMb}
+            pct={storageUsagePct}
+            valueLabel={plan === 'free' ? '—' : `${storageMbUsed} / ${maxStorageMb} MB`}
+            infinite={false}
+          />
         </div>
 
-        {/* Calendar */}
+        {/* Calendar feed */}
         {calendarUrl && (
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-zinc-400">Kalender-Feed</span>
-              <button
-                onClick={() => navigator.clipboard.writeText(calendarUrl)}
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                iCal-URL kopieren
-              </button>
+          <div style={{
+            marginTop: 20, paddingTop: 20,
+            borderTop: '1px solid #1e2d4a',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Calendar size={13} style={{ color: '#4a6a9a' }} />
+              <div>
+                <div style={{ fontSize: 13, color: '#8ba3c7' }}>Kalender-Feed</div>
+                <div style={{ fontSize: 11, color: '#4a6a9a' }}>Reisen in Kalender-App importieren</div>
+              </div>
             </div>
-            <p className="text-xs text-zinc-600">
-              Geplante Reisen in deine Kalender-App importieren
-            </p>
+            <button
+              onClick={handleCopyCalendar}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                fontSize: 12, color: calCopied ? '#3ecf6e' : '#4f8ef7',
+                background: '#0d1f3c', border: `1px solid ${calCopied ? '#1a4a2e' : '#1e3a6e'}`,
+                borderRadius: 7, padding: '6px 10px', cursor: 'pointer',
+              }}
+            >
+              {calCopied ? <Check size={12} /> : <Copy size={12} />}
+              {calCopied ? 'Kopiert!' : 'iCal kopieren'}
+            </button>
           </div>
         )}
-      </section>
+      </div>
 
-      {/* Upgrade section — only for free users */}
+      {/* Upgrade section — free users only */}
       {plan === 'free' && (
-        <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-5">
-          <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-            Upgraden
-          </h2>
+        <div style={{
+          background: '#0a1628', border: '1px solid #1e2d4a',
+          borderRadius: 14, padding: 24,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 600, color: '#4a6a9a',
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+            }}>
+              Upgraden
+            </div>
 
-          {/* Billing interval toggle */}
-          <div className="flex rounded-lg border border-zinc-700 p-1 gap-1 w-fit">
-            <button
-              onClick={() => setBilling('monthly')}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                billing === 'monthly' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Monatlich
-            </button>
-            <button
-              onClick={() => setBilling('yearly')}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                billing === 'yearly' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Jährlich
-              <span className="ml-1.5 text-xs text-emerald-400">2 Monate sparen</span>
-            </button>
+            {/* Interval toggle */}
+            <div style={{
+              display: 'flex', background: '#080d1a',
+              border: '1px solid #1e2d4a', borderRadius: 8,
+              padding: 3, gap: 3,
+            }}>
+              {(['monthly', 'yearly'] as const).map(b => (
+                <button
+                  key={b}
+                  onClick={() => setBilling(b)}
+                  style={{
+                    fontSize: 12, fontWeight: 500,
+                    padding: '5px 12px', borderRadius: 6,
+                    cursor: 'pointer', border: 'none',
+                    background: billing === b ? '#0d1f3c' : 'transparent',
+                    color: billing === b ? '#fff' : '#4a6a9a',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {b === 'monthly' ? 'Monatlich' : 'Jährlich'}
+                  {b === 'yearly' && (
+                    <span style={{ marginLeft: 5, fontSize: 10, color: '#3ecf6e' }}>−17%</span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Plus card */}
-            <div className="rounded-lg border border-zinc-700 p-5 space-y-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            {/* Plus */}
+            <div style={{
+              background: '#080d1a', border: '1px solid #1e3a6e',
+              borderRadius: 12, padding: 20,
+              display: 'flex', flexDirection: 'column', gap: 16,
+            }}>
               <div>
-                <p className="font-semibold text-white">Plus</p>
-                <p className="text-2xl font-bold text-white mt-1">
-                  {billing === 'monthly' ? '€4' : '€40'}
-                  <span className="text-sm font-normal text-zinc-400">
-                    /{billing === 'monthly' ? 'mo' : 'yr'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 8,
+                    background: 'rgba(79,142,247,0.12)', border: '1px solid #1e3a6e',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#4f8ef7',
+                  }}>
+                    <Star size={13} />
+                  </div>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Plus</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ fontSize: 28, fontWeight: 700, color: '#4f8ef7' }}>
+                    {billing === 'monthly' ? '€4' : '€40'}
                   </span>
-                </p>
+                  <span style={{ fontSize: 12, color: '#4a6a9a' }}>
+                    /{billing === 'monthly' ? 'Monat' : 'Jahr'}
+                  </span>
+                </div>
               </div>
-              <ul className="text-sm text-zinc-400 space-y-1.5">
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Unbegrenzte Reisen</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Reisetagebuch + Fotos</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Ticket-Wallet</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Vollständige Statistik + Heatmap</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Live Verspätungsbenachrichtigungen</li>
+
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  'Unbegrenzte Reisen',
+                  'Reisetagebuch + Fotos',
+                  'Ticket-Wallet',
+                  'Vollständige Statistik',
+                  'Verspätungs-Alerts',
+                ].map(f => (
+                  <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#8ba3c7' }}>
+                    <CheckCircle2 size={13} style={{ color: '#4f8ef7', flexShrink: 0 }} />
+                    {f}
+                  </li>
+                ))}
               </ul>
-              <Button
-                className="w-full bg-white text-zinc-900 hover:bg-zinc-100"
+
+              <button
                 onClick={() => handleUpgrade('plus')}
                 disabled={isLoading}
+                style={{
+                  marginTop: 'auto', padding: '10px 16px',
+                  background: '#4f8ef7', color: '#fff', border: 'none',
+                  borderRadius: 9, fontSize: 13, fontWeight: 600,
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.7 : 1,
+                }}
               >
                 Plus wählen
-              </Button>
+              </button>
             </div>
 
-            {/* Pro card */}
-            <div className="rounded-lg border border-violet-700/50 bg-violet-950/20 p-5 space-y-4">
-              <div>
-                <p className="font-semibold text-white">Pro</p>
-                <p className="text-2xl font-bold text-white mt-1">
-                  {billing === 'monthly' ? '€8' : '€80'}
-                  <span className="text-sm font-normal text-zinc-400">
-                    /{billing === 'monthly' ? 'mo' : 'yr'}
+            {/* Pro */}
+            <div style={{
+              background: 'linear-gradient(135deg, #0d0a1f 0%, #0a0d1f 100%)',
+              border: '1px solid #4c1d95',
+              borderRadius: 12, padding: 20,
+              display: 'flex', flexDirection: 'column', gap: 16,
+              position: 'relative', overflow: 'hidden',
+            }}>
+              {/* Glow */}
+              <div style={{
+                position: 'absolute', top: -30, right: -30,
+                width: 120, height: 120, borderRadius: '50%',
+                background: 'rgba(167,139,250,0.08)', pointerEvents: 'none',
+              }} />
+
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 8,
+                    background: 'rgba(167,139,250,0.12)', border: '1px solid #4c1d95',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#a78bfa',
+                  }}>
+                    <Crown size={13} />
+                  </div>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Pro</span>
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+                    background: 'rgba(167,139,250,0.15)', color: '#a78bfa',
+                    border: '1px solid #4c1d95',
+                  }}>
+                    BELIEBT
                   </span>
-                </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ fontSize: 28, fontWeight: 700, color: '#a78bfa' }}>
+                    {billing === 'monthly' ? '€8' : '€80'}
+                  </span>
+                  <span style={{ fontSize: 12, color: '#6d28d9' }}>
+                    /{billing === 'monthly' ? 'Monat' : 'Jahr'}
+                  </span>
+                </div>
               </div>
-              <ul className="text-sm text-zinc-400 space-y-1.5">
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> Alles aus Plus</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> REST-API-Zugang</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> Gemeinsame Reisen</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> KI-Reisevorschläge</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3.5 w-3.5 text-violet-400 shrink-0" /> 5 GB Foto-Speicher</li>
+
+              <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, position: 'relative' }}>
+                {[
+                  'Alles aus Plus',
+                  'REST-API-Zugang',
+                  'Gemeinsame Reisen',
+                  'KI-Reisevorschläge',
+                  '5 GB Foto-Speicher',
+                ].map(f => (
+                  <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#8ba3c7' }}>
+                    <CheckCircle2 size={13} style={{ color: '#a78bfa', flexShrink: 0 }} />
+                    {f}
+                  </li>
+                ))}
               </ul>
-              <Button
-                className="w-full bg-violet-600 text-white hover:bg-violet-500"
+
+              <button
                 onClick={() => handleUpgrade('pro')}
                 disabled={isLoading}
+                style={{
+                  marginTop: 'auto', padding: '10px 16px',
+                  background: 'linear-gradient(135deg, #7c3aed, #a78bfa)',
+                  color: '#fff', border: 'none',
+                  borderRadius: 9, fontSize: 13, fontWeight: 600,
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.7 : 1,
+                  position: 'relative',
+                }}
               >
                 Pro wählen
-              </Button>
+              </button>
             </div>
           </div>
-        </section>
+        </div>
       )}
     </div>
   )
