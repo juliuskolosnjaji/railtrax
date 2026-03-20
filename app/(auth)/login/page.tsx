@@ -21,10 +21,16 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 // Isolated so useSearchParams is inside a Suspense boundary (Next.js requirement)
+const REASON_MESSAGES: Record<string, string> = {
+  save_connection: 'Melde dich an um Verbindungen zu speichern.',
+  plan_trip: 'Melde dich an um Reisen zu planen.',
+}
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') ?? '/dashboard'
+  const next = searchParams.get('redirect') ?? searchParams.get('next') ?? '/dashboard'
+  const reason = searchParams.get('reason')
   const [serverError, setServerError] = useState<string | null>(null)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
@@ -64,6 +70,11 @@ function LoginForm() {
 
   return (
     <>
+      {reason && REASON_MESSAGES[reason] && (
+        <p className="text-sm rounded-md px-3 py-2 text-center" style={{ color: '#8ba3c7', background: '#0d1f3c', border: '1px solid #1e3a6e' }}>
+          {REASON_MESSAGES[reason]}
+        </p>
+      )}
       <Button
         type="button"
         variant="outline"

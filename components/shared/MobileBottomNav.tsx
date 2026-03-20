@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Search, BarChart2, Settings, Clock } from 'lucide-react'
+import { LayoutDashboard, Search, BarChart2, Settings, Clock, LogIn, Train } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 const ICON_MAP = {
   dashboard: LayoutDashboard,
@@ -10,20 +12,42 @@ const ICON_MAP = {
   stats: BarChart2,
   abfahrten: Clock,
   settings: Settings,
+  trains: Train,
+  login: LogIn,
 } as const
 
-const NAV_ITEMS = [
-  { href: '/dashboard',     label: 'Dashboard',  iconKey: 'dashboard' },
-  { href: '/search',        label: 'Suche',     iconKey: 'search' },
-  { href: '/abfahrten',     label: 'Abfahrten', iconKey: 'abfahrten' },
-  { href: '/stats',         label: 'Statistik',  iconKey: 'stats' },
-  { href: '/settings',      label: 'Einstellungen', iconKey: 'settings' },
-] as const
+type IconKey = keyof typeof ICON_MAP
+
+const PUBLIC_NAV = [
+  { href: '/search',        label: 'Suche',     iconKey: 'search' as IconKey },
+  { href: '/abfahrten',     label: 'Abfahrten', iconKey: 'abfahrten' as IconKey },
+  { href: '/rolling-stock', label: 'Züge',      iconKey: 'trains' as IconKey },
+  { href: '/login',         label: 'Anmelden',  iconKey: 'login' as IconKey },
+]
+
+const AUTH_NAV = [
+  { href: '/dashboard',     label: 'Dashboard',      iconKey: 'dashboard' as IconKey },
+  { href: '/search',        label: 'Suche',          iconKey: 'search' as IconKey },
+  { href: '/abfahrten',     label: 'Abfahrten',      iconKey: 'abfahrten' as IconKey },
+  { href: '/settings',      label: 'Einstellungen',  iconKey: 'settings' as IconKey },
+]
 
 export function MobileBottomNav() {
   const pathname = usePathname()
+  const [user, setUser] = useState<{ id: string } | null | undefined>(undefined)
 
-return (
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const navItems = user ? AUTH_NAV : PUBLIC_NAV
+
+  return (
     <nav
       className="bottom-nav mobile-bottom-nav"
       style={{
@@ -38,9 +62,10 @@ return (
         height: 64,
       }}
     >
-      {NAV_ITEMS.map(({ href, iconKey, label }) => {
-        const Icon = ICON_MAP[iconKey as keyof typeof ICON_MAP]
+      {navItems.map(({ href, iconKey, label }) => {
+        const Icon = ICON_MAP[iconKey]
         const isActive = pathname === href || pathname.startsWith(href + '/')
+        const isLogin = href === '/login'
         return (
           <Link
             key={href}
@@ -52,7 +77,7 @@ return (
               alignItems: 'center',
               justifyContent: 'center',
               gap: 3,
-              color: isActive ? '#4f8ef7' : '#4a6a9a',
+              color: isLogin ? '#4f8ef7' : isActive ? '#4f8ef7' : '#4a6a9a',
               textDecoration: 'none',
               fontSize: 10,
               minHeight: 44,

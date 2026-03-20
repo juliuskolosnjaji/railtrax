@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Routes that require authentication
-const PROTECTED_PREFIXES = ['/dashboard', '/trips', '/search', '/stats', '/settings']
+const PROTECTED_PREFIXES = ['/dashboard', '/trips', '/stats', '/settings']
 
 // Auth routes where authenticated users should not linger
 const AUTH_ROUTES = ['/login', '/signup']

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
+import { createClient } from '@/lib/supabase/client'
 import { Search, ArrowLeftRight, Calendar, Clock, ChevronDown } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { getWagenreihungUrl } from '@/lib/wagenreihung'
@@ -529,7 +530,13 @@ function JourneyCard({
 
 export default function SearchPage() {
   const router = useRouter()
+  const [user, setUser] = useState<{ id: string } | null | undefined>(undefined)
   const [pickerJourney, setPickerJourney] = useState<Journey | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+  }, [])
   const [detailJourney, setDetailJourney] = useState<Journey | null>(null)
   const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
 
@@ -712,6 +719,30 @@ export default function SearchPage() {
       <div style={{ fontSize: 13, color: '#4a6a9a', marginBottom: 20 }}>
         Zugverbindungen suchen und direkt zu deiner Reise hinzufügen
       </div>
+
+      {user === null && (
+        <div style={{
+          background: '#0d1f3c',
+          border: '1px solid #1e3a6e',
+          borderRadius: 8,
+          padding: '10px 14px',
+          marginBottom: 16,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+        }}>
+          <span style={{ fontSize: 13, color: '#8ba3c7' }}>
+            Verbindungen zu deinen Reisen hinzufügen — kostenlos anmelden
+          </span>
+          <a href="/login" style={{
+            fontSize: 12, fontWeight: 500, color: '#4f8ef7',
+            textDecoration: 'none', whiteSpace: 'nowrap',
+          }}>
+            Anmelden →
+          </a>
+        </div>
+      )}
 
       {/* ── Search card ── */}
       <div style={{
@@ -1029,11 +1060,17 @@ export default function SearchPage() {
             </div>
           ) : (
             filtered.map((journey, i) => (
-              <JourneyCard 
-                key={i} 
-                journey={journey} 
-                onAdd={j => setPickerJourney(j)} 
-                onDetail={j => setDetailJourney(j)} 
+              <JourneyCard
+                key={i}
+                journey={journey}
+                onAdd={j => {
+                  if (!user) {
+                    router.push('/login?redirect=/search&reason=save_connection')
+                    return
+                  }
+                  setPickerJourney(j)
+                }}
+                onDetail={j => setDetailJourney(j)}
                 onTrainClick={(trainNumber, departure, operator) => setDetailTrain({ trainNumber, departure, operator })}
               />
             ))

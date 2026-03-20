@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SignOutButton } from '@/components/shared/SignOutButton'
@@ -49,12 +48,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/login')
-
-  const plan = getPlan(user.app_metadata as { plan?: string })
-  const displayName = user.user_metadata?.username ?? user.email ?? 'User'
-  const avatarUrl = user.user_metadata?.avatar_url as string | undefined
-  const initials = displayName.slice(0, 2).toUpperCase()
+  const plan = user ? getPlan(user.app_metadata as { plan?: string }) : null
+  const displayName = user ? (user.user_metadata?.username ?? user.email ?? 'User') : null
+  const avatarUrl = user ? (user.user_metadata?.avatar_url as string | undefined) : undefined
+  const initials = displayName ? displayName.slice(0, 2).toUpperCase() : ''
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#080d1a', color: '#fff' }}>
@@ -77,24 +74,41 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
         {/* User info */}
         <div className="p-3 space-y-1">
-          <div className="flex items-center gap-3 px-2 py-2">
-            <Avatar className="h-8 w-8 shrink-0">
-              <AvatarImage src={avatarUrl} alt={displayName} />
-              <AvatarFallback
-                className="text-xs"
-                style={{ backgroundColor: '#0d1f3c', color: '#8ba3c7' }}
-              >
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate" style={{ color: '#fff' }}>{displayName}</p>
-              <p className="text-xs" style={{ color: '#4a6a9a' }}>
-                {PLAN_BADGE[plan] ?? de.settings.free}
-              </p>
-            </div>
-          </div>
-          <SignOutButton />
+          {user ? (
+            <>
+              <div className="flex items-center gap-3 px-2 py-2">
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarImage src={avatarUrl} alt={displayName ?? ''} />
+                  <AvatarFallback
+                    className="text-xs"
+                    style={{ backgroundColor: '#0d1f3c', color: '#8ba3c7' }}
+                  >
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: '#fff' }}>{displayName}</p>
+                  <p className="text-xs" style={{ color: '#4a6a9a' }}>
+                    {PLAN_BADGE[plan!] ?? de.settings.free}
+                  </p>
+                </div>
+              </div>
+              <SignOutButton />
+            </>
+          ) : (
+            <a
+              href="/login"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: '#2563eb', color: '#fff',
+                borderRadius: 8, padding: '10px 14px',
+                fontSize: 13, fontWeight: 500,
+                textDecoration: 'none',
+              }}
+            >
+              Anmelden
+            </a>
+          )}
         </div>
       </aside>
 

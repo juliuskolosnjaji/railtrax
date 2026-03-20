@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Clock, Map, CheckCircle, Train, ArrowRight } from 'lucide-react'
+import { Clock, Map, CheckCircle, Train } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import DemoMap from '@/components/landing/DemoMap'
 import { useBreakpoint } from '@/hooks/useBreakpoint'
@@ -107,36 +107,35 @@ export default function HomePage() {
             justifyContent: 'center', 
             alignItems: 'center'
           }}>
-            <Link href="/signup" style={{ 
-              background: '#4f8ef7', 
-              color: '#fff', 
-              padding: '13px 28px', 
-              borderRadius: 8, 
-              fontSize: 14, 
-              fontWeight: 600, 
-              textDecoration: 'none', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
+            <Link href="/search" style={{
+              background: '#4f8ef7',
+              color: '#fff',
+              padding: '13px 28px',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 600,
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
               gap: 8,
               width: isMobile ? '100%' : 'auto',
               maxWidth: isMobile ? 320 : 'none'
             }}>
-              Jetzt starten — kostenlos
-              <ArrowRight size={16} />
+              Verbindungen suchen →
             </Link>
-            <Link href="/login" style={{ 
-              background: 'transparent', 
-              color: '#8ba3c7', 
-              padding: '13px 22px', 
-              borderRadius: 8, 
-              fontSize: 14, 
-              fontWeight: 500, 
-              textDecoration: 'none', 
+            <Link href="/login" style={{
+              background: 'transparent',
+              color: '#8ba3c7',
+              padding: '13px 22px',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 500,
+              textDecoration: 'none',
               border: '1px solid #1e3a6e',
               width: isMobile ? '100%' : 'auto',
               maxWidth: isMobile ? 320 : 'none'
             }}>
-              Einloggen
+              Reisen planen — kostenlos
             </Link>
           </div>
         </div>

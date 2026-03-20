@@ -6,9 +6,9 @@ import { checkSearchRateLimit } from '@/lib/ratelimit'
 export async function GET(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
-  const limited = await checkSearchRateLimit(user.id)
+  const rateLimitKey = user?.id ?? req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'anon'
+  const limited = await checkSearchRateLimit(rateLimitKey)
   if (limited) return limited
 
   const from = req.nextUrl.searchParams.get('from') ?? ''
