@@ -52,6 +52,10 @@ export default function TripDetailPage() {
   const [editorLegId, setEditorLegId] = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
   const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
+  const [expandedLeg, setExpandedLeg] = useState<string | null>(null)
+
+  const toggleLeg = (legId: string) =>
+    setExpandedLeg(prev => prev === legId ? null : legId)
 
   const handleShareTrip = async () => {
     await shareTrip.mutateAsync()
@@ -250,6 +254,8 @@ export default function TripDetailPage() {
                     key={leg.id}
                     leg={leg}
                     tripId={trip.id}
+                    isExpanded={expandedLeg === leg.id}
+                    onToggle={() => toggleLeg(leg.id)}
                     onTrainClick={(trainNumber, departure, operator) =>
                       setDetailTrain({ trainNumber, departure, operator })
                     }
