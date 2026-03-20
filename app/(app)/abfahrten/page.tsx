@@ -50,6 +50,13 @@ export default function AbfahrtenPage() {
     staleTime: 30_000,
   })
 
+  // Refetch departures when station changes
+  useEffect(() => {
+    if (selectedStation) {
+      refetch()
+    }
+  }, [selectedStation, refetch])
+
   // Filter by search query
   const filtered = (departures ?? []).filter((d: any) => {
     if (!searchQuery) return true
@@ -163,6 +170,7 @@ export default function AbfahrtenPage() {
           }}
           data-station-picker
           onClick={() => {
+            console.log('Station selector clicked')
             setShowDropdown(!showDropdown)
             setStationQuery('')
           }}>
@@ -220,9 +228,12 @@ export default function AbfahrtenPage() {
                 .slice(0, 8)
                 .map((s: any) => (
                   <div key={s.id}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      console.log('Selected station:', s)
                       setSelectedStation(s)
                       setShowDropdown(false)
+                      setStationQuery('')
                     }}
                     style={{
                       padding: '10px 14px',
