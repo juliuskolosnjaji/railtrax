@@ -21,9 +21,8 @@ export function ShareButton({ trip, onShare, onUnshare }: ShareButtonProps) {
   const [sharing, setSharing] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  const shareUrl = trip.shareToken
-    ? `${(process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu').replace(/\/+$/, '')}/trip/${trip.shareToken}`
-    : null
+  const baseUrl = (process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu').replace(/\/+$/, '');
+  const shareUrl = trip.shareToken ? `${baseUrl}/trip/${trip.shareToken}` : null;
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
