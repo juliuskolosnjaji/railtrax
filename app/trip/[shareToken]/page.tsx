@@ -154,7 +154,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const desc = trip.description || `Zugreise von ${user?.username || 'einem Reisenden'}${dateRange ? ` · ${dateRange}` : ''}`
 
-   const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu'
+    // Get base URL from environment variable with fallback
+    const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu'
    return {
      title: `${trip.title} – Railtrax`,
      description: desc,
