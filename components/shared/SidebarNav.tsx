@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Search, BarChart2, Train, Settings, Clock, LogIn } from 'lucide-react'
+import { LayoutDashboard, Search, BarChart2, Train, Settings, Clock, LogIn, Map } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -13,6 +13,7 @@ const ICON_MAP = {
   trains:        Train,
   abfahrten:     Clock,
   settings:      Settings,
+  trips:         Map,
 } as const
 
 type IconKey = keyof typeof ICON_MAP
@@ -34,7 +35,7 @@ const AUTH_NAV: NavItem[] = [
   { href: '/search',        label: 'Verbindungssuche',  iconKey: 'search'    },
   { href: '/abfahrten',     label: 'Live Abfahrten',    iconKey: 'abfahrten' },
   { href: '/stats',         label: 'Statistik',         iconKey: 'stats'     },
-  { href: '/rolling-stock', label: 'Meine Züge',        iconKey: 'trains'    },
+  { href: '/trips',         label: 'Meine Reisen',      iconKey: 'trips'     },
   { href: '/settings',      label: 'Einstellungen',     iconKey: 'settings'  },
 ]
 

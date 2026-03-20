@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Search, BarChart2, Settings, Clock, LogIn, Train } from 'lucide-react'
+import { LayoutDashboard, Search, BarChart2, Settings, Clock, LogIn, Train, Map } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -14,6 +14,7 @@ const ICON_MAP = {
   settings: Settings,
   trains: Train,
   login: LogIn,
+  trips: Map,
 } as const
 
 type IconKey = keyof typeof ICON_MAP
@@ -26,10 +27,10 @@ const PUBLIC_NAV = [
 ]
 
 const AUTH_NAV = [
-  { href: '/dashboard',     label: 'Dashboard',      iconKey: 'dashboard' as IconKey },
-  { href: '/search',        label: 'Suche',          iconKey: 'search' as IconKey },
-  { href: '/abfahrten',     label: 'Abfahrten',      iconKey: 'abfahrten' as IconKey },
-  { href: '/settings',      label: 'Einstellungen',  iconKey: 'settings' as IconKey },
+  { href: '/dashboard',     label: 'Dashboard',    iconKey: 'dashboard' as IconKey },
+  { href: '/search',        label: 'Suche',        iconKey: 'search' as IconKey },
+  { href: '/trips',         label: 'Reisen',       iconKey: 'trips' as IconKey },
+  { href: '/settings',      label: 'Einstellungen', iconKey: 'settings' as IconKey },
 ]
 
 export function MobileBottomNav() {
