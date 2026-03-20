@@ -92,7 +92,8 @@ export default function AbfahrtenPage() {
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement
-      if (!target.closest('[data-station-picker]')) {
+      const isInsidePicker = target.closest('[data-station-picker]')
+      if (!isInsidePicker) {
         setShowDropdown(false)
       }
     }
@@ -169,7 +170,8 @@ export default function AbfahrtenPage() {
             minWidth: 160,
           }}
           data-station-picker
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation()
             setShowDropdown(!showDropdown)
             setStationQuery('')
           }}>
@@ -228,6 +230,7 @@ export default function AbfahrtenPage() {
                 .map((s: any) => (
                   <div key={s.id}
                     onClick={(e) => {
+                      e.preventDefault()
                       e.stopPropagation()
                       setSelectedStation(s)
                       setShowDropdown(false)
@@ -239,6 +242,7 @@ export default function AbfahrtenPage() {
                       color: 'hsl(var(--foreground))',
                       cursor: 'pointer',
                       borderBottom: '1px solid hsl(var(--border) / 0.5)',
+                      userSelect: 'none',
                     }}
                     onMouseEnter={e =>
                       (e.currentTarget.style.background =
