@@ -109,8 +109,8 @@ export default function TripDetailPage() {
   if (!trip) {
     return (
       <div className="p-8 text-center">
-        <p className="text-[#4a6a9a]">Reise nicht gefunden.</p>
-        <Link href="/dashboard" className="text-[#8ba3c7] hover:text-white text-sm mt-2 inline-block">← Zum Dashboard</Link>
+        <p className="text-muted-foreground">Reise nicht gefunden.</p>
+        <Link href="/dashboard" className="text-secondary-foreground hover:text-foreground text-sm mt-2 inline-block">← Zum Dashboard</Link>
       </div>
     )
   }
@@ -270,12 +270,12 @@ export default function TripDetailPage() {
               </div>
 
               {trip.legs.length === 0 && entries.length === 0 ? (
-                <div className="text-center py-12 rounded-xl border border-dashed border-[#1e2d4a]">
-                  <p className="text-[#4a6a9a] text-sm mb-3">Noch keine Abschnitte. Erste Zugfahrt hinzufügen.</p>
+                <div className="text-center py-12 rounded-xl border border-dashed border-border">
+                  <p className="text-muted-foreground text-sm mb-3">Noch keine Abschnitte. Erste Zugfahrt hinzufügen.</p>
                   <Button
                     variant="outline" size="sm"
                     onClick={() => setAddLegOpen(true)}
-                    className="border-[#1e2d4a] text-[#8ba3c7] hover:bg-secondary gap-1.5"
+                    className="border-border text-secondary-foreground hover:bg-secondary gap-1.5"
                   >
                     <Plus className="h-4 w-4" /> Abschnitt hinzufügen
                   </Button>
@@ -299,7 +299,7 @@ export default function TripDetailPage() {
                         <div className="ml-6 mb-1">
                           <button
                             onClick={() => openNewEntry(leg.id)}
-                            className="text-xs text-[#4a6a9a] hover:text-[#4f8ef7] transition-colors py-1"
+                            className="text-xs text-muted-foreground hover:text-[#4f8ef7] transition-colors py-1"
                           >
                             + Journaleintrag für diesen Abschnitt
                           </button>
@@ -313,7 +313,7 @@ export default function TripDetailPage() {
                       <div className="flex flex-col items-center">
                         <div className="w-2.5 h-2.5 rounded-full bg-[#1e3a6e]" />
                       </div>
-                      <p className="text-sm text-[#4a6a9a] pb-2">{trip.legs[trip.legs.length - 1]?.destName}</p>
+                      <p className="text-sm text-muted-foreground pb-2">{trip.legs[trip.legs.length - 1]?.destName}</p>
                     </div>
                   )}
 
@@ -339,9 +339,9 @@ export default function TripDetailPage() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2d4a]">
               <h3 className="text-sm font-medium text-white">
                 {editingEntry ? 'Eintrag bearbeiten' : 'Neuer Journaleintrag'}
-                {editorLegId && <span className="ml-2 text-[#4a6a9a] font-normal">· Abschnitt verknüpft</span>}
+                {editorLegId && <span className="ml-2 text-muted-foreground font-normal">· Abschnitt verknüpft</span>}
               </h3>
-              <button onClick={() => setEditorOpen(false)} className="text-[#4a6a9a] hover:text-white transition-colors">
+              <button onClick={() => setEditorOpen(false)} className="text-muted-foreground hover:text-white transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>

@@ -79,7 +79,7 @@ const CHART = {
   axis:    'hsl(215 12% 38%)',
   label:   'hsl(215 12% 55%)',
   tooltip: { bg: 'hsl(220 18% 10%)', border: 'hsl(220 14% 16%)', text: 'hsl(210 20% 92%)' },
-  primary: 'hsl(172 66% 50%)',
+  primary: 'hsl(215 10% 50%)',
   success: 'hsl(152 60% 45%)',
 }
 
@@ -129,7 +129,7 @@ export default function StatsPage() {
           >
             {t === 'overview' ? 'Übersicht' : 'Heatmap'}
             {activeTab === t && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-500 rounded-t" />
             )}
           </button>
         ))}
