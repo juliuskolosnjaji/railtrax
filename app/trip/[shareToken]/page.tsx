@@ -92,7 +92,7 @@ function getOperatorStyle(operator: string | null | undefined): { background: st
   if (op.includes('FLIX')) return { background: '#0a1f0a', color: '#74B43A', border: '1px solid #74B43A' }
   if (op.includes('TRENITALIA') || op.includes('ITALO') || op.includes('FS'))
     return { background: '#1a1a0a', color: '#84cc16', border: '1px solid #84cc16' }
-  return { background: '#0d1f3c', color: '#8ba3c7', border: '1px solid #1e3a6e' }
+  return { background: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))', border: '1px solid hsl(var(--border))' }
 }
 
 function formatTime(dateString: string) {
@@ -217,7 +217,6 @@ export default async function PublicTripPage({ params }: PageProps) {
     || (trip.user as { username?: string; display_name?: string } | null)?.username
     || 'Unbekannt'
 
-  // ── Stats chips ────────────────────────────────────────────────────────────
   const statChips = [
     { label: 'ZÜGE', value: `${legs.length}` },
     ...(totalDistanceKm > 0 ? [{ label: 'STRECKE', value: `${Math.round(totalDistanceKm).toLocaleString('de-DE')} km` }] : []),
@@ -226,26 +225,25 @@ export default async function PublicTripPage({ params }: PageProps) {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080d1a', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="min-h-screen bg-background">
 
       {/* ── Navbar ── */}
-      <nav style={{ background: '#080d1a', borderBottom: '1px solid #1e2d4a', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1152, margin: '0 auto', padding: '0 16px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Link href="/" style={{ textDecoration: 'none' }}>
+      <nav className="bg-background border-b border-border sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 h-[60px] flex items-center justify-between">
+          <Link href="/">
             <Logo size="md" />
           </Link>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <Link href="/login" style={{
-              padding: '8px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500,
-              background: '#0a1628', border: '1px solid #1e2d4a', color: '#8ba3c7',
-              textDecoration: 'none',
-            }}>
+          <div className="flex gap-2.5">
+            <Link
+              href="/login"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-secondary border border-border text-secondary-foreground hover:text-foreground transition-colors"
+            >
               Anmelden
             </Link>
-            <Link href="/signup" style={{
-              padding: '8px 16px', borderRadius: 8, fontSize: 14, fontWeight: 500,
-              background: '#4f8ef7', color: '#ffffff', textDecoration: 'none',
-            }}>
+            <Link
+              href="/signup"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
               Kostenlos starten
             </Link>
           </div>
@@ -253,46 +251,42 @@ export default async function PublicTripPage({ params }: PageProps) {
       </nav>
 
       {/* ── Main content ── */}
-      <div style={{ maxWidth: 1152, margin: '0 auto', padding: '32px 16px' }}>
+      <div className="max-w-6xl mx-auto px-4 py-8">
 
         {/* Top grid: info card + map */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24, alignItems: 'start' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 items-start">
 
           {/* ── Left: info card ── */}
-          <div style={{ background: '#0a1628', border: '1px solid #1e2d4a', borderRadius: 12, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="bg-card border border-border rounded-xl p-6 flex flex-col gap-5">
 
             {/* Title + description */}
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 500, color: '#ffffff', margin: 0, marginBottom: 6, lineHeight: 1.3 }}>
+              <h1 className="text-xl font-semibold text-foreground leading-snug mb-1.5">
                 {trip.title}
               </h1>
               {trip.description && (
-                <p style={{ fontSize: 14, color: '#4a6a9a', margin: 0, lineHeight: 1.5 }}>
-                  {trip.description}
-                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{trip.description}</p>
               )}
             </div>
 
             {/* Stats chips */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <div className="grid grid-cols-2 gap-2">
               {statChips.map(chip => (
-                <div key={chip.label} style={{ background: '#0d1f3c', border: '1px solid #1e3a6e', borderRadius: 8, padding: '8px 12px' }}>
-                  <p style={{ fontSize: 10, color: '#4a6a9a', margin: 0, marginBottom: 4, letterSpacing: '0.08em', fontWeight: 600 }}>
+                <div key={chip.label} className="bg-secondary border border-border rounded-lg px-3 py-2">
+                  <p className="text-[10px] text-muted-foreground/60 font-semibold tracking-widest uppercase mb-1">
                     {chip.label}
                   </p>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: '#ffffff', margin: 0 }}>
-                    {chip.value}
-                  </p>
+                  <p className="text-[15px] font-semibold text-foreground">{chip.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Date */}
             <div>
-              <p style={{ fontSize: 10, color: '#4a6a9a', marginBottom: 4, letterSpacing: '0.08em', fontWeight: 600, textTransform: 'uppercase' }}>
+              <p className="text-[10px] text-muted-foreground/60 font-semibold tracking-widest uppercase mb-1">
                 Datum
               </p>
-              <p style={{ fontSize: 14, color: '#8ba3c7', margin: 0 }}>
+              <p className="text-sm text-muted-foreground">
                 {formatDateRange(trip.start_date, trip.end_date)}
               </p>
             </div>
@@ -300,10 +294,10 @@ export default async function PublicTripPage({ params }: PageProps) {
             {/* Operators */}
             {uniqueOperators.length > 0 && (
               <div>
-                <p style={{ fontSize: 10, color: '#4a6a9a', marginBottom: 8, letterSpacing: '0.08em', fontWeight: 600, textTransform: 'uppercase' }}>
+                <p className="text-[10px] text-muted-foreground/60 font-semibold tracking-widest uppercase mb-2">
                   Betreiber
                 </p>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div className="flex gap-1.5 flex-wrap">
                   {uniqueOperators.map(op => {
                     const s = getOperatorStyle(op)
                     return (
@@ -318,14 +312,14 @@ export default async function PublicTripPage({ params }: PageProps) {
 
             {/* CO₂ */}
             {co2SavedKg > 0 && (
-              <div style={{ background: '#0d2618', border: '1px solid #1a4a2e', borderRadius: 8, padding: '12px 14px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <LeafIcon size={16} style={{ color: '#3ecf6e', marginTop: 1, flexShrink: 0 }} />
+              <div className="bg-success/10 border border-success/20 rounded-lg px-3.5 py-3 flex gap-2.5 items-start">
+                <LeafIcon size={16} className="text-success mt-0.5 shrink-0" />
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: '#3ecf6e', margin: 0 }}>
+                  <p className="text-sm font-semibold text-success">
                     {co2SavedKg.toLocaleString('de-DE')} kg CO₂ gespart vs. Fliegen
                   </p>
                   {treesEquiv > 0 && (
-                    <p style={{ fontSize: 12, color: '#4a6a9a', margin: 0, marginTop: 2 }}>
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       entspricht {treesEquiv} {treesEquiv === 1 ? 'Baum' : 'Bäumen'} pro Jahr
                     </p>
                   )}
@@ -334,43 +328,40 @@ export default async function PublicTripPage({ params }: PageProps) {
             )}
 
             {/* Divider + shared by + CTA */}
-            <div style={{ borderTop: '1px solid #1e2d4a', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <p style={{ fontSize: 13, color: '#4a6a9a', margin: 0 }}>
+            <div className="border-t border-border pt-4 flex flex-col gap-3">
+              <p className="text-sm text-muted-foreground">
                 Geteilt von{' '}
-                <span style={{ color: '#4f8ef7', fontWeight: 500 }}>{authorName}</span>
+                <span className="text-primary font-medium">{authorName}</span>
               </p>
-              <Link href="/signup" style={{
-                display: 'block', textAlign: 'center', padding: '10px 0',
-                background: '#4f8ef7', color: '#ffffff', borderRadius: 8,
-                fontSize: 14, fontWeight: 500, textDecoration: 'none',
-              }}>
+              <Link
+                href="/signup"
+                className="block text-center py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+              >
                 Eigene Reise planen →
               </Link>
             </div>
           </div>
 
           {/* ── Right: map ── */}
-          <div style={{ background: '#0a1628', border: '1px solid #1e2d4a', borderRadius: 12, overflow: 'hidden', height: 480 }}>
+          <div className="bg-card border border-border rounded-xl overflow-hidden h-[480px]">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <TripMap legs={legs as any} />
           </div>
         </div>
 
         {/* ── Legs timeline card ── */}
-        <div style={{ marginTop: 24, background: '#0a1628', border: '1px solid #1e2d4a', borderRadius: 12, overflow: 'hidden' }}>
+        <div className="mt-6 bg-card border border-border rounded-xl overflow-hidden">
           {/* Card header */}
-          <div style={{ padding: '16px 24px', borderBottom: '1px solid #1e2d4a', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 500, color: '#ffffff', margin: 0 }}>
-              Streckenverlauf
-            </h2>
-            <span style={{ background: '#0d1f3c', border: '1px solid #1e3a6e', color: '#4a6a9a', padding: '2px 8px', borderRadius: 5, fontSize: 12 }}>
+          <div className="px-6 py-4 border-b border-border flex items-center gap-2.5">
+            <h2 className="text-[15px] font-semibold text-foreground">Streckenverlauf</h2>
+            <span className="bg-secondary border border-border text-muted-foreground px-2 py-0.5 rounded-md text-xs">
               {legs.length} {legs.length === 1 ? 'Abschnitt' : 'Abschnitte'}
             </span>
           </div>
 
-          <div style={{ padding: '24px' }}>
+          <div className="p-6">
             {legs.length === 0 ? (
-              <p style={{ color: '#4a6a9a', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>
+              <p className="text-muted-foreground text-sm text-center py-6">
                 Keine Abschnitte vorhanden
               </p>
             ) : (
@@ -388,93 +379,64 @@ export default async function PublicTripPage({ params }: PageProps) {
                   const hasDelay = (leg.delay_minutes ?? 0) > 0
 
                   return (
-                    <div key={leg.id} style={{ position: 'relative', display: 'flex', gap: 16, paddingBottom: isLast ? 0 : 28 }}>
+                    <div key={leg.id} className={`relative flex gap-4 ${isLast ? '' : 'pb-7'}`}>
                       {/* Connecting dotted line */}
                       {!isLast && (
-                        <div style={{
-                          position: 'absolute',
-                          left: 15, top: 36, bottom: 0,
-                          borderLeft: '2px dashed #1e3a6e',
-                          pointerEvents: 'none',
-                        }} />
+                        <div className="absolute left-[15px] top-9 bottom-0 border-l-2 border-dashed border-border pointer-events-none" />
                       )}
 
                       {/* Number badge */}
-                      <div style={{
-                        width: 32, height: 32, flexShrink: 0,
-                        background: '#0d1f3c', border: '1px solid #1e3a6e',
-                        borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 13, fontWeight: 600, color: '#4f8ef7',
-                        position: 'relative', zIndex: 1,
-                      }}>
+                      <div className="w-8 h-8 shrink-0 bg-secondary border border-border rounded-lg flex items-center justify-center text-[13px] font-semibold text-primary relative z-10">
                         {index + 1}
                       </div>
 
                       {/* Leg content */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="flex-1 min-w-0">
                         {/* Station names row */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
-                          <span style={{ fontSize: 15, fontWeight: 500, color: '#ffffff' }}>
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <span className="text-[15px] font-medium text-foreground">
                             {leg.origin_name ?? '–'}
                           </span>
-                          <span style={{ color: '#4f8ef7', fontSize: 14, fontWeight: 600 }}>→</span>
-                          <span style={{ fontSize: 15, fontWeight: 500, color: '#ffffff' }}>
+                          <span className="text-primary text-sm font-semibold">→</span>
+                          <span className="text-[15px] font-medium text-foreground">
                             {leg.dest_name ?? '–'}
                           </span>
                         </div>
 
                         {/* Details row */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                          {/* Time */}
-                          <span style={{ fontSize: 13, color: '#4a6a9a' }}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm text-muted-foreground">
                             {depTime} → {arrTime}
                           </span>
 
-                          {/* Duration */}
                           {duration && (
                             <>
-                              <span style={{ color: '#1e3a6e', fontSize: 12 }}>•</span>
-                              <span style={{ fontSize: 13, color: '#4a6a9a' }}>{duration}</span>
+                              <span className="text-border text-xs">•</span>
+                              <span className="text-sm text-muted-foreground">{duration}</span>
                             </>
                           )}
 
-                          {/* Operator badge */}
                           {leg.operator && (
                             <>
-                              <span style={{ color: '#1e3a6e', fontSize: 12 }}>•</span>
-                              <span style={{
-                                ...opStyle,
-                                padding: '1px 7px', borderRadius: 4,
-                                fontSize: 11, fontWeight: 600,
-                              }}>
+                              <span className="text-border text-xs">•</span>
+                              <span style={{ ...opStyle, padding: '1px 7px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>
                                 {leg.operator}
                               </span>
                             </>
                           )}
 
-                          {/* Train number */}
                           {trainLabel && (
-                            <span style={{ fontSize: 13, color: '#4f8ef7', fontWeight: 500 }}>
-                              {trainLabel}
-                            </span>
+                            <span className="text-sm text-primary font-medium">{trainLabel}</span>
                           )}
 
-                          {/* Delay badge */}
                           {hasDelay && (
-                            <span style={{
-                              background: '#2a1500', border: '1px solid #f59e0b',
-                              color: '#f59e0b', padding: '1px 7px', borderRadius: 4, fontSize: 11, fontWeight: 600,
-                            }}>
+                            <span className="bg-amber-950/60 border border-amber-500/50 text-amber-400 px-1.5 py-px rounded text-[11px] font-semibold">
                               +{leg.delay_minutes} min
                             </span>
                           )}
 
-                          {/* Platform badge */}
                           {platform && (
-                            <span style={{
-                              background: '#0d1f3c', border: '1px solid #1e3a6e',
-                              color: '#8ba3c7', padding: '1px 7px', borderRadius: 4, fontSize: 11,
-                            }}>
+                            <span className="bg-secondary border border-border text-muted-foreground px-1.5 py-px rounded text-[11px]">
                               Gl. {platform}
                             </span>
                           )}
@@ -482,12 +444,8 @@ export default async function PublicTripPage({ params }: PageProps) {
 
                         {/* Rolling stock chip */}
                         {rs && (
-                          <div style={{ marginTop: 6 }}>
-                            <span style={{
-                              background: '#0d1f3c', border: '1px solid #1e3a6e',
-                              color: '#4f8ef7', padding: '2px 9px', borderRadius: 5,
-                              fontSize: 12, fontWeight: 500,
-                            }}>
+                          <div className="mt-1.5">
+                            <span className="bg-secondary border border-border text-primary px-2 py-0.5 rounded text-xs font-medium">
                               {rs.series}{setNum ? ` · ${setNum}` : ''}
                             </span>
                           </div>
@@ -502,15 +460,15 @@ export default async function PublicTripPage({ params }: PageProps) {
         </div>
 
         {/* ── Footer ── */}
-        <div style={{ marginTop: 40, paddingTop: 20, borderTop: '1px solid #1e2d4a', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <p style={{ fontSize: 13, color: '#1e3a6e', margin: 0 }}>
+        <div className="mt-10 pt-5 border-t border-border flex items-center justify-between">
+          <p className="text-xs text-muted-foreground/40">
             © {new Date().getFullYear()} Railtrax
           </p>
-          <div style={{ display: 'flex', gap: 20 }}>
-            <Link href="/signup" style={{ fontSize: 13, color: '#4a6a9a', textDecoration: 'none' }}>
+          <div className="flex gap-5">
+            <Link href="/signup" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Registrieren
             </Link>
-            <Link href="/login" style={{ fontSize: 13, color: '#4a6a9a', textDecoration: 'none' }}>
+            <Link href="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
               Anmelden
             </Link>
           </div>
