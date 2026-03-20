@@ -28,8 +28,9 @@ export function SharingSheet({ tripId, isPublic, shareToken, onShare, onUnshare 
   const [copied, setCopied] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const shareUrl = shareToken ? `${process.env.NEXT_PUBLIC_URL}/trip/${shareToken}` : ''
-  const embedUrl = shareToken ? `${process.env.NEXT_PUBLIC_URL}/embed/${shareToken}` : ''
+  const baseUrl = (process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu').replace(/\/+$/, '');
+  const shareUrl = shareToken ? `${baseUrl}/trip/${shareToken}` : ''
+  const embedUrl = shareToken ? `${baseUrl}/embed/${shareToken}` : ''
   const embedCode = shareToken ? `<iframe src="${embedUrl}" width="100%" height="600" frameborder="0"></iframe>` : ''
 
   const handleCopy = async (text: string, type: string) => {

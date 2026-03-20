@@ -156,8 +156,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     // Get base URL from environment variable with fallback
     // @ts-ignore - NEXT_PUBLIC_URL is defined in .env
-    const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu'
-    console.log('Public trip page - Using baseUrl:', baseUrl) // Debug line
+    const baseUrl = (process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu').replace(/\/+$/, '')
    return {
      title: `${trip.title} – Railtrax`,
      description: desc,
