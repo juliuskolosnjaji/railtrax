@@ -190,51 +190,51 @@ export default function TripEditPage() {
       )}
 
       {/* Trip details card */}
-      <div className="rounded-xl border border-border bg-[#0a1628] p-6 mb-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#4a6a9a] mb-5">
+      <div className="rounded-xl border border-border bg-card p-6 mb-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-5">
           Reisedetails
         </p>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-[#8ba3c7] text-xs">Reisename</Label>
+            <Label className="text-secondary-foreground text-xs">Reisename</Label>
             <Input
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className="bg-[#060c18] border-border text-white"
+              className="bg-background border-border text-white"
               placeholder="Interrail Sommer 2026"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
-                <Calendar className="w-3 h-3 text-[#4a6a9a]" />
+              <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                <Calendar className="w-3 h-3 text-muted-foreground" />
                 Startdatum
               </Label>
               <Input
                 type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                className="bg-[#060c18] border-border text-white"
+                className="bg-background border-border text-white"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
-                <Calendar className="w-3 h-3 text-[#4a6a9a]" />
+              <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                <Calendar className="w-3 h-3 text-muted-foreground" />
                 Enddatum
               </Label>
               <Input
                 type="date"
                 value={endDate}
                 onChange={e => setEndDate(e.target.value)}
-                className="bg-[#060c18] border-border text-white"
+                className="bg-background border-border text-white"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-[#8ba3c7] text-xs">Status</Label>
+            <Label className="text-secondary-foreground text-xs">Status</Label>
             <div className="flex gap-2">
               {STATUS_OPTIONS.map(opt => (
                 <button
@@ -245,7 +245,7 @@ export default function TripEditPage() {
                     'px-4 py-1.5 rounded-lg text-sm font-medium transition-colors border',
                     status === opt.value
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-transparent text-muted-foreground border-border hover:border-[#2e3d5a] hover:text-foreground',
+                      : 'bg-transparent text-muted-foreground border-border hover:border-border/80 hover:text-foreground',
                   ].join(' ')}
                   style={{ cursor: 'pointer' }}
                 >
@@ -258,13 +258,13 @@ export default function TripEditPage() {
       </div>
 
       {/* Legs card */}
-      <div className="rounded-xl border border-border bg-[#0a1628] p-6">
+      <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-start justify-between mb-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#4a6a9a]">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Reiseabschnitte
             </p>
-            <p className="text-[11px] text-[#4a6a9a] mt-0.5">
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               Ziehen zum Sortieren · Klicken zum Bearbeiten
             </p>
           </div>
@@ -288,10 +288,10 @@ export default function TripEditPage() {
                     className={`w-2.5 h-2.5 rounded-full border-2 ${
                       i === 0
                         ? 'bg-primary border-primary'
-                        : 'bg-[#060c18] border-[#4a6a9a]'
+                        : 'bg-background border-[#4a6a9a]'
                     }`}
                   />
-                  <span className="text-[10px] text-[#4a6a9a] text-center w-14 truncate">
+                  <span className="text-[10px] text-muted-foreground text-center w-14 truncate">
                     {leg.originName}
                   </span>
                 </div>
@@ -301,7 +301,7 @@ export default function TripEditPage() {
             {/* Last station */}
             <div className="flex flex-col items-center gap-1 shrink-0">
               <div className="w-2.5 h-2.5 rounded-full border-2 bg-primary border-primary" />
-              <span className="text-[10px] text-[#4a6a9a] text-center w-14 truncate">
+              <span className="text-[10px] text-muted-foreground text-center w-14 truncate">
                 {trip.legs[trip.legs.length - 1].destName}
               </span>
             </div>
@@ -312,7 +312,7 @@ export default function TripEditPage() {
         <div className="space-y-2">
           {trip.legs.length === 0 && (
             <div className="text-center py-10 rounded-xl border border-dashed border-border">
-              <p className="text-[#4a6a9a] text-sm">Noch keine Abschnitte.</p>
+              <p className="text-muted-foreground text-sm">Noch keine Abschnitte.</p>
             </div>
           )}
 
@@ -327,8 +327,8 @@ export default function TripEditPage() {
                 key={leg.id}
                 className={`rounded-xl border transition-colors ${
                   isExpanded
-                    ? 'border-primary/40 bg-[#0d1a2e]'
-                    : 'border-border bg-[#060c18]'
+                    ? 'border-primary/40 bg-secondary/50'
+                    : 'border-border bg-background'
                 }`}
               >
                 {/* Collapsed row */}
@@ -344,7 +344,7 @@ export default function TripEditPage() {
                     <p className="text-sm font-medium text-white truncate">
                       {leg.originName} → {leg.destName}
                     </p>
-                    <p className="text-xs text-[#4a6a9a] mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {[leg.trainNumber, `${depTime} – ${arrTime}`].filter(Boolean).join('  ')}
                     </p>
                   </div>
@@ -365,79 +365,79 @@ export default function TripEditPage() {
                   <div className="px-4 pb-4 pt-3 border-t border-border space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
+                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
                           Von
                         </Label>
                         <Input
                           value={form?.originName ?? leg.originName}
                           onChange={e => updateLegForm(leg.id, 'originName', e.target.value)}
-                          className="bg-[#080d1a] border-border text-white h-9"
+                          className="bg-background border-border text-white h-9"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
+                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
                           Nach
                         </Label>
                         <Input
                           value={form?.destName ?? leg.destName}
                           onChange={e => updateLegForm(leg.id, 'destName', e.target.value)}
-                          className="bg-[#080d1a] border-border text-white h-9"
+                          className="bg-background border-border text-white h-9"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
-                          <span className="text-[#4a6a9a] text-xs leading-none">≡</span>
+                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                          <span className="text-muted-foreground text-xs leading-none">≡</span>
                           Zugnummer
                         </Label>
                         <Input
                           value={form?.trainNumber ?? leg.trainNumber ?? ''}
                           onChange={e => updateLegForm(leg.id, 'trainNumber', e.target.value)}
-                          className="bg-[#080d1a] border-border text-white h-9"
+                          className="bg-background border-border text-white h-9"
                           placeholder="ICE 724"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
-                          <Calendar className="w-3 h-3 text-[#4a6a9a]" />
+                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                          <Calendar className="w-3 h-3 text-muted-foreground" />
                           Datum
                         </Label>
                         <Input
                           type="date"
                           value={form?.date ?? isoToDate(leg.plannedDeparture)}
                           onChange={e => updateLegForm(leg.id, 'date', e.target.value)}
-                          className="bg-[#080d1a] border-border text-white h-9"
+                          className="bg-background border-border text-white h-9"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-[#4a6a9a]" />
+                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                          <Clock className="w-3 h-3 text-muted-foreground" />
                           Abfahrt
                         </Label>
                         <Input
                           type="time"
                           value={form?.depTime ?? isoToTime(leg.plannedDeparture)}
                           onChange={e => updateLegForm(leg.id, 'depTime', e.target.value)}
-                          className="bg-[#080d1a] border-border text-white h-9"
+                          className="bg-background border-border text-white h-9"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-[#4a6a9a]" />
+                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                          <Clock className="w-3 h-3 text-muted-foreground" />
                           Ankunft
                         </Label>
                         <Input
                           type="time"
                           value={form?.arrTime ?? isoToTime(leg.plannedArrival)}
                           onChange={e => updateLegForm(leg.id, 'arrTime', e.target.value)}
-                          className="bg-[#080d1a] border-border text-white h-9"
+                          className="bg-background border-border text-white h-9"
                         />
                       </div>
                     </div>

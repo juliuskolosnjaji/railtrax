@@ -215,13 +215,6 @@ export default function DashboardPage() {
   const activeCount = trips ? trips.filter(t => t.status === 'active').length : null
   const co2Saved = totalKm !== null ? Math.round(totalKm * 0.172) : null
 
-  const lastTrip = trips?.[0] ?? null
-  const lastTripKm = lastTrip
-    ? Math.round(lastTrip.legs.reduce((s, l) => s + (Number(l.distanceKm) || 0), 0))
-    : 0
-  const lastTripFrom = lastTrip?.legs[0]?.originName ?? null
-  const lastTripTo   = lastTrip?.legs[(lastTrip.legs.length - 1)]?.destName ?? null
-
   const totalTrips = trips?.length ?? 0
   const totalDurationMs = trips
     ? trips.reduce((sum, t) =>
@@ -267,20 +260,26 @@ export default function DashboardPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginBottom: 24 }}>
         <LinkCard
           icon={Train}
-          title="Letzte Reise"
-          href={lastTrip ? `/trips/${lastTrip.id}` : '/search'}
+          title="Letzte Reisen"
+          href="/trips"
           isLoading={isLoading}
         >
-          {lastTrip ? (
-            <>
-              <p className="text-[14px] font-medium" style={{ color: 'hsl(var(--foreground))' }}>
-                {lastTrip.title}
-              </p>
-              <p className="text-[12px] mt-0.5" style={{ color: 'hsl(var(--muted-foreground))' }}>
-                {lastTripFrom && lastTripTo ? `${lastTripFrom} → ${lastTripTo}` : '–'}
-                {lastTripKm > 0 && ` · ${lastTripKm.toLocaleString('de-DE')} km`}
-              </p>
-            </>
+          {trips && trips.length > 0 ? (
+            <div className="space-y-1.5">
+              {trips.slice(0, 3).map(trip => {
+                const km = Math.round(trip.legs.reduce((s, l) => s + (Number(l.distanceKm) || 0), 0))
+                const from = trip.legs[0]?.originName
+                const to = trip.legs[trip.legs.length - 1]?.destName
+                return (
+                  <div key={trip.id} className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: STATUS_COLOR[trip.status ?? 'planned'] ?? STATUS_COLOR.planned }} />
+                    <span className="text-[13px] font-medium truncate" style={{ color: 'hsl(var(--foreground))' }}>{trip.title}</span>
+                    {from && to && <span className="text-[11px] truncate shrink-0" style={{ color: 'hsl(var(--muted-foreground))' }}>{from} → {to}</span>}
+                    {km > 0 && <span className="text-[11px] shrink-0" style={{ color: 'hsl(var(--muted-foreground))' }}>{km} km</span>}
+                  </div>
+                )
+              })}
+            </div>
           ) : (
             <p className="text-[13px]" style={{ color: 'hsl(var(--muted-foreground))' }}>
               Noch keine Reisen — jetzt suchen
