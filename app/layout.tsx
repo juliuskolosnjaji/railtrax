@@ -17,6 +17,25 @@ const inter = Inter({ subsets: ['latin'], display: 'swap' })
 export const metadata: Metadata = {
   title: 'Railtrax',
   description: 'Plan, visualise, and document European train journeys.',
+  openGraph: {
+    type: 'website',
+    locale: 'de_DE',
+    url: 'https://railtrax.app',
+    siteName: 'Railtrax',
+    images: [
+      {
+        url: 'https://railtrax.app/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Railtrax - Plan your European train journeys',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@railtrax',
+    images: ['https://railtrax.app/og-image.png'],
+  },
 }
 
 export default function RootLayout({

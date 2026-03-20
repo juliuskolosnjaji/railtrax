@@ -11,16 +11,16 @@ export async function GET(
   const { shareToken } = await params
   const supabase = await createClient()
 
-  const { data: trip } = await supabase
-    .from('trips')
-    .select('title, description, start_date, end_date, legs(distance_km)')
-    .eq('share_token', shareToken)
-    .eq('is_public', true)
-    .single()
+   const { data: trip, error: tripError } = await supabase
+     .from('trips')
+     .select('title, description, start_date, end_date, legs(distance_km)')
+     .eq('share_token', shareToken)
+     .eq('is_public', true)
+     .single()
 
-  if (!trip) {
-    return new Response('Trip not found', { status: 404 })
-  }
+   if (tripError || !trip) {
+     return new Response('Trip not found', { status: 404 })
+   }
 
   const totalDistance = (trip.legs as { distance_km?: number }[]).reduce(
     (sum: number, leg: { distance_km?: number }) => sum + (leg.distance_km || 0),
