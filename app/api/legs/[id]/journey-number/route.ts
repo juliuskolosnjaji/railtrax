@@ -9,82 +9,77 @@ interface JourneyResult {
   displayName: string | null
 }
 
-async function fetchFromBahnExpert(
+/**
+ * Fetch Fahrtnummer via db-vendo-client (same client used for polylines).
+ * Strategy:
+ *   1. tripIdVendo present → client.trip() → raw trip.line.fahrtNr
+ *   2. originIbnr + departure → client.departures() → find matching line → fahrtNr
+ */
+async function fetchJourneyNumber(
   tripIdVendo: string | null,
   lineName: string | null,
   trainNumber: string | null,
   originIbnr: string | null,
   plannedDeparture: Date | null,
 ): Promise<string | null> {
-  // ── Strategy 1: journey details by HAFAS trip ID ─────────────────────────
+  // Dynamic import — db-vendo-client is ESM-only (serverExternalPackages)
+  let client: ReturnType<typeof import('db-vendo-client')['createClient']>
+  try {
+    const { createClient } = await import('db-vendo-client')
+    const { withRetrying } = await import('db-vendo-client/retry.js')
+    const { profile: dbnavProfile } = await import('db-vendo-client/p/dbnav/index.js')
+    client = createClient(withRetrying(dbnavProfile), 'railtrax/1.0 (contact@railtrax.eu)')
+  } catch {
+    return null
+  }
+
+  // ── Strategy 1: direct trip lookup via stored tripId ─────────────────────
   if (tripIdVendo) {
     try {
-      const url =
-        `https://bahn.expert/api/hafas/v3/journeyDetails` +
-        `?journeyId=${encodeURIComponent(tripIdVendo)}&profile=db`
-
-      const res = await fetch(url, {
-        headers: { Accept: 'application/json', 'User-Agent': 'Railtrax/1.0' },
-        signal: AbortSignal.timeout(5000),
-      })
-
-      if (res.ok) {
-        const data = await res.json()
-        const num =
-          data?.train?.number ??
-          data?.journey?.train?.number ??
-          data?.number ??
-          null
-        if (num) return String(num)
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { trip } = await (client as any).trip(tripIdVendo, { stopovers: false, polyline: false })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fahrtNr = (trip as any)?.line?.fahrtNr ?? null
+      if (fahrtNr) return String(fahrtNr)
     } catch {
-      // fall through to strategy 2
+      // fall through to departure board
     }
   }
 
-  // ── Strategy 2: IRIS departure board ────────────────────────────────────
+  // ── Strategy 2: departure board scan ─────────────────────────────────────
   if (!originIbnr || !plannedDeparture) return null
 
   try {
-    const url =
-      `https://bahn.expert/api/iris/v2/abfahrten/${originIbnr}` +
-      `?lookahead=30&lookbehind=5`
-
-    const res = await fetch(url, {
-      headers: { Accept: 'application/json', 'User-Agent': 'Railtrax/1.0' },
-      signal: AbortSignal.timeout(5000),
+    // Fetch a 60-minute window around the planned departure
+    const when = new Date(plannedDeparture.getTime() - 5 * 60 * 1000)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { departures } = await (client as any).departures(originIbnr, {
+      when,
+      duration: 70,
+      results: 60,
+      products: {
+        nationalExpress: true, national: true,
+        regionalExpress: true, regional: true,
+        suburban: true, bus: false, ferry: false,
+        subway: false, tram: false, taxi: false,
+      },
     })
-
-    if (!res.ok) return null
-
-    const data = await res.json()
-    const departures: unknown[] = data?.departures ?? data ?? []
-    if (!Array.isArray(departures)) return null
 
     const targetLabel = (lineName ?? trainNumber ?? '').toUpperCase().replace(/\s+/g, '')
     const depMs = plannedDeparture.getTime()
 
-    const match = departures.find((d: unknown) => {
-      if (typeof d !== 'object' || d === null) return false
-      const dep = d as Record<string, unknown>
-      const train = dep.train as Record<string, unknown> | undefined
-      const rawName = String(train?.name ?? train?.line ?? '')
-      const nameNorm = rawName.toUpperCase().replace(/\s+/g, '')
-      if (nameNorm !== targetLabel) return false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const match = (departures as any[]).find((d: any) => {
+      const name = (d.line?.name ?? '').toUpperCase().replace(/\s+/g, '')
+      if (name !== targetLabel) return false
+      const dTime = d.plannedWhen ?? d.when
+      if (!dTime) return true
+      return Math.abs(new Date(dTime).getTime() - depMs) < 3 * 60 * 1000
+    })
 
-      const timeStr =
-        dep.when ?? dep.scheduledWhen ?? dep.departure
-      if (!timeStr) return true // name match, no time to verify
-
-      const diff = Math.abs(new Date(String(timeStr)).getTime() - depMs)
-      return diff < 3 * 60 * 1000
-    }) as Record<string, unknown> | undefined
-
-    if (!match) return null
-
-    const train = match.train as Record<string, unknown> | undefined
-    const num = train?.number ?? match.journeyNumber ?? null
-    return num ? String(num) : null
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fahrtNr = (match as any)?.line?.fahrtNr ?? null
+    return fahrtNr ? String(fahrtNr) : null
   } catch {
     return null
   }
@@ -114,18 +109,18 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   // Return DB-cached value immediately
   if (leg.journeyNumber) {
-    const result: JourneyResult = {
-      journeyNumber: leg.journeyNumber,
-      displayName: trainLabel ? `${trainLabel} (${leg.journeyNumber})` : leg.journeyNumber,
-    }
-    return NextResponse.json({ data: result })
+    return NextResponse.json({
+      data: {
+        journeyNumber: leg.journeyNumber,
+        displayName: trainLabel ? `${trainLabel} (${leg.journeyNumber})` : leg.journeyNumber,
+      } satisfies JourneyResult,
+    })
   }
 
-  // Fetch from bahn.expert (Redis-cached for 24h)
+  // Fetch (Redis-cached 24h)
   const cacheKey = `journey-number:${id}`
-
   const journeyNumber = await cached(cacheKey, 86400, () =>
-    fetchFromBahnExpert(
+    fetchJourneyNumber(
       leg.tripIdVendo,
       leg.lineName,
       leg.trainNumber,
@@ -134,19 +129,17 @@ export async function GET(_req: NextRequest, { params }: Params) {
     )
   )
 
-  // Persist to DB so future page loads are instant (fire-and-forget)
+  // Persist to DB — fire-and-forget
   if (journeyNumber) {
-    prisma().leg.update({
-      where: { id },
-      data: { journeyNumber },
-    }).catch(() => {})
+    prisma().leg.update({ where: { id }, data: { journeyNumber } }).catch(() => {})
   }
 
-  const result: JourneyResult = {
-    journeyNumber,
-    displayName: journeyNumber && trainLabel
-      ? `${trainLabel} (${journeyNumber})`
-      : trainLabel ?? null,
-  }
-  return NextResponse.json({ data: result })
+  return NextResponse.json({
+    data: {
+      journeyNumber,
+      displayName: journeyNumber && trainLabel
+        ? `${trainLabel} (${journeyNumber})`
+        : (trainLabel ?? null),
+    } satisfies JourneyResult,
+  })
 }
