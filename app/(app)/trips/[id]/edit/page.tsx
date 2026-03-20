@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, Trash2, GripVertical, Calendar, Clock, Save } from 'lucide-react'
-import { useTrip, useUpdateTrip, useUpdateLeg, useDeleteLeg, type Leg } from '@/hooks/useTrips'
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
+import { useTrip, useUpdateTrip, useUpdateLeg, useDeleteLeg, useReorderLegs, type Leg } from '@/hooks/useTrips'
 import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -50,6 +51,9 @@ export default function TripEditPage() {
   const updateTrip = useUpdateTrip(id)
   const updateLeg = useUpdateLeg(id)
   const deleteLeg = useDeleteLeg(id)
+  const reorderLegs = useReorderLegs(id)
+
+  const [legs, setLegs] = useState<Leg[]>([])
 
   // Trip metadata form
   const [title, setTitle] = useState('')
@@ -70,8 +74,18 @@ export default function TripEditPage() {
       setStartDate(isoToDate(trip.startDate))
       setEndDate(isoToDate(trip.endDate))
       setStatus(trip.status || 'planned')
+      setLegs(trip.legs)
     }
   }, [trip])
+
+  function handleDragEnd(result: DropResult) {
+    if (!result.destination || result.destination.index === result.source.index) return
+    const reordered = Array.from(legs)
+    const [moved] = reordered.splice(result.source.index, 1)
+    reordered.splice(result.destination.index, 0, moved)
+    setLegs(reordered)
+    reorderLegs.mutate(reordered.map(l => l.id))
+  }
 
   function initLegForm(leg: Leg): LegFormState {
     return {
@@ -279,9 +293,9 @@ export default function TripEditPage() {
         </div>
 
         {/* Route dots visualization */}
-        {trip.legs.length > 0 && (
+        {legs.length > 0 && (
           <div className="flex items-start mb-6 overflow-x-auto pb-1">
-            {trip.legs.map((leg, i) => (
+            {legs.map((leg, i) => (
               <div key={leg.id} className="flex items-center shrink-0">
                 <div className="flex flex-col items-center gap-1">
                   <div
@@ -302,151 +316,171 @@ export default function TripEditPage() {
             <div className="flex flex-col items-center gap-1 shrink-0">
               <div className="w-2.5 h-2.5 rounded-full border-2 bg-primary border-primary" />
               <span className="text-[10px] text-muted-foreground text-center w-14 truncate">
-                {trip.legs[trip.legs.length - 1].destName}
+                {legs[legs.length - 1].destName}
               </span>
             </div>
           </div>
         )}
 
         {/* Leg list */}
-        <div className="space-y-2">
-          {trip.legs.length === 0 && (
-            <div className="text-center py-10 rounded-xl border border-dashed border-border">
-              <p className="text-muted-foreground text-sm">Noch keine Abschnitte.</p>
-            </div>
-          )}
-
-          {trip.legs.map((leg, idx) => {
-            const isExpanded = expandedLegId === leg.id
-            const form = legForms[leg.id]
-            const depTime = leg.plannedDeparture.slice(11, 16)
-            const arrTime = leg.plannedArrival.slice(11, 16)
-
-            return (
-              <div
-                key={leg.id}
-                className={`rounded-xl border transition-colors ${
-                  isExpanded
-                    ? 'border-primary/40 bg-secondary/50'
-                    : 'border-border bg-background'
-                }`}
-              >
-                {/* Collapsed row */}
-                <div
-                  className="flex items-center gap-3 p-4 cursor-pointer select-none"
-                  onClick={() => handleExpandLeg(leg)}
-                >
-                  <GripVertical className="w-4 h-4 text-[#2e3d5a] shrink-0 cursor-grab" />
-                  <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center shrink-0">
-                    {idx + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
-                      {leg.originName} → {leg.destName}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {[leg.trainNumber, `${depTime} – ${arrTime}`].filter(Boolean).join('  ')}
-                    </p>
-                  </div>
-                  <button
-                    onClick={e => {
-                      e.stopPropagation()
-                      deleteLeg.mutate(leg.id)
-                    }}
-                    className="w-7 h-7 flex items-center justify-center text-[#2e3d5a] hover:text-[#e25555] transition-colors rounded"
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Expanded form */}
-                {isExpanded && (
-                  <div className="px-4 pb-4 pt-3 border-t border-border space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
-                          Von
-                        </Label>
-                        <Input
-                          value={form?.originName ?? leg.originName}
-                          onChange={e => updateLegForm(leg.id, 'originName', e.target.value)}
-                          className="bg-background border-border text-white h-9"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
-                          Nach
-                        </Label>
-                        <Input
-                          value={form?.destName ?? leg.destName}
-                          onChange={e => updateLegForm(leg.id, 'destName', e.target.value)}
-                          className="bg-background border-border text-white h-9"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
-                          <span className="text-muted-foreground text-xs leading-none">≡</span>
-                          Zugnummer
-                        </Label>
-                        <Input
-                          value={form?.trainNumber ?? leg.trainNumber ?? ''}
-                          onChange={e => updateLegForm(leg.id, 'trainNumber', e.target.value)}
-                          className="bg-background border-border text-white h-9"
-                          placeholder="ICE 724"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
-                          <Calendar className="w-3 h-3 text-muted-foreground" />
-                          Datum
-                        </Label>
-                        <Input
-                          type="date"
-                          value={form?.date ?? isoToDate(leg.plannedDeparture)}
-                          onChange={e => updateLegForm(leg.id, 'date', e.target.value)}
-                          className="bg-background border-border text-white h-9"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-muted-foreground" />
-                          Abfahrt
-                        </Label>
-                        <Input
-                          type="time"
-                          value={form?.depTime ?? isoToTime(leg.plannedDeparture)}
-                          onChange={e => updateLegForm(leg.id, 'depTime', e.target.value)}
-                          className="bg-background border-border text-white h-9"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-muted-foreground" />
-                          Ankunft
-                        </Label>
-                        <Input
-                          type="time"
-                          value={form?.arrTime ?? isoToTime(leg.plannedArrival)}
-                          onChange={e => updateLegForm(leg.id, 'arrTime', e.target.value)}
-                          className="bg-background border-border text-white h-9"
-                        />
-                      </div>
-                    </div>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="legs">
+            {(provided) => (
+              <div className="space-y-2" ref={provided.innerRef} {...provided.droppableProps}>
+                {legs.length === 0 && (
+                  <div className="text-center py-10 rounded-xl border border-dashed border-border">
+                    <p className="text-muted-foreground text-sm">Noch keine Abschnitte.</p>
                   </div>
                 )}
+
+                {legs.map((leg, idx) => {
+                  const isExpanded = expandedLegId === leg.id
+                  const form = legForms[leg.id]
+                  const depTime = leg.plannedDeparture.slice(11, 16)
+                  const arrTime = leg.plannedArrival.slice(11, 16)
+
+                  return (
+                    <Draggable key={leg.id} draggableId={leg.id} index={idx}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={`rounded-xl border transition-colors ${
+                            snapshot.isDragging
+                              ? 'border-primary/60 bg-secondary shadow-lg'
+                              : isExpanded
+                              ? 'border-primary/40 bg-secondary/50'
+                              : 'border-border bg-background'
+                          }`}
+                        >
+                          {/* Collapsed row */}
+                          <div
+                            className="flex items-center gap-3 p-4 cursor-pointer select-none"
+                            onClick={() => handleExpandLeg(leg)}
+                          >
+                            <div
+                              {...provided.dragHandleProps}
+                              onClick={e => e.stopPropagation()}
+                              className="shrink-0 cursor-grab active:cursor-grabbing"
+                            >
+                              <GripVertical className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                            <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-white truncate">
+                                {leg.originName} → {leg.destName}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {[leg.trainNumber, `${depTime} – ${arrTime}`].filter(Boolean).join('  ')}
+                              </p>
+                            </div>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation()
+                                deleteLeg.mutate(leg.id)
+                              }}
+                              className="w-7 h-7 flex items-center justify-center text-[#2e3d5a] hover:text-[#e25555] transition-colors rounded"
+                              style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {/* Expanded form */}
+                          {isExpanded && (
+                            <div className="px-4 pb-4 pt-3 border-t border-border space-y-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
+                                    Von
+                                  </Label>
+                                  <Input
+                                    value={form?.originName ?? leg.originName}
+                                    onChange={e => updateLegForm(leg.id, 'originName', e.target.value)}
+                                    className="bg-background border-border text-white h-9"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
+                                    Nach
+                                  </Label>
+                                  <Input
+                                    value={form?.destName ?? leg.destName}
+                                    onChange={e => updateLegForm(leg.id, 'destName', e.target.value)}
+                                    className="bg-background border-border text-white h-9"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                                    <span className="text-muted-foreground text-xs leading-none">≡</span>
+                                    Zugnummer
+                                  </Label>
+                                  <Input
+                                    value={form?.trainNumber ?? leg.trainNumber ?? ''}
+                                    onChange={e => updateLegForm(leg.id, 'trainNumber', e.target.value)}
+                                    className="bg-background border-border text-white h-9"
+                                    placeholder="ICE 724"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                                    <Calendar className="w-3 h-3 text-muted-foreground" />
+                                    Datum
+                                  </Label>
+                                  <Input
+                                    type="date"
+                                    value={form?.date ?? isoToDate(leg.plannedDeparture)}
+                                    onChange={e => updateLegForm(leg.id, 'date', e.target.value)}
+                                    className="bg-background border-border text-white h-9"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                  <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                                    <Clock className="w-3 h-3 text-muted-foreground" />
+                                    Abfahrt
+                                  </Label>
+                                  <Input
+                                    type="time"
+                                    value={form?.depTime ?? isoToTime(leg.plannedDeparture)}
+                                    onChange={e => updateLegForm(leg.id, 'depTime', e.target.value)}
+                                    className="bg-background border-border text-white h-9"
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-secondary-foreground text-xs flex items-center gap-1.5">
+                                    <Clock className="w-3 h-3 text-muted-foreground" />
+                                    Ankunft
+                                  </Label>
+                                  <Input
+                                    type="time"
+                                    value={form?.arrTime ?? isoToTime(leg.plannedArrival)}
+                                    onChange={e => updateLegForm(leg.id, 'arrTime', e.target.value)}
+                                    className="bg-background border-border text-white h-9"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Draggable>
+                  )
+                })}
+                {provided.placeholder}
               </div>
-            )
-          })}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
 
       <LegEditorSheet tripId={id} open={addLegOpen} onOpenChange={setAddLegOpen} />

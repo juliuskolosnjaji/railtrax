@@ -210,31 +210,7 @@ export default function TripDetailPage() {
 
           {trip.legs.length > 0 && (
             <div className="mb-8">
-              <TripRouteCard
-                legs={trip.legs.map((l) => ({
-                  originName:   l.originName,
-                  originLat:    l.originLat,
-                  originLon:    l.originLon,
-                  destName:     l.destName,
-                  destLat:      l.destLat,
-                  destLon:      l.destLon,
-                  polyline:     l.polyline,
-                  trainType:    l.trainType,
-                  trainNumber:  l.trainNumber,
-                  operator:     l.operator,
-                }))}
-                stats={{
-                  distanceKm: trip.legs.reduce((s, l) => s + (l.distanceKm ?? 0), 0) || null,
-                  durationMs: (() => {
-                    const first = trip.legs[0]
-                    const last  = trip.legs[trip.legs.length - 1]
-                    const dep = first.actualDeparture ?? first.plannedDeparture
-                    const arr = last.actualArrival   ?? last.plannedArrival
-                    const ms  = new Date(arr).getTime() - new Date(dep).getTime()
-                    return ms > 0 ? ms : null
-                  })(),
-                }}
-              />
+              <TripRouteCard legs={trip.legs} />
             </div>
           )}
 

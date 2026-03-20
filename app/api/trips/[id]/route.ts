@@ -15,7 +15,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const trip = await prisma().trip.findUnique({
       where: { id, userId: user.id },
       include: {
-        legs: { orderBy: { plannedDeparture: 'asc' } },
+        legs: { orderBy: { position: 'asc' } },
         _count: { select: { legs: true } },
       },
     })

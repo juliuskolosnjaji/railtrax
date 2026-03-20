@@ -179,6 +179,19 @@ export function useDeleteLeg(tripId: string) {
   })
 }
 
+export function useReorderLegs(tripId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (legIds: string[]) =>
+      apiFetch(`/api/trips/${tripId}/reorder-legs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ legIds }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trips', tripId] }),
+  })
+}
+
 export function useShareTrip(tripId: string) {
   const qc = useQueryClient()
   return useMutation({
