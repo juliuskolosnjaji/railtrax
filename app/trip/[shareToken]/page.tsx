@@ -77,21 +77,21 @@ function getCountries(legs: TripLeg[]): { flag: string; name: string }[] {
 
 function getOperatorStyle(operator: string | null | undefined): { background: string; color: string; border: string } {
   const op = (operator ?? '').toUpperCase()
-  if (op.includes('DB') || op.includes('ICE')) return { background: '#2d0a0a', color: '#E32228', border: '1px solid #E32228' }
+  if (op.includes('DB') || op.includes('ICE')) return { background: 'rgba(227,34,40,0.12)', color: '#E32228', border: '1px solid rgba(227,34,40,0.35)' }
   if (op.includes('SBB') || op.includes('TPF') || op.includes('MOB') || op.includes('RHB') || op.includes('BLS'))
-    return { background: '#2d0a0a', color: '#EB0000', border: '1px solid #EB0000' }
+    return { background: 'rgba(235,0,0,0.12)', color: '#EB0000', border: '1px solid rgba(235,0,0,0.35)' }
   if (op.includes('ÖBB') || op.includes('OBB') || op.includes('WESTbahn'))
-    return { background: '#2d0a0a', color: '#C8102E', border: '1px solid #C8102E' }
+    return { background: 'rgba(200,16,46,0.12)', color: '#C8102E', border: '1px solid rgba(200,16,46,0.35)' }
   if (op.includes('SNCF') || op.includes('TGV') || op.includes('OUIGO') || op.includes('TRANSILIEN'))
-    return { background: '#2a1500', color: '#E05206', border: '1px solid #E05206' }
+    return { background: 'rgba(224,82,6,0.12)', color: '#E05206', border: '1px solid rgba(224,82,6,0.35)' }
   if (op.includes('EUROSTAR') || op.includes('THALYS'))
-    return { background: '#1a1500', color: '#FBBF24', border: '1px solid #FBBF24' }
+    return { background: 'rgba(251,191,36,0.12)', color: '#FBBF24', border: '1px solid rgba(251,191,36,0.35)' }
   if (op.includes('NS') || op.includes('ARRIVA'))
-    return { background: '#1a1500', color: '#EAB308', border: '1px solid #EAB308' }
-  if (op.includes('RENFE')) return { background: '#2d0a0a', color: '#e25555', border: '1px solid #e25555' }
-  if (op.includes('FLIX')) return { background: '#0a1f0a', color: '#74B43A', border: '1px solid #74B43A' }
+    return { background: 'rgba(234,179,8,0.12)', color: '#EAB308', border: '1px solid rgba(234,179,8,0.35)' }
+  if (op.includes('RENFE')) return { background: 'rgba(226,85,85,0.12)', color: '#e25555', border: '1px solid rgba(226,85,85,0.35)' }
+  if (op.includes('FLIX')) return { background: 'rgba(116,180,58,0.12)', color: '#74B43A', border: '1px solid rgba(116,180,58,0.35)' }
   if (op.includes('TRENITALIA') || op.includes('ITALO') || op.includes('FS'))
-    return { background: '#1a1a0a', color: '#84cc16', border: '1px solid #84cc16' }
+    return { background: 'rgba(132,204,22,0.12)', color: '#84cc16', border: '1px solid rgba(132,204,22,0.35)' }
   return { background: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))', border: '1px solid hsl(var(--border))' }
 }
 
