@@ -192,7 +192,9 @@ export default function AbfahrtenPage() {
 
           {/* Station dropdown */}
           {showDropdown && (
-            <div style={{
+            <div
+              data-station-picker
+              style={{
               position: 'absolute',
               top: '100%',
               left: 0,
