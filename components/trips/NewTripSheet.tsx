@@ -46,70 +46,70 @@ export function NewTripSheet({ open, onOpenChange }: NewTripSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="bg-[#080d1a] border-[#1e2d4a] text-white w-full sm:max-w-md overflow-y-auto">
+      <SheetContent className="bg-background border-border text-foreground w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-white">Neue Reise</SheetTitle>
-          <SheetDescription className="text-[#4a6a9a]">
+          <SheetTitle className="text-foreground">Neue Reise</SheetTitle>
+          <SheetDescription className="text-muted-foreground">
             Gib deiner Reise einen Namen und weitere Details.
           </SheetDescription>
         </SheetHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5">
           <div className="space-y-1.5">
-            <Label htmlFor="title" className="text-[#8ba3c7]">Reisetitel *</Label>
+            <Label htmlFor="title" className="text-secondary-foreground">Reisetitel *</Label>
             <Input
               id="title"
               placeholder="Interrail Sommer 2026"
-              className="bg-[#0a1628] border-[#1e2d4a] text-white placeholder:text-[#4a6a9a]"
+              className="bg-card border-border text-foreground placeholder:text-muted-foreground"
               {...register('title')}
             />
-            {errors.title && <p className="text-xs text-red-400">{errors.title.message}</p>}
+            {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="description" className="text-[#8ba3c7]">Beschreibung</Label>
+            <Label htmlFor="description" className="text-secondary-foreground">Beschreibung</Label>
             <Textarea
               id="description"
               placeholder="Ein paar Notizen zu dieser Reise…"
               rows={3}
-              className="bg-[#0a1628] border-[#1e2d4a] text-white placeholder:text-[#4a6a9a] resize-none"
+              className="bg-card border-border text-foreground placeholder:text-muted-foreground resize-none"
               {...register('description')}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="startDate" className="text-[#8ba3c7]">Startdatum</Label>
+              <Label htmlFor="startDate" className="text-secondary-foreground">Startdatum</Label>
               <Input
                 id="startDate"
                 type="date"
-                className="bg-[#0a1628] border-[#1e2d4a] text-white"
+                className="bg-card border-border text-foreground"
                 {...register('startDate')}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="endDate" className="text-[#8ba3c7]">Enddatum</Label>
+              <Label htmlFor="endDate" className="text-secondary-foreground">Enddatum</Label>
               <Input
                 id="endDate"
                 type="date"
-                className="bg-[#0a1628] border-[#1e2d4a] text-white"
+                className="bg-card border-border text-foreground"
                 {...register('endDate')}
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-[#8ba3c7]">Status</Label>
+            <Label className="text-secondary-foreground">Status</Label>
             <Select
               value={watch('status')}
               onValueChange={(v) => setValue('status', v as typeof TRIP_STATUSES[number])}
             >
-              <SelectTrigger className="bg-[#0a1628] border-[#1e2d4a] text-white">
+              <SelectTrigger className="bg-card border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#0a1628] border-[#1e2d4a]">
+              <SelectContent className="bg-card border-border">
                 {TRIP_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s} className="text-white focus:bg-[#1e2d4a]">
+                  <SelectItem key={s} value={s} className="text-foreground focus:bg-secondary">
                     {s === 'planned' ? 'Geplant' : s === 'active' ? 'Aktiv' : s === 'completed' ? 'Abgeschlossen' : s === 'cancelled' ? 'Storniert' : s}
                   </SelectItem>
                 ))}
@@ -118,7 +118,7 @@ export function NewTripSheet({ open, onOpenChange }: NewTripSheetProps) {
           </div>
 
           {apiError && (
-            <p className="text-xs text-red-400 bg-red-950/40 border border-red-900/50 rounded-md px-3 py-2">
+            <p className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">
               {apiError}
             </p>
           )}
@@ -127,14 +127,14 @@ export function NewTripSheet({ open, onOpenChange }: NewTripSheetProps) {
             <Button
               type="button"
               variant="outline"
-              className="flex-1 border-[#1e2d4a] text-[#8ba3c7] hover:bg-[#0a1628]"
+              className="flex-1 border-border text-secondary-foreground hover:bg-secondary"
               onClick={() => onOpenChange(false)}
             >
               Abbrechen
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-[#4f8ef7] text-white hover:bg-[#3a7de6]"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
               disabled={isPending}
             >
               {isPending ? 'Erstellen…' : 'Reise erstellen'}

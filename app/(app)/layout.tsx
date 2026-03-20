@@ -101,13 +101,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
       {/* Main content */}
       <main
-        className="main-content flex-1 overflow-y-auto"
+        className="main-content flex-1 overflow-y-auto flex flex-col"
         style={{ background: 'hsl(var(--background))' }}
       >
-        <PageTransition>
+        <PageTransition className="flex-1">
           {children}
-          <LegalFooter />
         </PageTransition>
+        <LegalFooter />
       </main>
 
       {/* Mobile bottom nav */}
