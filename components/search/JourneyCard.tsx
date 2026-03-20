@@ -125,7 +125,7 @@ export function JourneyCard({ journey, onAddToTrip }: JourneyCardProps) {
           </div>
           <Button
             size="sm"
-            className="bg-brand text-white hover:bg-brand/90 gap-1.5 shrink-0"
+            className="bg-zinc-700 text-zinc-100 hover:bg-zinc-600 gap-1.5 shrink-0"
             onClick={() => onAddToTrip(journey)}
           >
             <Plus className="h-3.5 w-3.5" />

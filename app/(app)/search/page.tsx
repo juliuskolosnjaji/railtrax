@@ -133,7 +133,7 @@ function StationInput({
       </div>
       <div style={{
         background: '#080d1a',
-        border: `1px solid ${value ? '#4f8ef7' : '#1e2d4a'}`,
+        border: `1px solid ${value ? '#4a6a9a' : '#1e2d4a'}`,
         borderRadius: 8, padding: '9px 12px',
         display: 'flex', alignItems: 'center', gap: 7,
         width: '100%', cursor: 'text',
@@ -223,8 +223,8 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                   width: isFirst || isLast ? 10 : 8,
                   height: isFirst || isLast ? 10 : 8,
                   borderRadius: '50%',
-                  background: isLast ? '#4f8ef7' : isFirst ? '#fff' : '#080d1a',
-                  border: `2px solid ${isLast ? '#4f8ef7' : isFirst ? '#fff' : '#4a6a9a'}`,
+                  background: isLast ? '#4a6a9a' : isFirst ? '#fff' : '#080d1a',
+                  border: `2px solid ${isLast ? '#4a6a9a' : isFirst ? '#fff' : '#4a6a9a'}`,
                 }} />
                 <div style={{
                   fontSize: 9, color: isFirst || isLast ? '#8ba3c7' : '#4a6a9a',
@@ -294,7 +294,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                 }}>
                   <div style={{
                     width: 10, height: 10, borderRadius: '50%',
-                    background: '#4f8ef7', border: '2px solid #4f8ef7',
+                    background: '#4a6a9a', border: '2px solid #4a6a9a',
                   }} />
                   <div style={{
                     fontSize: 9, color: '#8ba3c7', textAlign: 'center',
@@ -355,7 +355,7 @@ function TripPickerModal({
           style={{
             width: '100%', padding: '10px 14px', marginBottom: 8,
             background: '#0d1f3c', border: '1px dashed #1e3a6e',
-            borderRadius: 8, color: '#4f8ef7', fontSize: 13,
+            borderRadius: 8, color: '#4a6a9a', fontSize: 13,
             cursor: 'pointer', textAlign: 'left',
           }}
         >
@@ -374,7 +374,7 @@ function TripPickerModal({
               cursor: 'pointer', textAlign: 'left',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = '#4f8ef7')}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = '#4a6a9a')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = '#1e2d4a')}
           >
             <span>{trip.title}</span>
@@ -417,7 +417,7 @@ function JourneyCard({
         transition: 'border-color 0.15s, transform 0.1s',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = '#4f8ef7'
+        e.currentTarget.style.borderColor = '#4a6a9a'
         e.currentTarget.style.transform = 'translateY(-1px)'
       }}
       onMouseLeave={e => {
@@ -429,7 +429,7 @@ function JourneyCard({
       {journey.isBest && (
         <div style={{
           background: '#0d1f3c', padding: '4px 16px',
-          fontSize: 10, color: '#4f8ef7', fontWeight: 500,
+          fontSize: 10, color: '#4a6a9a', fontWeight: 500,
           letterSpacing: '1px', textTransform: 'uppercase',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>
@@ -476,17 +476,17 @@ function JourneyCard({
               onClick={e => { e.stopPropagation(); onAdd(journey) }}
               style={{
                 background: '#0d1f3c', border: '1px solid #1e3a6e',
-                color: '#4f8ef7', borderRadius: 8, padding: '8px 14px',
+                color: '#4a6a9a', borderRadius: 8, padding: '8px 14px',
                 fontSize: 12, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = '#4f8ef7'
+                e.currentTarget.style.background = '#4a6a9a'
                 e.currentTarget.style.color = '#fff'
-                e.currentTarget.style.borderColor = '#4f8ef7'
+                e.currentTarget.style.borderColor = '#4a6a9a'
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.background = '#0d1f3c'
-                e.currentTarget.style.color = '#4f8ef7'
+                e.currentTarget.style.color = '#4a6a9a'
                 e.currentTarget.style.borderColor = '#1e3a6e'
               }}
             >
@@ -736,7 +736,7 @@ export default function SearchPage() {
             Verbindungen zu deinen Reisen hinzufügen — kostenlos anmelden
           </span>
           <a href="/login" style={{
-            fontSize: 12, fontWeight: 500, color: '#4f8ef7',
+            fontSize: 12, fontWeight: 500, color: '#4a6a9a',
             textDecoration: 'none', whiteSpace: 'nowrap',
           }}>
             Anmelden →
@@ -766,8 +766,8 @@ export default function SearchPage() {
             placeholder="Abfahrtsbahnhof..."
             icon={
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="4" stroke="#4f8ef7" strokeWidth="1.5" />
-                <circle cx="6" cy="6" r="1.5" fill="#4f8ef7" />
+                <circle cx="6" cy="6" r="4" stroke="#4a6a9a" strokeWidth="1.5" />
+                <circle cx="6" cy="6" r="1.5" fill="#4a6a9a" />
               </svg>
             }
           />
@@ -785,7 +785,7 @@ export default function SearchPage() {
               cursor: 'pointer', flexShrink: 0,
             }}
           >
-            <ArrowLeftRight size={14} color="#4f8ef7" />
+            <ArrowLeftRight size={14} color="#4a6a9a" />
           </button>
 
           <StationInput
@@ -870,7 +870,7 @@ export default function SearchPage() {
                   style={{
                     padding: '9px 14px', fontSize: 13, cursor: 'pointer', border: 'none',
                     background: travelClass === c ? '#0d1f3c' : 'none',
-                    color: travelClass === c ? '#4f8ef7' : '#4a6a9a',
+                    color: travelClass === c ? '#4a6a9a' : '#4a6a9a',
                   }}
                 >
                   {c}.
@@ -884,7 +884,7 @@ export default function SearchPage() {
             onClick={handleSearch}
             disabled={!from || !to}
             style={{
-              background: from && to ? '#4f8ef7' : '#0d1f3c',
+              background: from && to ? '#4a6a9a' : '#0d1f3c',
               color: from && to ? '#fff' : '#4a6a9a',
               border: 'none', borderRadius: 8, padding: '10px 22px',
               fontSize: 13, fontWeight: 500,
@@ -920,7 +920,7 @@ export default function SearchPage() {
                   fontSize: 11, padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
                   border: `1px solid ${filters[f.key] ? '#1e3a6e' : '#1e2d4a'}`,
                   background: filters[f.key] ? '#0d1f3c' : '#080d1a',
-                  color: filters[f.key] ? '#4f8ef7' : '#4a6a9a',
+                  color: filters[f.key] ? '#4a6a9a' : '#4a6a9a',
                 }}
               >
                 {f.label}
@@ -1006,7 +1006,7 @@ export default function SearchPage() {
                   fontSize: 11, padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
                   background: sortBy === s.key ? '#0d1f3c' : '#0a1628',
                   border: `1px solid ${sortBy === s.key ? '#1e3a6e' : '#1e2d4a'}`,
-                  color: sortBy === s.key ? '#4f8ef7' : '#4a6a9a',
+                  color: sortBy === s.key ? '#4a6a9a' : '#4a6a9a',
                 }}
               >
                 {s.label}

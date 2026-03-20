@@ -299,7 +299,7 @@ export default function TripDetailPage() {
                         <div className="ml-6 mb-1">
                           <button
                             onClick={() => openNewEntry(leg.id)}
-                            className="text-xs text-muted-foreground hover:text-[#4f8ef7] transition-colors py-1"
+                            className="text-xs text-muted-foreground hover:text-primary transition-colors py-1"
                           >
                             + Journaleintrag für diesen Abschnitt
                           </button>
@@ -311,7 +311,7 @@ export default function TripDetailPage() {
                   {trip.legs.length > 0 && (
                     <div className="flex gap-4">
                       <div className="flex flex-col items-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#1e3a6e]" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-secondary" />
                       </div>
                       <p className="text-sm text-muted-foreground pb-2">{trip.legs[trip.legs.length - 1]?.destName}</p>
                     </div>
@@ -319,7 +319,7 @@ export default function TripDetailPage() {
 
                   {floatingEntries.length > 0 && (
                     <div className="mt-6 space-y-3">
-                      <p className="text-sm font-medium text-zinc-500">General entries</p>
+                      <p className="text-sm font-medium text-muted-foreground">General entries</p>
                       {floatingEntries.map((entry) => (
                         <JournalEntryCard key={entry.id} entry={entry} tripId={trip.id} onEdit={openEditEntry} />
                       ))}
@@ -335,13 +335,13 @@ export default function TripDetailPage() {
       {editorOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/70" onClick={() => setEditorOpen(false)} />
-          <div className="relative z-10 w-full sm:max-w-2xl sm:rounded-xl bg-[#080d1a] border border-[#1e2d4a] flex flex-col h-[80vh] sm:h-[70vh]">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e2d4a]">
-              <h3 className="text-sm font-medium text-white">
+          <div className="relative z-10 w-full sm:max-w-2xl sm:rounded-xl bg-background border border-border flex flex-col h-[80vh] sm:h-[70vh]">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 className="text-sm font-medium text-foreground">
                 {editingEntry ? 'Eintrag bearbeiten' : 'Neuer Journaleintrag'}
                 {editorLegId && <span className="ml-2 text-muted-foreground font-normal">· Abschnitt verknüpft</span>}
               </h3>
-              <button onClick={() => setEditorOpen(false)} className="text-muted-foreground hover:text-white transition-colors">
+              <button onClick={() => setEditorOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>

@@ -190,7 +190,7 @@ export default function TripEditPage() {
       )}
 
       {/* Trip details card */}
-      <div className="rounded-xl border border-[#1e2d4a] bg-[#0a1628] p-6 mb-4">
+      <div className="rounded-xl border border-border bg-[#0a1628] p-6 mb-4">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-[#4a6a9a] mb-5">
           Reisedetails
         </p>
@@ -201,7 +201,7 @@ export default function TripEditPage() {
             <Input
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className="bg-[#060c18] border-[#1e2d4a] text-white"
+              className="bg-[#060c18] border-border text-white"
               placeholder="Interrail Sommer 2026"
             />
           </div>
@@ -216,7 +216,7 @@ export default function TripEditPage() {
                 type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                className="bg-[#060c18] border-[#1e2d4a] text-white"
+                className="bg-[#060c18] border-border text-white"
               />
             </div>
             <div className="space-y-1.5">
@@ -228,7 +228,7 @@ export default function TripEditPage() {
                 type="date"
                 value={endDate}
                 onChange={e => setEndDate(e.target.value)}
-                className="bg-[#060c18] border-[#1e2d4a] text-white"
+                className="bg-[#060c18] border-border text-white"
               />
             </div>
           </div>
@@ -245,7 +245,7 @@ export default function TripEditPage() {
                     'px-4 py-1.5 rounded-lg text-sm font-medium transition-colors border',
                     status === opt.value
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-transparent text-muted-foreground border-[#1e2d4a] hover:border-[#2e3d5a] hover:text-foreground',
+                      : 'bg-transparent text-muted-foreground border-border hover:border-[#2e3d5a] hover:text-foreground',
                   ].join(' ')}
                   style={{ cursor: 'pointer' }}
                 >
@@ -258,7 +258,7 @@ export default function TripEditPage() {
       </div>
 
       {/* Legs card */}
-      <div className="rounded-xl border border-[#1e2d4a] bg-[#0a1628] p-6">
+      <div className="rounded-xl border border-border bg-[#0a1628] p-6">
         <div className="flex items-start justify-between mb-5">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[#4a6a9a]">
@@ -311,7 +311,7 @@ export default function TripEditPage() {
         {/* Leg list */}
         <div className="space-y-2">
           {trip.legs.length === 0 && (
-            <div className="text-center py-10 rounded-xl border border-dashed border-[#1e2d4a]">
+            <div className="text-center py-10 rounded-xl border border-dashed border-border">
               <p className="text-[#4a6a9a] text-sm">Noch keine Abschnitte.</p>
             </div>
           )}
@@ -328,7 +328,7 @@ export default function TripEditPage() {
                 className={`rounded-xl border transition-colors ${
                   isExpanded
                     ? 'border-primary/40 bg-[#0d1a2e]'
-                    : 'border-[#1e2d4a] bg-[#060c18]'
+                    : 'border-border bg-[#060c18]'
                 }`}
               >
                 {/* Collapsed row */}
@@ -362,7 +362,7 @@ export default function TripEditPage() {
 
                 {/* Expanded form */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-3 border-t border-[#1e2d4a] space-y-4">
+                  <div className="px-4 pb-4 pt-3 border-t border-border space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <Label className="text-[#8ba3c7] text-xs flex items-center gap-1.5">
@@ -372,7 +372,7 @@ export default function TripEditPage() {
                         <Input
                           value={form?.originName ?? leg.originName}
                           onChange={e => updateLegForm(leg.id, 'originName', e.target.value)}
-                          className="bg-[#080d1a] border-[#1e2d4a] text-white h-9"
+                          className="bg-[#080d1a] border-border text-white h-9"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -383,7 +383,7 @@ export default function TripEditPage() {
                         <Input
                           value={form?.destName ?? leg.destName}
                           onChange={e => updateLegForm(leg.id, 'destName', e.target.value)}
-                          className="bg-[#080d1a] border-[#1e2d4a] text-white h-9"
+                          className="bg-[#080d1a] border-border text-white h-9"
                         />
                       </div>
                     </div>
@@ -397,7 +397,7 @@ export default function TripEditPage() {
                         <Input
                           value={form?.trainNumber ?? leg.trainNumber ?? ''}
                           onChange={e => updateLegForm(leg.id, 'trainNumber', e.target.value)}
-                          className="bg-[#080d1a] border-[#1e2d4a] text-white h-9"
+                          className="bg-[#080d1a] border-border text-white h-9"
                           placeholder="ICE 724"
                         />
                       </div>
@@ -410,7 +410,7 @@ export default function TripEditPage() {
                           type="date"
                           value={form?.date ?? isoToDate(leg.plannedDeparture)}
                           onChange={e => updateLegForm(leg.id, 'date', e.target.value)}
-                          className="bg-[#080d1a] border-[#1e2d4a] text-white h-9"
+                          className="bg-[#080d1a] border-border text-white h-9"
                         />
                       </div>
                     </div>
@@ -425,7 +425,7 @@ export default function TripEditPage() {
                           type="time"
                           value={form?.depTime ?? isoToTime(leg.plannedDeparture)}
                           onChange={e => updateLegForm(leg.id, 'depTime', e.target.value)}
-                          className="bg-[#080d1a] border-[#1e2d4a] text-white h-9"
+                          className="bg-[#080d1a] border-border text-white h-9"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -437,7 +437,7 @@ export default function TripEditPage() {
                           type="time"
                           value={form?.arrTime ?? isoToTime(leg.plannedArrival)}
                           onChange={e => updateLegForm(leg.id, 'arrTime', e.target.value)}
-                          className="bg-[#080d1a] border-[#1e2d4a] text-white h-9"
+                          className="bg-[#080d1a] border-border text-white h-9"
                         />
                       </div>
                     </div>
