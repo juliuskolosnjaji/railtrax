@@ -12,7 +12,8 @@ import { useLegRollingStock, useLinkRollingStock, useUnlinkRollingStock } from '
 import { RollingStockSelectorSheet } from '@/components/rolling-stock/RollingStockSelectorSheet'
 import { getWagenreihungUrl } from '@/lib/wagenreihung'
 import { PlatformBadge } from '@/components/ui/PlatformBadge'
-import { formatDate as fmtDate, formatDelay } from '@/lib/i18n/format'
+import { formatDate as fmtDate } from '@/lib/i18n/format'
+import { useJourneyNumber } from '@/hooks/useJourneyNumber'
 
 const OPERATOR_STYLES: Record<string, string> = {
   DB: 'bg-red-950 text-red-300 border-red-800',
@@ -107,6 +108,14 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
   const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
   const operatorStyle = OPERATOR_STYLES[leg.operator ?? ''] ?? 'bg-zinc-800 text-zinc-300 border-zinc-700'
   const trainLabel = leg.lineName ?? leg.trainNumber
+
+  // Fetch journey number from bahn.expert (only when card is expanded,
+  // or if already cached in DB via leg.journeyNumber)
+  const { data: journeyData } = useJourneyNumber(leg.id, isExpanded)
+  const journeyNumber = leg.journeyNumber ?? journeyData?.journeyNumber ?? null
+  const trainDisplay = journeyNumber && trainLabel
+    ? `${trainLabel} (${journeyNumber})`
+    : (trainLabel ?? null)
 
   const wagenreihungUrl = getWagenreihungUrl({
     trainNumber: leg.trainNumber,
@@ -204,14 +213,14 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
                         </Badge>
                       </div>
                     )}
-                    {trainLabel && (
+                    {trainDisplay && (
                       <span style={{
                         fontSize: 12,
                         fontWeight: 500,
                         color: 'hsl(var(--foreground))',
                         fontFamily: '"JetBrains Mono", "Fira Mono", monospace',
                       }}>
-                        {trainLabel}
+                        {trainDisplay}
                       </span>
                     )}
                     <span style={{
@@ -282,7 +291,7 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
                         Zug
                       </p>
                       <p style={{ fontSize: 13, fontWeight: 600, fontFamily: '"JetBrains Mono", "Fira Mono", monospace', color: 'hsl(var(--foreground))' }}>
-                        {trainLabel ?? '–'}
+                        {trainDisplay ?? '–'}
                       </p>
                     </div>
                   </div>

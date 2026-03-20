@@ -92,6 +92,7 @@ model Leg {
   cancelled           Boolean   @default(false)
 
   tripIdVendo         String?   @map("trip_id_vendo")  // HAFAS/Vendo trip ID for direct polyline fetch
+  journeyNumber       String?   @map("journey_number") // Fahrtnummer from bahn.expert, cached
   polyline            Json?
   distanceKm          Float?    @map("distance_km")
 

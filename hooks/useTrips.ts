@@ -48,6 +48,7 @@ export interface Leg {
   cancelled: boolean
   distanceKm: number | null
   tripIdVendo: string | null    // Vendo/HAFAS trip ID — used for direct polyline fetch
+  journeyNumber: string | null  // Fahrtnummer from bahn.expert, cached in DB
   // GeoJSON coordinate pairs [lon, lat][], stored as JSON in DB
   polyline: [number, number][] | null
   seat: string | null
