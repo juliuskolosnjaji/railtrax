@@ -106,40 +106,31 @@ export function TripRouteCard({ legs, stats, originLabel, destLabel }: TripRoute
   const last = legs[legs.length - 1]
 
   return (
-    <div className="bg-[#0a1628] border border-[#1e2d4a] rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
 
       {/* ── Route bar ── */}
-      <div className="px-6 py-3.5 border-b border-[#1e2d4a] flex items-center justify-between">
-        <div className="flex items-center gap-3.5">
-          <div>
-            <p className="text-[10px] text-[#4a6a9a] mb-0.5 tracking-[0.06em] font-semibold">VON</p>
-            <p className="text-sm font-semibold text-white">{originLabel ?? first.originName}</p>
+      <div className="px-6 py-3.5 border-b border-border flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="min-w-0">
+            <p className="text-[10px] text-muted-foreground/60 mb-0.5 tracking-[0.06em] font-semibold">VON</p>
+            <p className="text-sm font-semibold text-foreground truncate">{originLabel ?? first.originName}</p>
           </div>
-          <svg width="40" height="14" viewBox="0 0 40 14" fill="none">
-            <line x1="0" y1="7" x2="30" y2="7" stroke="#4f8ef7" strokeWidth="1.5"/>
-            <path d="M28 3L32 7L28 11" stroke="#4f8ef7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="0" cy="7" r="2" fill="#4f8ef7"/>
+          <svg width="40" height="14" viewBox="0 0 40 14" fill="none" className="shrink-0">
+            <line x1="0" y1="7" x2="30" y2="7" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+            <path d="M28 3L32 7L28 11" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <circle cx="0" cy="7" r="2" fill="hsl(var(--primary))"/>
           </svg>
-          <div>
-            <p className="text-[10px] text-[#4a6a9a] mb-0.5 tracking-[0.06em] font-semibold">NACH</p>
-            <p className="text-sm font-semibold text-white">
+          <div className="min-w-0">
+            <p className="text-[10px] text-muted-foreground/60 mb-0.5 tracking-[0.06em] font-semibold">NACH</p>
+            <p className="text-sm font-semibold text-foreground truncate">
               {destLabel ?? last.destName}
             </p>
           </div>
         </div>
         {trainBadges.length > 0 && (
-          <div style={{
-            display: 'flex', gap: 6, flexWrap: 'wrap',
-            marginTop: 4,
-          }}>
+          <div className="flex gap-1.5 flex-wrap shrink-0">
             {trainBadges.map(b => (
-              <span key={b} style={{
-                fontSize: 11, fontWeight: 600,
-                padding: '3px 8px', borderRadius: 5,
-                background: '#0d1f3c', color: '#60a5fa',
-                border: '1px solid #1e3a6e',
-                whiteSpace: 'nowrap',
-              }}>
+              <span key={b} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-secondary text-primary border border-border whitespace-nowrap">
                 {b}
               </span>
             ))}
@@ -147,44 +138,39 @@ export function TripRouteCard({ legs, stats, originLabel, destLabel }: TripRoute
         )}
       </div>
 
-      {/* ── Maplibre map ── */}
-      <div className="p-6 relative">
-        {hasCoords ? (
-          <div 
-            className="w-full overflow-hidden rounded-xl h-[220px] md:h-[380px]"
-          >
-            <TripMap legs={tripLegs} preview={false} className="h-full w-full" />
-          </div>
-        ) : (
-          // No coords — show placeholder message
-          <div className="h-[220px] flex items-center justify-center">
-            <p className="text-[#4a6a9a] text-sm">Koordinaten werden geladen…</p>
-          </div>
-        )}
-      </div>
+      {/* ── Map — flush, no padding ── */}
+      {hasCoords ? (
+        <div className="w-full h-[220px] md:h-[320px]">
+          <TripMap legs={tripLegs} preview={false} className="h-full w-full" />
+        </div>
+      ) : (
+        <div className="h-[220px] flex items-center justify-center">
+          <p className="text-muted-foreground text-sm">Koordinaten werden geladen…</p>
+        </div>
+      )}
 
       {/* ── Stats bar ── */}
-      <div className="px-6 py-3.5 border-t border-[#1e2d4a] flex gap-9">
+      <div className="px-6 py-3.5 border-t border-border flex gap-9">
         {totalKm > 0 && (
           <div>
-            <p className="text-[10px] text-[#4a6a9a] mb-1 tracking-[0.06em] font-semibold">STRECKE</p>
-            <p className="text-sm font-semibold text-white">{Math.round(totalKm).toLocaleString('de-DE')} km</p>
+            <p className="text-[10px] text-muted-foreground/60 mb-1 tracking-[0.06em] font-semibold">STRECKE</p>
+            <p className="text-sm font-semibold text-foreground">{Math.round(totalKm).toLocaleString('de-DE')} km</p>
           </div>
         )}
         {durationStr && (
           <div>
-            <p className="text-[10px] text-[#4a6a9a] mb-1 tracking-[0.06em] font-semibold">DAUER</p>
-            <p className="text-sm font-semibold text-white">{durationStr}</p>
+            <p className="text-[10px] text-muted-foreground/60 mb-1 tracking-[0.06em] font-semibold">DAUER</p>
+            <p className="text-sm font-semibold text-foreground">{durationStr}</p>
           </div>
         )}
         <div>
-          <p className="text-[10px] text-[#4a6a9a] mb-1 tracking-[0.06em] font-semibold">ABSCHNITTE</p>
-          <p className="text-sm font-semibold text-white">{legs.length}</p>
+          <p className="text-[10px] text-muted-foreground/60 mb-1 tracking-[0.06em] font-semibold">ABSCHNITTE</p>
+          <p className="text-sm font-semibold text-foreground">{legs.length}</p>
         </div>
         {totalKm > 0 && (
           <div>
-            <p className="text-[10px] text-[#4a6a9a] mb-1 tracking-[0.06em] font-semibold">CO₂ GESPART</p>
-            <p className="text-sm font-semibold text-[#3ecf6e]">{Math.round(totalKm * 0.22).toLocaleString('de-DE')} kg</p>
+            <p className="text-[10px] text-muted-foreground/60 mb-1 tracking-[0.06em] font-semibold">CO₂ GESPART</p>
+            <p className="text-sm font-semibold text-success">{Math.round(totalKm * 0.22).toLocaleString('de-DE')} kg</p>
           </div>
         )}
       </div>

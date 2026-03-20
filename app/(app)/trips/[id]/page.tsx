@@ -6,7 +6,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
 import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
@@ -14,7 +13,7 @@ import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
 import { ShareButton } from '@/components/trips/ShareButton'
 import { TrainDetailSheet } from '@/components/trains/TrainDetailSheet'
 const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor').then(m => m.JournalEditor), { ssr: false })
-import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip, type Leg } from '@/hooks/useTrips'
+import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip } from '@/hooks/useTrips'
 import { useJournalEntries, type JournalEntry } from '@/hooks/useJournal'
 import { TripRouteCard } from '@/components/trips/TripRouteCard'
 
@@ -268,214 +267,30 @@ export default function TripDetailPage() {
               </div>
             </div>
 
-            <div className="timeline">
-              <div className="timeline-line"></div>
-
-              <div style={{ flex: 1 }}>
-                {trip.legs.length > 0 ? (
-                  trip.legs.map((leg: Leg, index) => {
-                    const legEntries = entries.filter((e) => e.legId === leg.id);
-                    const isLast = index === trip.legs.length - 1;
-                    
-                    // Format date for display
-                    const date = leg.plannedDeparture 
-                      ? new Date(leg.plannedDeparture).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })
-                      : '';
-                    const timeRange = leg.plannedDeparture && leg.plannedArrival
-                      ? `${new Date(leg.plannedDeparture).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} → ${new Date(leg.plannedArrival).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
-                      : '';
-                    
-                    return (
-                      <div key={leg.id} className="timeline-item">
-                        <div 
-                          className={`card ${legEntries.length > 0 ? 'active' : ''} ${isLast && legEntries.length === 0 ? 'mb-0' : 'mb-4'}`}
-                          onClick={() => {
-                            // Toggle active state - in a real app we'd manage this with state
-                            // For now, we'll keep it simple and just show all entries
-                          }}
-                        >
-                          <div className="card-header">
-                            <div>
-                              <div className="date">{date}</div>
-                              <div className="route">
-                                <strong>{timeRange}</strong> {leg.originName} → 
-                                <strong>{leg.destName}</strong>
-                              </div>
-                            </div>
-                            <div className="chevron">⌄</div>
-                          </div>
-
-                          <div className="card-body">
-                            {legEntries.length > 0 ? (
-                              <div className="space-y-3">
-                                {legEntries.map((entry) => (
-                                  <JournalEntryCard 
-                                    key={entry.id} 
-                                    entry={entry} 
-                                    tripId={trip.id} 
-                                    onEdit={openEditEntry} 
-                                    indented 
-                                  />
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-center text-muted-foreground text-sm py-4">
-                                Noch keine Einträge für diesen Abschnitt
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <>
-                    {trip.legs.length === 0 && entries.length === 0 ? (
-                      <div className="text-center py-12 rounded-xl border border-dashed border-border">
-                        <p className="text-muted-foreground text-sm mb-3">Noch keine Abschnitte. Erste Zugfahrt hinzufügen.</p>
-                        <Button
-                          variant="outline" size="sm"
-                          onClick={() => setAddLegOpen(true)}
-                          className="border-border text-secondary-foreground hover:bg-secondary gap-1.5"
-                        >
-                          <Plus className="h-4 w-4" /> Abschnitt hinzufügen
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground text-sm">Keine Abschnitte verfügbar</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-
-            {floatingEntries.length > 0 && (
-              <div className="mt-6 space-y-3">
-                <p className="text-sm font-medium text-muted-foreground">Allgemeine Einträge</p>
-                {floatingEntries.map((entry) => (
-                  <JournalEntryCard 
-                    key={entry.id} 
-                    entry={entry} 
-                    tripId={trip.id} 
-                    onEdit={openEditEntry} 
+            <div>
+              {trip.legs.length > 0 ? (
+                trip.legs.map((leg) => (
+                  <LegCard
+                    key={leg.id}
+                    leg={leg}
+                    tripId={trip.id}
+                    onTrainClick={(trainNumber, departure, operator) =>
+                      setDetailTrain({ trainNumber, departure, operator })
+                    }
                   />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Timeline */}
-          <div className="pb-8">
-            <div className="flex items-center justify-between mb-4 px-4 pt-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold text-foreground">Zeitlinie</h2>
-                <span className="px-2.5 py-0.5 rounded-full bg-secondary text-[11px] font-medium text-secondary-foreground whitespace-nowrap">
-                  {trip.legs.length} Abschnitte · {entries.length} Einträge
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => openNewEntry()}
-                  className="tap-small h-8 px-3 rounded-lg border flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
-                  style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
-                >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  Eintrag
-                </button>
-                <button
-                  onClick={() => setAddLegOpen(true)}
-                  className="tap-small h-8 px-3 rounded-lg bg-primary text-primary-foreground flex items-center gap-1.5 text-[13px] font-medium hover:bg-primary/90 transition-colors"
-                  style={{ border: 'none', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Abschnitt
-                </button>
-              </div>
-            </div>
-
-            <div className="timeline">
-              <div className="timeline-line"></div>
-
-              <div style={{ flex: 1 }}>
-                {trip.legs.length > 0 ? (
-                  trip.legs.map((leg: Leg, index) => {
-                    const legEntries = entries.filter((e) => e.legId === leg.id);
-                    const isLast = index === trip.legs.length - 1;
-                    
-                    // Format date for display
-                    const date = leg.plannedDeparture 
-                      ? new Date(leg.plannedDeparture).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })
-                      : '';
-                    const timeRange = leg.plannedDeparture && leg.plannedArrival
-                      ? `${new Date(leg.plannedDeparture).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} → ${new Date(leg.plannedArrival).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
-                      : '';
-                    
-                    return (
-                      <div key={leg.id} className="timeline-item">
-                        <div 
-                          className={`card ${legEntries.length > 0 ? 'active' : ''} ${isLast && legEntries.length === 0 ? 'mb-0' : 'mb-4'}`}
-                          onClick={() => {
-                            // Toggle active state - in a real app we'd manage this with state
-                            // For now, we'll keep it simple and just show all entries
-                          }}
-                        >
-                          <div className="card-header">
-                            <div>
-                              <div className="date">{date}</div>
-                              <div className="route">
-                                <strong>{timeRange}</strong> {leg.originName} → 
-                                <strong>{leg.destName}</strong>
-                              </div>
-                            </div>
-                            <div className="chevron">⌄</div>
-                          </div>
-
-                          <div className="card-body">
-                            {legEntries.length > 0 ? (
-                              <div className="space-y-3">
-                                {legEntries.map((entry) => (
-                                  <JournalEntryCard 
-                                    key={entry.id} 
-                                    entry={entry} 
-                                    tripId={trip.id} 
-                                    onEdit={openEditEntry} 
-                                    indented 
-                                  />
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-center text-muted-foreground text-sm py-4">
-                                Noch keine Einträge für diesen Abschnitt
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <>
-                    {trip.legs.length === 0 && entries.length === 0 ? (
-                      <div className="text-center py-12 rounded-xl border border-dashed border-border">
-                        <p className="text-muted-foreground text-sm mb-3">Noch keine Abschnitte. Erste Zugfahrt hinzufügen.</p>
-                        <Button
-                          variant="outline" size="sm"
-                          onClick={() => setAddLegOpen(true)}
-                          className="border-border text-secondary-foreground hover:bg-secondary gap-1.5"
-                        >
-                          <Plus className="h-4 w-4" /> Abschnitt hinzufügen
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-muted-foreground text-sm">Keine Abschnitte verfügbar</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
+                ))
+              ) : (
+                <div className="text-center py-12 rounded-xl border border-dashed border-border">
+                  <p className="text-muted-foreground text-sm mb-3">Noch keine Abschnitte. Erste Zugfahrt hinzufügen.</p>
+                  <button
+                    onClick={() => setAddLegOpen(true)}
+                    className="inline-flex items-center gap-1.5 text-sm text-secondary-foreground border border-border rounded-lg px-3 py-1.5 hover:bg-secondary transition-colors"
+                    style={{ background: 'transparent', cursor: 'pointer' }}
+                  >
+                    <Plus className="h-4 w-4" /> Abschnitt hinzufügen
+                  </button>
+                </div>
+              )}
             </div>
 
             {floatingEntries.length > 0 && (
@@ -523,6 +338,13 @@ export default function TripDetailPage() {
       )}
 
       <LegEditorSheet tripId={id} open={addLegOpen} onOpenChange={setAddLegOpen} />
+      {detailTrain && (
+        <TrainDetailSheet
+          trainNumber={detailTrain.trainNumber}
+          date={detailTrain.departure}
+          onClose={() => setDetailTrain(null)}
+        />
+      )}
     </div>
   )
 }
