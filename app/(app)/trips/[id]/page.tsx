@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
 import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
-import { TripEditorSheet } from '@/components/trips/TripEditorSheet'
 import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
 import { ShareButton } from '@/components/trips/ShareButton'
 import { TrainDetailSheet } from '@/components/trains/TrainDetailSheet'
@@ -59,7 +58,6 @@ export default function TripDetailPage() {
   const [editorLegId, setEditorLegId] = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
   const [upgradeOpen, setUpgradeOpen] = useState(false)
-  const [tripEditOpen, setTripEditOpen] = useState(false)
   const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
 
   const handleShareTrip = async () => {
@@ -143,13 +141,14 @@ export default function TripDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-foreground tracking-tight">{trip.title}</h1>
-              <button
-                onClick={() => setTripEditOpen(true)}
+              <Link
+                href={`/trips/${id}/edit`}
                 className="tap-small w-8 h-8 rounded-lg border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
+                style={{ borderColor: 'hsl(var(--border))' }}
+                title="Reise bearbeiten"
               >
                 <Pencil className="w-3.5 h-3.5" />
-              </button>
+              </Link>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <a
@@ -366,7 +365,6 @@ export default function TripDetailPage() {
       )}
 
       <LegEditorSheet tripId={id} open={addLegOpen} onOpenChange={setAddLegOpen} />
-      <TripEditorSheet open={tripEditOpen} onOpenChange={setTripEditOpen} trip={trip} />
       <UpgradeModal feature="journal" open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   )
