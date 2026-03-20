@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
 
 const HeatmapMap = dynamic(
   () => import('@/components/map/HeatmapMap').then((m) => m.HeatmapMap),
@@ -21,7 +20,6 @@ interface StatsData {
   monthly_distances?: Record<string, number>
   top_operators?: { operator: string; km: number }[]
   countries_detail?: { country: string; km: number }[]
-  upgradeRequired?: boolean
 }
 
 interface HeatmapData {
@@ -66,29 +64,6 @@ function StatCard({
   )
 }
 
-function LockedCard({ label, onUnlock }: { label: string; onUnlock: () => void }) {
-  return (
-    <div
-      style={{ ...CARD_STYLE, position: 'relative', cursor: 'pointer' }}
-      onClick={onUnlock}
-    >
-      <div style={{ filter: 'blur(4px)', userSelect: 'none' }}>
-        <p style={{ fontSize: 12, color: '#4a6a9a', marginBottom: 4 }}>{label}</p>
-        <p style={{ fontSize: 28, fontWeight: 700, color: '#fff' }}>—</p>
-      </div>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{
-          borderRadius: 99, border: '1px solid #1e3a6e',
-          background: 'rgba(10,22,40,0.85)', padding: '4px 12px',
-          fontSize: 12, color: '#4f8ef7',
-        }}>
-          Plus — upgraden zum Freischalten
-        </span>
-      </div>
-    </div>
-  )
-}
-
 const CO2_COMPARISONS = [
   { kg: 100, label: '1 smartphone charged' },
   { kg: 500, label: '1km driven in a car' },
@@ -116,7 +91,6 @@ function formatMonth(monthKey: string): string {
 type Tab = 'overview' | 'heatmap'
 
 export default function StatsPage() {
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('overview')
 
   const { data, isLoading, isError } = useQuery<{ data: StatsData }>({
@@ -128,7 +102,7 @@ export default function StatsPage() {
   const { data: heatmapData } = useQuery<{ data: HeatmapData }>({
     queryKey: ['stats-heatmap'],
     queryFn: () => fetch('/api/stats/heatmap').then((r) => r.json()),
-    enabled: activeTab === 'heatmap' && !!data?.data && !data?.data.upgradeRequired,
+    enabled: activeTab === 'heatmap',
   })
 
   const stats = data?.data
@@ -213,19 +187,17 @@ export default function StatsPage() {
             )}
           </div>
 
-          {/* CO2 card — Plus only */}
+          {/* CO2 card */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {isLoading ? (
               <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 animate-pulse">
                 <div className="h-3 w-20 bg-zinc-800 rounded mb-3" />
                 <div className="h-8 w-16 bg-zinc-700 rounded" />
               </div>
-            ) : stats?.upgradeRequired ? (
-              <LockedCard label="CO₂ eingespart" onUnlock={() => setUpgradeOpen(true)} />
             ) : (
               <div className="rounded-xl border border-green-900/50 bg-green-950/30 p-6">
                 <p className="text-sm text-green-400 mb-1">CO₂ eingespart</p>
-                <p className="text-3xl font-bold text-green-400">{stats?.co2_saved_kg} kg</p>
+                <p className="text-3xl font-bold text-green-400">{stats?.co2_saved_kg ?? 0} kg</p>
                 {co2Comparison && (
                   <p className="text-xs text-green-500/70 mt-1">
                     ≈ {co2Comparison.label}
@@ -235,17 +207,12 @@ export default function StatsPage() {
             )}
           </div>
 
-          {/* Monthly distance chart — Plus only */}
+          {/* Monthly distance chart */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {isLoading ? (
               <>
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 animate-pulse min-h-[300px]" />
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 animate-pulse min-h-[300px]" />
-              </>
-            ) : stats?.upgradeRequired ? (
-              <>
-                <LockedCard label="Monatliche Strecke" onUnlock={() => setUpgradeOpen(true)} />
-                <LockedCard label="Top-Betreiber" onUnlock={() => setUpgradeOpen(true)} />
               </>
             ) : (
               <>
@@ -334,36 +301,16 @@ export default function StatsPage() {
       )}
 
       {activeTab === 'heatmap' && (
-        <>
-          {stats?.upgradeRequired ? (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-12 flex flex-col items-center justify-center">
-              <p className="text-zinc-500 text-sm mb-4">Heatmap ist verfügbar für Plus-Abonnenten</p>
-              <button
-                onClick={() => setUpgradeOpen(true)}
-                className="px-4 py-2 bg-white text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-100 transition-colors"
-              >
-                Plus wählen
-              </button>
-            </div>
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden" style={{ height: '500px' }}>
+          {heatmapData?.data?.features?.length ? (
+            <HeatmapMap geojson={heatmapData.data} />
           ) : (
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden" style={{ height: '500px' }}>
-              {heatmapData?.data?.features?.length ? (
-                <HeatmapMap geojson={heatmapData.data} />
-              ) : (
-                <div className="flex items-center justify-center h-full text-zinc-500 text-sm">
-                  Noch keine Routendaten zum Anzeigen
-                </div>
-              )}
+            <div className="flex items-center justify-center h-full text-zinc-500 text-sm">
+              Noch keine Routendaten zum Anzeigen
             </div>
           )}
-        </>
+        </div>
       )}
-
-      <UpgradeModal
-        feature="fullStats"
-        open={upgradeOpen}
-        onOpenChange={setUpgradeOpen}
-      />
     </div>
   )
 }

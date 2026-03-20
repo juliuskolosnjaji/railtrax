@@ -2,11 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CreditCard, Train, Bell, Shield } from 'lucide-react'
+import { Train, Bell, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const SETTINGS_TABS = [
-  { name: 'Abonnement',        href: '/settings/billing',       icon: CreditCard },
   { name: 'Verbindungen',      href: '/settings/connections',   icon: Train },
   { name: 'Benachrichtigungen', href: '/settings/notifications', icon: Bell },
   { name: 'Daten & Privatsphäre', href: '/settings/privacy',   icon: Shield },

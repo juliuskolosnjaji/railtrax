@@ -48,7 +48,6 @@ export async function GET() {
         display_name: profile?.displayName,
         home_station: profile?.homeStation,
         created_at: profile?.createdAt,
-        plan: user.app_metadata?.plan ?? 'free',
       },
       trips,
       journal_entries: journalEntries,

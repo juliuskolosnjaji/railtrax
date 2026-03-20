@@ -5,8 +5,6 @@ import { Bell, TestTube2 } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { useUser } from '@/hooks/useUser'
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
 
 interface Preferences {
   notificationsEnabled: boolean
@@ -20,13 +18,9 @@ export function NotificationsClient({
 }: {
   initialPreferences: Preferences
 }) {
-  const { plan, isLoading: userLoading } = useUser()
   const [prefs, setPrefs] = useState<Preferences>(initialPreferences)
   const [isLoading, setIsLoading] = useState(false)
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [testSent, setTestSent] = useState(false)
-
-  const canNotify = plan === 'plus' || plan === 'pro'
 
   const subscribeToPush = useCallback(async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -104,11 +98,6 @@ export function NotificationsClient({
   const handleToggle = async (key: keyof Preferences, value: boolean) => {
     if (key !== 'notificationsEnabled' && !prefs.notificationsEnabled) return
 
-    if (key === 'notificationsEnabled' && value && !canNotify) {
-      setShowUpgradeModal(true)
-      return
-    }
-
     const newPrefs = { ...prefs, [key]: value }
     setPrefs(newPrefs)
     await savePreferences(newPrefs)
@@ -123,10 +112,6 @@ export function NotificationsClient({
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (userLoading) {
-    return <div className="p-6 text-muted-foreground">Laden...</div>
   }
 
   return (
@@ -211,14 +196,6 @@ export function NotificationsClient({
           )}
         </CardContent>
       </Card>
-
-      {showUpgradeModal && (
-        <UpgradeModal
-          open={showUpgradeModal}
-          onOpenChange={setShowUpgradeModal}
-          feature="notifications"
-        />
-      )}
     </div>
   )
 }

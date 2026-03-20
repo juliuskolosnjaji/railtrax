@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { Plus, Calendar, ArrowRight, Train, Clock, MapPin, Leaf, Route } from 'lucide-react'
 import { NewTripSheet } from '@/components/trips/NewTripSheet'
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { useEntitlements } from '@/hooks/useEntitlements'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -92,8 +90,6 @@ export default function TripsPage() {
   const router = useRouter()
   const [filter, setFilter] = useState<Filter>('all')
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
-  const { getLimit } = useEntitlements()
 
   const { data: trips = [], isLoading } = useQuery<TripWithLegs[]>({
     queryKey: ['trips', 'with-legs'],
@@ -106,14 +102,6 @@ export default function TripsPage() {
     staleTime: 30_000,
     refetchInterval: 60_000,
   })
-
-  const maxTrips = getLimit('maxTrips')
-  const atLimit = maxTrips !== Infinity && trips.length >= maxTrips
-
-  function handleNewTrip() {
-    if (atLimit) setUpgradeOpen(true)
-    else setSheetOpen(true)
-  }
 
   // Counts per status
   const counts = {
@@ -146,7 +134,7 @@ export default function TripsPage() {
           )}
         </div>
         <button
-          onClick={handleNewTrip}
+          onClick={() => setSheetOpen(true)}
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shrink-0"
           style={{ border: 'none', cursor: 'pointer' }}
         >
@@ -213,7 +201,7 @@ export default function TripsPage() {
         <div className="text-center py-16 rounded-xl border border-dashed border-[#1e2d4a]">
           <p className="text-muted-foreground text-sm mb-3">Keine Reisen gefunden.</p>
           <button
-            onClick={handleNewTrip}
+            onClick={() => setSheetOpen(true)}
             className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1e2d4a] text-muted-foreground hover:text-foreground hover:border-[#2e3d5a] transition-colors"
             style={{ background: 'transparent', cursor: 'pointer' }}
           >
@@ -323,7 +311,6 @@ export default function TripsPage() {
       )}
 
       <NewTripSheet open={sheetOpen} onOpenChange={setSheetOpen} />
-      <UpgradeModal feature="journal" open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   )
 }

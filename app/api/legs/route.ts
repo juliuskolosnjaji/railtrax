@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { getPlan, getLimit } from '@/lib/entitlements'
 import { createLegSchema } from '@/lib/validators/leg'
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -32,20 +31,6 @@ export async function POST(req: NextRequest) {
     where: { id: parsed.data.tripId, userId: user.id },
   })
   if (!trip) return NextResponse.json({ error: 'not_found' }, { status: 404 })
-
-  // Check per-trip leg limit
-  const plan = getPlan(user.app_metadata as { plan?: string })
-  const maxLegs = getLimit(plan, 'maxLegsPerTrip')
-
-  if (maxLegs !== Infinity) {
-    const legCount = await prisma().leg.count({ where: { tripId: parsed.data.tripId } })
-    if (legCount >= maxLegs) {
-      return NextResponse.json(
-        { error: 'limit_reached', limit: maxLegs, current: legCount, upgrade: true },
-        { status: 403 },
-      )
-    }
-  }
 
   // Auto-assign position = current max + 1
   const lastLeg = await prisma().leg.findFirst({

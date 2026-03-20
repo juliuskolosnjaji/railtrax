@@ -2,8 +2,6 @@ import { NextRequest } from 'next/server'
 import { authenticateRequest, v1Ok, v1Error } from '@/lib/api/v1/middleware'
 import { prisma } from '@/lib/prisma'
 import { createTripSchema } from '@/lib/validators/trip'
-import { getPlan, getLimit } from '@/lib/entitlements'
-import { createClient } from '@/lib/supabase/server'
 
 export async function GET(req: NextRequest) {
   const auth = await authenticateRequest(req)
@@ -42,20 +40,6 @@ export async function POST(req: NextRequest) {
   const parsed = createTripSchema.safeParse(body)
   if (!parsed.success) {
     return v1Error('Validation error', 422, 'validation_error')
-  }
-
-  // Enforce plan limits — need app_metadata from Supabase
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    const plan = getPlan(user.app_metadata as { plan?: string })
-    const maxTrips = getLimit(plan, 'maxTrips')
-    if (maxTrips !== Infinity) {
-      const count = await prisma().trip.count({ where: { userId: auth.userId } })
-      if (count >= maxTrips) {
-        return v1Error(`Trip limit of ${maxTrips} reached for your plan`, 403, 'plan_limit_exceeded')
-      }
-    }
   }
 
   const trip = await prisma().trip.create({

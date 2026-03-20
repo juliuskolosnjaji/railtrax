@@ -2,8 +2,6 @@ import { NextRequest } from 'next/server'
 import { authenticateRequest, v1Ok, v1Error } from '@/lib/api/v1/middleware'
 import { prisma } from '@/lib/prisma'
 import { createLegSchema } from '@/lib/validators/leg'
-import { getPlan, getLimit } from '@/lib/entitlements'
-import { createClient } from '@/lib/supabase/server'
 
 export async function POST(req: NextRequest) {
   const auth = await authenticateRequest(req)
@@ -20,20 +18,6 @@ export async function POST(req: NextRequest) {
     where: { id: parsed.data.tripId, userId: auth.userId },
   })
   if (!trip) return v1Error('Trip not found', 404, 'not_found')
-
-  // Enforce plan limits
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    const plan = getPlan(user.app_metadata as { plan?: string })
-    const maxLegs = getLimit(plan, 'maxLegsPerTrip')
-    if (maxLegs !== Infinity) {
-      const count = await prisma().leg.count({ where: { tripId: parsed.data.tripId } })
-      if (count >= maxLegs) {
-        return v1Error(`Leg limit of ${maxLegs} per trip reached for your plan`, 403, 'plan_limit_exceeded')
-      }
-    }
-  }
 
   const { tripId, ...legData } = parsed.data
 

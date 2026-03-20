@@ -37,7 +37,6 @@ export async function GET(req: NextRequest) {
     email: user?.email,
     username: user?.user_metadata?.username,
     avatarUrl: user?.user_metadata?.avatar_url,
-    plan: user?.app_metadata?.plan ?? 'free',
     preferences: prefs,
     createdAt: user?.created_at,
   })

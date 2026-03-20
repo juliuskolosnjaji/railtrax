@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { getPlan, can } from '@/lib/entitlements'
 import { z } from 'zod'
 
 const reviewSchema = z.object({
@@ -99,12 +98,6 @@ export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-
-  const plan = getPlan(user.app_metadata as { plan?: string })
-
-  if (!can(plan, 'journal')) {
-    return NextResponse.json({ error: 'upgrade_required', requiredPlan: 'plus' }, { status: 403 })
-  }
 
   try {
     const body = await request.json()

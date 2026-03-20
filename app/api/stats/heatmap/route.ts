@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { getPlan, can } from '@/lib/entitlements'
 import { cached } from '@/lib/redis'
 
 interface GeoJSONFeature {
@@ -27,12 +26,6 @@ export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-
-  const plan = getPlan(user.app_metadata as { plan?: string })
-
-  if (!can(plan, 'fullStats')) {
-    return NextResponse.json({ error: 'upgrade_required', requiredPlan: 'plus' }, { status: 403 })
-  }
 
   const cacheKey = `heatmap:${user.id}`
 

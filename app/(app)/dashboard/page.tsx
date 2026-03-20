@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Train, BarChart2, ArrowRight, Plus, Calendar, MapPin } from 'lucide-react'
 import { NewTripSheet } from '@/components/trips/NewTripSheet'
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
-import { useEntitlements } from '@/hooks/useEntitlements'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -197,8 +195,6 @@ export default function DashboardPage() {
   const router = useRouter()
   const qc = useQueryClient()
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
-  const { getLimit } = useEntitlements()
 
   const { data: trips, isLoading } = useQuery<TripWithLegs[]>({
     queryKey: ['trips', 'with-legs'],
@@ -234,14 +230,6 @@ export default function DashboardPage() {
           return ls + (new Date(l.plannedArrival).getTime() - new Date(l.plannedDeparture).getTime())
         }, 0), 0)
     : 0
-
-  const maxTrips = getLimit('maxTrips')
-  const atLimit = maxTrips !== Infinity && (trips?.length ?? 0) >= maxTrips
-
-  function handleNewTrip() {
-    if (atLimit) setUpgradeOpen(true)
-    else setSheetOpen(true)
-  }
 
   // Planned / active trips shown in the list
   const plannedTrips = trips?.filter(t => t.status !== 'completed' && t.status !== 'cancelled') ?? []
@@ -336,7 +324,7 @@ export default function DashboardPage() {
             )}
           </div>
           <button
-            onClick={handleNewTrip}
+            onClick={() => setSheetOpen(true)}
             className="tap-small flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors"
             style={{
               background: 'hsl(var(--primary))',
@@ -370,17 +358,17 @@ export default function DashboardPage() {
               Keine Reisen geplant
             </p>
             <button
-              onClick={handleNewTrip}
-              className="tap-small text-[12px] font-medium px-4 py-2 rounded-lg transition-colors"
-              style={{
-                background: 'hsl(var(--secondary))',
-                color: 'hsl(var(--foreground))',
-                border: '1px solid hsl(var(--border))',
-                cursor: 'pointer', minHeight: 'unset', minWidth: 'unset',
-              }}
-            >
-              + Erste Reise erstellen
-            </button>
+            onClick={() => setSheetOpen(true)}
+            className="tap-small text-[12px] font-medium px-4 py-2 rounded-lg transition-colors"
+            style={{
+              background: 'hsl(var(--secondary))',
+              color: 'hsl(var(--foreground))',
+              border: '1px solid hsl(var(--border))',
+              cursor: 'pointer', minHeight: 'unset', minWidth: 'unset',
+            }}
+          >
+            + Erste Reise erstellen
+          </button>
           </div>
         ) : (
           plannedTrips.map(trip => <TripRow key={trip.id} trip={trip} />)
@@ -388,7 +376,6 @@ export default function DashboardPage() {
       </div>
 
       <NewTripSheet open={sheetOpen} onOpenChange={setSheetOpen} />
-      <UpgradeModal feature="journal" open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   )
 }

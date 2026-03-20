@@ -17,15 +17,7 @@ export async function DELETE() {
     })
 
     if (activeSub?.lsSubscriptionId) {
-      try {
-        const { cancelSubscription } = await import('@lemonsqueezy/lemonsqueezy.js')
-        const { lemonSqueezySetup } = await import('@lemonsqueezy/lemonsqueezy.js')
-        lemonSqueezySetup({ apiKey: process.env.LEMONSQUEEZY_API_KEY! })
-        await cancelSubscription(activeSub.lsSubscriptionId)
-      } catch (e) {
-        // Log but do not block deletion
-        console.error('[delete-account] Could not cancel LS subscription:', e)
-      }
+      // Subscription billing system removed — subscription will remain in billing system
     }
 
     // Delete all user data in FK-safe order

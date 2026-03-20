@@ -1,9 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SignOutButton } from '@/components/shared/SignOutButton'
-import { getPlan } from '@/lib/entitlements'
 import { Logo } from '@/components/ui/Logo'
-import { de } from '@/lib/i18n/de'
 import { MobileBottomNav } from '@/components/shared/MobileBottomNav'
 import { MobileHeader } from '@/components/shared/MobileHeader'
 import { SidebarNav } from '@/components/shared/SidebarNav'
@@ -29,19 +27,12 @@ function LegalFooter() {
   )
 }
 
-const PLAN_BADGE: Record<string, string> = {
-  free: de.settings.free,
-  plus: de.settings.plus,
-  pro:  de.settings.pro,
-}
-
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const plan = user ? getPlan(user.app_metadata as { plan?: string }) : null
   const displayName = user ? (user.user_metadata?.username ?? user.email ?? 'User') : null
   const avatarUrl = user ? (user.user_metadata?.avatar_url as string | undefined) : undefined
   const initials = displayName ? displayName.slice(0, 2).toUpperCase() : ''
@@ -91,9 +82,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-medium text-foreground truncate">{displayName}</p>
-                  <p className="text-[11px] text-primary">
-                    {PLAN_BADGE[plan!] ?? de.settings.free}
-                  </p>
+                  <p className="text-[11px] text-muted-foreground">@{displayName}</p>
                 </div>
               </div>
               <SignOutButton />

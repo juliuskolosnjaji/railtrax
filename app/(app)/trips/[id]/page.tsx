@@ -14,10 +14,8 @@ import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
 import { ShareButton } from '@/components/trips/ShareButton'
 import { TrainDetailSheet } from '@/components/trains/TrainDetailSheet'
 const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor').then(m => m.JournalEditor), { ssr: false })
-import { UpgradeModal } from '@/components/billing/UpgradeModal'
 import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip, type Leg } from '@/hooks/useTrips'
 import { useJournalEntries, type JournalEntry } from '@/hooks/useJournal'
-import { useEntitlements } from '@/hooks/useEntitlements'
 import { TripRouteCard } from '@/components/trips/TripRouteCard'
 
 
@@ -48,8 +46,6 @@ export default function TripDetailPage() {
   const { data: entries = [] } = useJournalEntries(id)
   const deleteTrip = useDeleteTrip()
   const qc = useQueryClient()
-  const { can } = useEntitlements()
-  const canJournal = can('journal')
   const shareTrip = useShareTrip(id)
   const unshareTrip = useUnshareTrip(id)
 
@@ -57,7 +53,6 @@ export default function TripDetailPage() {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorLegId, setEditorLegId] = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
 
   const handleShareTrip = async () => {
@@ -79,7 +74,6 @@ export default function TripDetailPage() {
   }, [id, trip, qc])
 
   function openNewEntry(legId?: string) {
-    if (!canJournal) { setUpgradeOpen(true); return }
     setEditingEntry(null)
     setEditorLegId(legId ?? null)
     setEditorOpen(true)
@@ -365,7 +359,6 @@ export default function TripDetailPage() {
       )}
 
       <LegEditorSheet tripId={id} open={addLegOpen} onOpenChange={setAddLegOpen} />
-      <UpgradeModal feature="journal" open={upgradeOpen} onOpenChange={setUpgradeOpen} />
     </div>
   )
 }

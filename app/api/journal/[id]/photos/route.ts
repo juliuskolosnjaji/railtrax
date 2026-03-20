@@ -2,23 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { prisma } from '@/lib/prisma'
-import { getPlan, getLimit } from '@/lib/entitlements'
 import { randomUUID } from 'crypto'
 import sharp from 'sharp'
 
 const MAX_DIMENSION = 2000
+const MAX_STORAGE_MB = 500
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-
-  const plan = getPlan(user.app_metadata as { plan?: string })
-  const maxMb = getLimit(plan, 'maxPhotosMb')
-  if (maxMb === 0) {
-    return NextResponse.json({ error: 'upgrade_required', requiredPlan: 'plus' }, { status: 403 })
-  }
 
   // Verify entry ownership
   const entry = await prisma().journalEntry.findUnique({ where: { id: id }, select: { userId: true } })
@@ -39,9 +33,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Check storage limit
   const usage = await prisma().usageCounter.findUnique({ where: { userId: user.id } })
   const usedBytes = Number(usage?.storageBytes ?? 0)
-  const maxBytes = maxMb * 1024 * 1024
+  const maxBytes = MAX_STORAGE_MB * 1024 * 1024
   if (usedBytes >= maxBytes) {
-    return NextResponse.json({ error: 'limit_reached', limit: maxMb, upgrade: true }, { status: 403 })
+    return NextResponse.json({ error: 'limit_reached', limit: MAX_STORAGE_MB }, { status: 403 })
   }
 
   // Read + resize with sharp

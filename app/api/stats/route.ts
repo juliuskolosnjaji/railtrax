@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { getPlan, can } from '@/lib/entitlements'
 
 const IBNR_COUNTRY_MAP: Record<string, string> = {
   '80': 'DE',
@@ -19,8 +18,6 @@ export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-
-  const plan = getPlan(user.app_metadata as { plan?: string })
 
   try {
     type TripWithLegs = {
@@ -90,13 +87,6 @@ export async function GET() {
       total_legs: totalLegs,
       total_hours: Math.round((totalMinutes / 60) * 10) / 10,
       countries: Array.from(countryCodes).sort(),
-    }
-
-    if (!can(plan, 'fullStats')) {
-      return NextResponse.json(
-        { data: { ...base, co2_saved_kg: null, upgradeRequired: true } },
-        { headers: { 'Cache-Control': 'private, max-age=60' } },
-      )
     }
 
     const monthlyDistances: Record<string, number> = {}

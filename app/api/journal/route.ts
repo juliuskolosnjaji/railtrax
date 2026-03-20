@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { getPlan, can } from '@/lib/entitlements'
 import { createJournalEntrySchema } from '@/lib/validators/journal'
 
 export async function GET(req: NextRequest) {
@@ -30,11 +29,6 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-
-  const plan = getPlan(user.app_metadata as { plan?: string })
-  if (!can(plan, 'journal')) {
-    return NextResponse.json({ error: 'upgrade_required', requiredPlan: 'plus' }, { status: 403 })
-  }
 
   const body = await req.json()
   const parsed = createJournalEntrySchema.safeParse(body)

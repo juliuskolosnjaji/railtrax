@@ -27,7 +27,11 @@
       "Bash(rg -n '\\\\{[^}]*:.*[A-Z][a-zA-Z]+,.*\\\\}' /home/julius/Dokumente/railtripper/app/\\\\\\(app\\\\\\)/layout.tsx)",
       "Bash(head -10 /home/julius/Dokumente/railtripper/app/rolling-stock/[id]/page.tsx)",
       "Bash(grep -n \"^import\" /home/julius/Dokumente/railtripper/app/rolling-stock/[id]/page.tsx)",
-      "Bash(grep -n \"cn\\(\" /home/julius/Dokumente/railtripper/app/rolling-stock/[id]/page.tsx)"
+      "Bash(grep -n \"cn\\(\" /home/julius/Dokumente/railtripper/app/rolling-stock/[id]/page.tsx)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(ls \"c:\\\\Users\\\\juliu\\\\Documents\\\\railtrax\\\\app\\\\\\(app\\)\\\\trips\\\\[id]\")",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(ls -la \"c:/Users/juliu/Documents/railtrax/app/\\(app\\)/trips/\")"
     ]
   }
 }
