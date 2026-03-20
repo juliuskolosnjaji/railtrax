@@ -87,7 +87,7 @@ function getOperatorColor(operator: string | null): { line: string; badge: strin
     return { line: '#e25555', badge: '#1f0808', text: '#e25555' }
   if (op.includes('TRENITALIA') || op.includes('TI'))
     return { line: '#3ecf6e', badge: '#081a10', text: '#3ecf6e' }
-  return { line: '#6b7280', badge: '#111e35', text: '#6b7280' }
+  return { line: 'hsl(var(--muted-foreground))', badge: 'hsl(var(--secondary))', text: 'hsl(var(--muted-foreground))' }
 }
 
 function resolveOperator(leg: JourneyLeg): string {
@@ -126,14 +126,14 @@ function StationInput({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, position: 'relative', width: '100%', maxWidth: 280 }}>
       <div style={{
-        fontSize: 10, color: '#6b7280', textTransform: 'uppercase',
+        fontSize: 10, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase',
         letterSpacing: '1px', fontWeight: 500,
       }}>
         {label}
       </div>
       <div style={{
-        background: '#080d1a',
-        border: `1px solid ${value ? '#6b7280' : '#1e2d4a'}`,
+        background: 'hsl(var(--background))',
+        border: `1px solid ${value ? 'hsl(var(--muted-foreground))' : 'hsl(var(--border))'}`,
         borderRadius: 8, padding: '9px 12px',
         display: 'flex', alignItems: 'center', gap: 7,
         width: '100%', cursor: 'text',
@@ -147,7 +147,7 @@ function StationInput({
           placeholder={placeholder}
           style={{
             background: 'none', border: 'none', outline: 'none',
-            color: value ? '#fff' : '#6b7280',
+            color: value ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
             fontSize: 13, width: '100%',
           }}
         />
@@ -155,7 +155,7 @@ function StationInput({
           <button
             onClick={() => { onSelect(null); onChange('') }}
             style={{
-              background: 'none', border: 'none', color: '#6b7280',
+              background: 'none', border: 'none', color: 'hsl(var(--muted-foreground))',
               cursor: 'pointer', padding: 0, lineHeight: 1,
             }}
           >
@@ -166,7 +166,7 @@ function StationInput({
       {suggestions && suggestions.length > 0 && !value && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-          background: '#0a1628', border: '1px solid #1e2d4a', borderRadius: 8,
+          background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8,
           marginTop: 4, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
         }}>
           {suggestions.map(s => (
@@ -176,14 +176,14 @@ function StationInput({
               style={{
                 padding: '10px 14px', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 8,
-                borderBottom: '1px solid #1e2d4a',
-                fontSize: 13, color: '#fff',
+                borderBottom: '1px solid hsl(var(--border))',
+                fontSize: 13, color: 'hsl(var(--foreground))',
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#0d1f3c')}
+              onMouseEnter={e => (e.currentTarget.style.background = 'hsl(var(--secondary))')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="4" stroke="#6b7280" strokeWidth="1.5" />
+                <circle cx="6" cy="6" r="4" stroke="hsl(var(--muted-foreground))" strokeWidth="1.5" />
               </svg>
               {s.name}
             </div>
@@ -200,7 +200,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
   return (
     <div style={{
       overflowX: 'auto', paddingBottom: 4,
-      scrollbarWidth: 'thin', scrollbarColor: '#1e2d4a transparent',
+      scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent',
     }}>
       <div style={{
         display: 'flex', alignItems: 'flex-start',
@@ -223,19 +223,19 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                   width: isFirst || isLast ? 10 : 8,
                   height: isFirst || isLast ? 10 : 8,
                   borderRadius: '50%',
-                  background: isLast ? '#6b7280' : isFirst ? '#fff' : '#080d1a',
-                  border: `2px solid ${isLast ? '#6b7280' : isFirst ? '#fff' : '#6b7280'}`,
+                  background: isLast ? 'hsl(var(--muted-foreground))' : isFirst ? 'hsl(var(--foreground))' : 'hsl(var(--background))',
+                  border: `2px solid ${isLast ? 'hsl(var(--muted-foreground))' : isFirst ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'}`,
                 }} />
                 <div style={{
-                  fontSize: 9, color: isFirst || isLast ? '#8ba3c7' : '#6b7280',
+                  fontSize: 9, color: isFirst || isLast ? 'hsl(var(--secondary-foreground))' : 'hsl(var(--muted-foreground))',
                   textAlign: 'center', maxWidth: 65, lineHeight: 1.3, whiteSpace: 'nowrap',
                 }}>
                   {leg.origin.replace(/\s*(Hauptbahnhof|Hbf)\s*/gi, ' Hbf').trim()}
                 </div>
                 {leg.platform && (
-                  <div style={{ fontSize: 8, color: '#1e3a6e' }}>Gl. {leg.platform}</div>
+                  <div style={{ fontSize: 8, color: 'hsl(var(--muted-foreground) / 0.6)' }}>Gl. {leg.platform}</div>
                 )}
-                <div style={{ fontSize: 8, color: delay > 0 ? '#e25555' : '#6b7280' }}>
+                <div style={{ fontSize: 8, color: delay > 0 ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))' }}>
                   {formatTime(leg.departure)}
                   {delay > 0 && ` +${delay}`}
                 </div>
@@ -248,7 +248,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                 minWidth: 80, paddingBottom: 20, paddingTop: 3,
               }}>
                 <div style={{ height: 2, width: '100%', background: colors.line, borderRadius: 1 }} />
-                <div 
+                <div
                   onClick={() => onTrainClick?.(leg.trainNumber, leg.departure, leg.operator)}
                   style={{
                     fontSize: 9, fontWeight: 500, padding: '2px 6px',
@@ -272,7 +272,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Wagenreihung"
-                      style={{ display: 'flex', alignItems: 'center', marginTop: 3, color: '#6b7280' }}
+                      style={{ display: 'flex', alignItems: 'center', marginTop: 3, color: 'hsl(var(--muted-foreground))' }}
                       onClick={e => e.stopPropagation()}
                     >
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -294,15 +294,15 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                 }}>
                   <div style={{
                     width: 10, height: 10, borderRadius: '50%',
-                    background: '#6b7280', border: '2px solid #6b7280',
+                    background: 'hsl(var(--muted-foreground))', border: '2px solid hsl(var(--muted-foreground))',
                   }} />
                   <div style={{
-                    fontSize: 9, color: '#8ba3c7', textAlign: 'center',
+                    fontSize: 9, color: 'hsl(var(--secondary-foreground))', textAlign: 'center',
                     maxWidth: 65, lineHeight: 1.3, whiteSpace: 'nowrap',
                   }}>
                     {leg.destination.replace(/\s*(Hauptbahnhof|Hbf)\s*/gi, ' Hbf').trim()}
                   </div>
-                  <div style={{ fontSize: 8, color: '#6b7280' }}>
+                  <div style={{ fontSize: 8, color: 'hsl(var(--muted-foreground))' }}>
                     {formatTime(leg.arrival)}
                   </div>
                 </div>
@@ -341,12 +341,12 @@ function TripPickerModal({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#0a1628', border: '1px solid #1e2d4a',
+          background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
           borderRadius: 12, padding: 20, width: 320,
           maxHeight: '80vh', overflowY: 'auto',
         }}
       >
-        <div style={{ fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 16 }}>
+        <div style={{ fontSize: 15, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 16 }}>
           Zu welcher Reise hinzufügen?
         </div>
 
@@ -354,8 +354,8 @@ function TripPickerModal({
           onClick={() => { router.push('/dashboard?new=1'); onClose() }}
           style={{
             width: '100%', padding: '10px 14px', marginBottom: 8,
-            background: '#0d1f3c', border: '1px dashed #1e3a6e',
-            borderRadius: 8, color: '#6b7280', fontSize: 13,
+            background: 'hsl(var(--secondary))', border: '1px dashed hsl(var(--border))',
+            borderRadius: 8, color: 'hsl(var(--muted-foreground))', fontSize: 13,
             cursor: 'pointer', textAlign: 'left',
           }}
         >
@@ -369,16 +369,16 @@ function TripPickerModal({
             onClick={() => onSelect(trip.id)}
             style={{
               width: '100%', padding: '10px 14px', marginBottom: 6,
-              background: '#080d1a', border: '1px solid #1e2d4a',
-              borderRadius: 8, color: '#fff', fontSize: 13,
+              background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))',
+              borderRadius: 8, color: 'hsl(var(--foreground))', fontSize: 13,
               cursor: 'pointer', textAlign: 'left',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = '#6b7280')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = '#1e2d4a')}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = 'hsl(var(--muted-foreground))')}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = 'hsl(var(--border))')}
           >
             <span>{trip.title}</span>
-            <span style={{ fontSize: 11, color: '#6b7280' }}>
+            <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
               {trip._count?.legs ?? trip.legs?.length ?? 0} Abschnitte
             </span>
           </button>
@@ -390,14 +390,14 @@ function TripPickerModal({
 
 // ─── JourneyCard ──────────────────────────────────────────────────────────────
 
-function JourneyCard({ 
-  journey, 
-  onAdd, 
+function JourneyCard({
+  journey,
+  onAdd,
   onDetail,
-  onTrainClick 
-}: { 
-  journey: Journey; 
-  onAdd: (j: Journey) => void; 
+  onTrainClick
+}: {
+  journey: Journey;
+  onAdd: (j: Journey) => void;
   onDetail?: (j: Journey) => void;
   onTrainClick?: (trainNumber: string, departure?: string, operator?: string | null) => void;
 }) {
@@ -411,25 +411,25 @@ function JourneyCard({
   return (
     <div
       style={{
-        background: '#0a1628',
-        border: `1px solid ${journey.isBest ? '#1e3a6e' : '#1e2d4a'}`,
+        background: 'hsl(var(--card))',
+        border: `1px solid ${journey.isBest ? 'hsl(var(--border))' : 'hsl(var(--border))'}`,
         borderRadius: 12, overflow: 'hidden',
         transition: 'border-color 0.15s, transform 0.1s',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = '#6b7280'
+        e.currentTarget.style.borderColor = 'hsl(var(--muted-foreground))'
         e.currentTarget.style.transform = 'translateY(-1px)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = journey.isBest ? '#1e3a6e' : '#1e2d4a'
+        e.currentTarget.style.borderColor = 'hsl(var(--border))'
         e.currentTarget.style.transform = 'translateY(0)'
       }}
     >
       {/* Best badge */}
       {journey.isBest && (
         <div style={{
-          background: '#0d1f3c', padding: '4px 16px',
-          fontSize: 10, color: '#6b7280', fontWeight: 500,
+          background: 'hsl(var(--secondary))', padding: '4px 16px',
+          fontSize: 10, color: 'hsl(var(--muted-foreground))', fontWeight: 500,
           letterSpacing: '1px', textTransform: 'uppercase',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>
@@ -442,18 +442,18 @@ function JourneyCard({
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: 12 }}>
           {/* Times */}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flex: 1 }}>
-            <span style={{ fontSize: 26, fontWeight: 500, color: '#fff', letterSpacing: '-0.5px' }}>
+            <span style={{ fontSize: 26, fontWeight: 500, color: 'hsl(var(--foreground))', letterSpacing: '-0.5px' }}>
               {depTime}
             </span>
-            <span style={{ color: '#1e3a6e', fontSize: 18 }}>→</span>
-            <span style={{ fontSize: 26, fontWeight: 500, color: '#fff', letterSpacing: '-0.5px' }}>
+            <span style={{ color: 'hsl(var(--muted-foreground))', fontSize: 18 }}>→</span>
+            <span style={{ fontSize: 26, fontWeight: 500, color: 'hsl(var(--foreground))', letterSpacing: '-0.5px' }}>
               {arrTime}
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 4 }}>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>
+              <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
                 {formatDuration(journey.totalDuration)}
               </span>
-              <span style={{ fontSize: 11, color: '#6b7280' }}>
+              <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
                 {journey.changes === 0 ? 'Direkt' : `${journey.changes} Umstiege`}
               </span>
             </div>
@@ -464,30 +464,30 @@ function JourneyCard({
             {totalDelay > 0 ? (
               <span style={{
                 fontSize: 10, padding: '3px 7px', borderRadius: 4,
-                background: '#1f0d0d', color: '#e25555', border: '1px solid #3a1515',
+                background: 'hsl(var(--destructive) / 0.1)', color: 'hsl(var(--destructive))', border: '1px solid hsl(var(--destructive) / 0.3)',
               }}>+{totalDelay} min</span>
             ) : (
               <span style={{
                 fontSize: 10, padding: '3px 7px', borderRadius: 4,
-                background: '#0d2618', color: '#3ecf6e', border: '1px solid #1a4a2e',
+                background: 'hsl(var(--success) / 0.1)', color: 'hsl(var(--success))', border: '1px solid hsl(var(--success) / 0.3)',
               }}>pünktlich</span>
             )}
             <button
               onClick={e => { e.stopPropagation(); onAdd(journey) }}
               style={{
-                background: '#0d1f3c', border: '1px solid #1e3a6e',
-                color: '#6b7280', borderRadius: 8, padding: '8px 14px',
+                background: 'hsl(var(--secondary))', border: '1px solid hsl(var(--border))',
+                color: 'hsl(var(--muted-foreground))', borderRadius: 8, padding: '8px 14px',
                 fontSize: 12, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = '#6b7280'
-                e.currentTarget.style.color = '#fff'
-                e.currentTarget.style.borderColor = '#6b7280'
+                e.currentTarget.style.background = 'hsl(var(--muted-foreground))'
+                e.currentTarget.style.color = 'hsl(var(--background))'
+                e.currentTarget.style.borderColor = 'hsl(var(--muted-foreground))'
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = '#0d1f3c'
-                e.currentTarget.style.color = '#6b7280'
-                e.currentTarget.style.borderColor = '#1e3a6e'
+                e.currentTarget.style.background = 'hsl(var(--secondary))'
+                e.currentTarget.style.color = 'hsl(var(--muted-foreground))'
+                e.currentTarget.style.borderColor = 'hsl(var(--border))'
               }}
             >
               + Hinzufügen
@@ -496,9 +496,9 @@ function JourneyCard({
         </div>
 
         {/* Route strip */}
-        <RouteStrip 
-          legs={journey.legs} 
-          onTrainClick={onTrainClick} 
+        <RouteStrip
+          legs={journey.legs}
+          onTrainClick={onTrainClick}
         />
       </div>
 
@@ -507,13 +507,13 @@ function JourneyCard({
         {uniqueOps.map(op => (
           <span key={op} style={{
             fontSize: 10, padding: '3px 8px', borderRadius: 4,
-            background: '#0d1f3c', color: '#8ba3c7', border: '1px solid #1e2d4a',
+            background: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))', border: '1px solid hsl(var(--border))',
           }}>{op}</span>
         ))}
-        <button 
+        <button
           onClick={() => onDetail?.(journey)}
           style={{
-            marginLeft: 'auto', fontSize: 11, color: '#6b7280',
+            marginLeft: 'auto', fontSize: 11, color: 'hsl(var(--muted-foreground))',
             background: 'none', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 3,
           }}
@@ -710,45 +710,24 @@ export default function SearchPage() {
 
   return (
     <>
-    <div style={{ background: '#080d1a', minHeight: '100vh', padding: '28px 32px' }}>
-      <div style={{ maxWidth: 860, margin: '0 auto' }}>
+    <div className="p-8 max-w-4xl mx-auto w-full">
 
-      <div style={{ fontSize: 22, fontWeight: 500, color: '#fff', marginBottom: 4 }}>
-        Verbindungssuche
-      </div>
-      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>
-        Zugverbindungen suchen und direkt zu deiner Reise hinzufügen
-      </div>
+      <h1 className="text-2xl font-bold text-foreground tracking-tight mb-1">Verbindungssuche</h1>
+      <p className="text-sm text-muted-foreground mb-5">Zugverbindungen suchen und direkt zu deiner Reise hinzufügen</p>
 
       {user === null && (
-        <div style={{
-          background: '#0d1f3c',
-          border: '1px solid #1e3a6e',
-          borderRadius: 8,
-          padding: '10px 14px',
-          marginBottom: 16,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-        }}>
-          <span style={{ fontSize: 13, color: '#8ba3c7' }}>
+        <div className="rounded-lg border border-border bg-secondary px-4 py-3 mb-4 flex items-center justify-between gap-3">
+          <span className="text-sm text-secondary-foreground">
             Verbindungen zu deinen Reisen hinzufügen — kostenlos anmelden
           </span>
-          <a href="/login" style={{
-            fontSize: 12, fontWeight: 500, color: '#6b7280',
-            textDecoration: 'none', whiteSpace: 'nowrap',
-          }}>
+          <a href="/login" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap" style={{ textDecoration: 'none' }}>
             Anmelden →
           </a>
         </div>
       )}
 
       {/* ── Search card ── */}
-      <div style={{
-        background: '#0a1628', border: '1px solid #1e2d4a',
-        borderRadius: 12, padding: '20px 24px', marginBottom: 20,
-      }}>
+      <div className="rounded-xl border border-border bg-card p-5 mb-5">
         {/* Top row */}
         <div style={{
           display: 'flex', gap: 10, alignItems: 'flex-end',
@@ -766,8 +745,8 @@ export default function SearchPage() {
             placeholder="Abfahrtsbahnhof..."
             icon={
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="4" stroke="#6b7280" strokeWidth="1.5" />
-                <circle cx="6" cy="6" r="1.5" fill="#6b7280" />
+                <circle cx="6" cy="6" r="4" stroke="hsl(var(--muted-foreground))" strokeWidth="1.5" />
+                <circle cx="6" cy="6" r="1.5" fill="hsl(var(--muted-foreground))" />
               </svg>
             }
           />
@@ -779,13 +758,13 @@ export default function SearchPage() {
               const tq = fromQuery; setFromQuery(toQuery); setToQuery(tq)
             }}
             style={{
-              width: 34, height: 36, background: '#0d1f3c',
-              border: '1px solid #1e3a6e', borderRadius: 8,
+              width: 34, height: 36, background: 'hsl(var(--secondary))',
+              border: '1px solid hsl(var(--border))', borderRadius: 8,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', flexShrink: 0,
             }}
           >
-            <ArrowLeftRight size={14} color="#6b7280" />
+            <ArrowLeftRight size={14} color="hsl(var(--muted-foreground))" />
           </button>
 
           <StationInput
@@ -800,7 +779,7 @@ export default function SearchPage() {
             placeholder="Zielbahnhof..."
             icon={
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="4" stroke="#6b7280" strokeWidth="1.5" />
+                <circle cx="6" cy="6" r="4" stroke="hsl(var(--muted-foreground))" strokeWidth="1.5" />
               </svg>
             }
           />
@@ -808,22 +787,22 @@ export default function SearchPage() {
           {/* Date */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <div style={{
-              fontSize: 10, color: '#6b7280', textTransform: 'uppercase',
+              fontSize: 10, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase',
               letterSpacing: '1px', fontWeight: 500,
             }}>Datum</div>
             <div style={{
-              background: '#080d1a', border: '1px solid #1e2d4a',
+              background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))',
               borderRadius: 8, padding: '9px 12px',
               display: 'flex', alignItems: 'center', gap: 7,
             }}>
-              <Calendar size={11} color="#6b7280" />
+              <Calendar size={11} color="hsl(var(--muted-foreground))" />
               <input
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
                 style={{
                   background: 'none', border: 'none', outline: 'none',
-                  color: '#fff', fontSize: 13, width: 110,
+                  color: 'hsl(var(--foreground))', fontSize: 13, width: 110,
                 }}
               />
             </div>
@@ -832,22 +811,22 @@ export default function SearchPage() {
           {/* Time */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <div style={{
-              fontSize: 10, color: '#6b7280', textTransform: 'uppercase',
+              fontSize: 10, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase',
               letterSpacing: '1px', fontWeight: 500,
             }}>Zeit</div>
             <div style={{
-              background: '#080d1a', border: '1px solid #1e2d4a',
+              background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))',
               borderRadius: 8, padding: '9px 12px',
               display: 'flex', alignItems: 'center', gap: 7,
             }}>
-              <Clock size={11} color="#6b7280" />
+              <Clock size={11} color="hsl(var(--muted-foreground))" />
               <input
                 type="time"
                 value={time}
                 onChange={e => setTime(e.target.value)}
                 style={{
                   background: 'none', border: 'none', outline: 'none',
-                  color: '#fff', fontSize: 13, width: 70,
+                  color: 'hsl(var(--foreground))', fontSize: 13, width: 70,
                 }}
               />
             </div>
@@ -856,12 +835,12 @@ export default function SearchPage() {
           {/* Class */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <div style={{
-              fontSize: 10, color: '#6b7280', textTransform: 'uppercase',
+              fontSize: 10, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase',
               letterSpacing: '1px', fontWeight: 500,
             }}>Klasse</div>
             <div style={{
-              display: 'flex', background: '#080d1a',
-              border: '1px solid #1e2d4a', borderRadius: 8, overflow: 'hidden',
+              display: 'flex', background: 'hsl(var(--background))',
+              border: '1px solid hsl(var(--border))', borderRadius: 8, overflow: 'hidden',
             }}>
               {([2, 1] as const).map(c => (
                 <button
@@ -869,8 +848,8 @@ export default function SearchPage() {
                   onClick={() => setTravelClass(c)}
                   style={{
                     padding: '9px 14px', fontSize: 13, cursor: 'pointer', border: 'none',
-                    background: travelClass === c ? '#0d1f3c' : 'none',
-                    color: travelClass === c ? '#fff' : '#6b7280',
+                    background: travelClass === c ? 'hsl(var(--secondary))' : 'none',
+                    color: travelClass === c ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
                   }}
                 >
                   {c}.
@@ -884,8 +863,8 @@ export default function SearchPage() {
             onClick={handleSearch}
             disabled={!from || !to}
             style={{
-              background: from && to ? '#6b7280' : '#0d1f3c',
-              color: from && to ? '#fff' : '#6b7280',
+              background: from && to ? 'hsl(var(--primary))' : 'hsl(var(--secondary))',
+              color: from && to ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
               border: 'none', borderRadius: 8, padding: '10px 22px',
               fontSize: 13, fontWeight: 500,
               cursor: from && to ? 'pointer' : 'not-allowed',
@@ -900,12 +879,12 @@ export default function SearchPage() {
 
         {/* Bottom row: quick filters + earlier/later */}
         <div style={{
-          borderTop: '1px solid #1e2d4a', paddingTop: 12,
+          borderTop: '1px solid hsl(var(--border))', paddingTop: 12,
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
         }}>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, color: '#6b7280' }}>Schnellfilter:</span>
+            <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>Schnellfilter:</span>
             {([
               { key: 'onlyICE', label: 'Nur ICE/IC' },
               { key: 'direct', label: 'Direkte Züge' },
@@ -918,9 +897,9 @@ export default function SearchPage() {
                 onClick={() => setFilters(prev => ({ ...prev, [f.key]: !prev[f.key] }))}
                 style={{
                   fontSize: 11, padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
-                  border: `1px solid ${filters[f.key] ? '#1e3a6e' : '#1e2d4a'}`,
-                  background: filters[f.key] ? '#0d1f3c' : '#080d1a',
-                  color: filters[f.key] ? '#6b7280' : '#6b7280',
+                  border: `1px solid ${filters[f.key] ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--border))'}`,
+                  background: filters[f.key] ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--background))',
+                  color: filters[f.key] ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
                 }}
               >
                 {f.label}
@@ -930,28 +909,28 @@ export default function SearchPage() {
 
           {/* Earlier / Later */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#6b7280' }}>Früher</span>
+            <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>Früher</span>
             <div style={{
-              display: 'flex', background: '#080d1a',
-              border: '1px solid #1e2d4a', borderRadius: 8, overflow: 'hidden',
+              display: 'flex', background: 'hsl(var(--background))',
+              border: '1px solid hsl(var(--border))', borderRadius: 8, overflow: 'hidden',
             }}>
               <button
                 onClick={() => handleShift('earlier')}
                 style={{
                   padding: '6px 12px', background: 'none', border: 'none',
-                  color: '#6b7280', cursor: 'pointer', fontSize: 13,
+                  color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontSize: 13,
                 }}
               >◀</button>
               <button
                 onClick={() => handleShift('later')}
                 style={{
                   padding: '6px 12px', background: 'none', border: 'none',
-                  color: '#6b7280', cursor: 'pointer', fontSize: 13,
-                  borderLeft: '1px solid #1e2d4a',
+                  color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontSize: 13,
+                  borderLeft: '1px solid hsl(var(--border))',
                 }}
               >▶</button>
             </div>
-            <span style={{ fontSize: 11, color: '#6b7280' }}>Später</span>
+            <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>Später</span>
           </div>
         </div>
       </div>
@@ -960,7 +939,7 @@ export default function SearchPage() {
       {!searchParams && recentSearches.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <div style={{
-            fontSize: 11, color: '#6b7280', marginBottom: 8,
+            fontSize: 11, color: 'hsl(var(--muted-foreground))', marginBottom: 8,
             textTransform: 'uppercase', letterSpacing: '1px',
           }}>
             Zuletzt gesucht
@@ -971,9 +950,9 @@ export default function SearchPage() {
                 key={i}
                 onClick={() => { setFrom(r.from); setTo(r.to) }}
                 style={{
-                  background: '#0a1628', border: '1px solid #1e2d4a',
+                  background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
                   borderRadius: 8, padding: '7px 12px', cursor: 'pointer',
-                  fontSize: 12, color: '#8ba3c7',
+                  fontSize: 12, color: 'hsl(var(--secondary-foreground))',
                   display: 'flex', alignItems: 'center', gap: 6,
                 }}
               >
@@ -990,7 +969,7 @@ export default function SearchPage() {
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', marginBottom: 12,
         }}>
-          <span style={{ fontSize: 13, color: '#6b7280' }}>
+          <span style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
             {filtered.length} Verbindungen
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -1004,9 +983,9 @@ export default function SearchPage() {
                 onClick={() => setSortBy(s.key)}
                 style={{
                   fontSize: 11, padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
-                  background: sortBy === s.key ? '#0d1f3c' : '#0a1628',
-                  border: `1px solid ${sortBy === s.key ? '#1e3a6e' : '#1e2d4a'}`,
-                  color: sortBy === s.key ? '#6b7280' : '#6b7280',
+                  background: sortBy === s.key ? 'hsl(var(--secondary))' : 'hsl(var(--card))',
+                  border: `1px solid ${sortBy === s.key ? 'hsl(var(--border))' : 'hsl(var(--border))'}`,
+                  color: sortBy === s.key ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
                 }}
               >
                 {s.label}
@@ -1022,13 +1001,8 @@ export default function SearchPage() {
           {[1, 2, 3].map(i => (
             <div
               key={i}
-              style={{
-                border: '1px solid #1e2d4a',
-                borderRadius: 12, height: 140,
-                background: 'linear-gradient(90deg,#0a1628 25%,#0d1f3c 50%,#0a1628 75%)',
-                backgroundSize: '200% 100%',
-                animation: 'shimmer 1.5s infinite',
-              }}
+              className="rounded-xl border border-border bg-card animate-pulse"
+              style={{ height: 140 }}
             />
           ))}
         </div>
@@ -1036,11 +1010,7 @@ export default function SearchPage() {
 
       {/* ── Error ── */}
       {isError && (
-        <div style={{
-          background: '#1f0d0d', border: '1px solid #3a1515',
-          borderRadius: 12, padding: '20px 24px', textAlign: 'center',
-          color: '#e25555', fontSize: 14,
-        }}>
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-6 py-5 text-center text-destructive text-sm">
           {(error as Error).message === 'service_unavailable'
             ? 'Verbindungssuche vorübergehend nicht verfügbar — bitte erneut versuchen'
             : 'Fehler bei der Suche — bitte erneut versuchen'}
@@ -1051,11 +1021,7 @@ export default function SearchPage() {
       {journeys && !isLoading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {filtered.length === 0 ? (
-            <div style={{
-              background: '#0a1628', border: '1px solid #1e2d4a',
-              borderRadius: 12, padding: '40px 24px', textAlign: 'center',
-              color: '#6b7280', fontSize: 14,
-            }}>
+            <div className="rounded-xl border border-border bg-card px-6 py-10 text-center text-muted-foreground text-sm">
               Keine Verbindungen gefunden — Filter anpassen oder andere Zeit wählen
             </div>
           ) : (
@@ -1077,7 +1043,6 @@ export default function SearchPage() {
           )}
         </div>
       )}
-      </div>
     </div>
 
     {pickerJourney && (
@@ -1086,18 +1051,17 @@ export default function SearchPage() {
         onClose={() => setPickerJourney(null)}
       />
     )}
-    
+
     {detailJourney && (
       <JourneyDetailSheet
         journey={convertToDetailJourney(detailJourney)}
         onClose={() => setDetailJourney(null)}
         onAddToTrip={() => {
-          // This would open trip picker, but for now just close
           setDetailJourney(null);
         }}
       />
     )}
-    
+
     {detailTrain && (
       <TrainDetailSheet
         trainNumber={detailTrain.trainNumber}
