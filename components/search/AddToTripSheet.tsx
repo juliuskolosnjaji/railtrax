@@ -148,7 +148,7 @@ export function AddToTripSheet({ journey, onClose }: AddToTripSheetProps) {
                 />
                 <Button
                   size="icon"
-                  className="h-9 w-9 bg-white text-zinc-900 hover:bg-zinc-100 shrink-0"
+                  className="h-9 w-9 bg-brand text-white hover:bg-brand/90 shrink-0"
                   onClick={handleCreateAndAdd}
                   disabled={submitting || !newTitle.trim()}
                 >

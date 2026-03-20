@@ -665,7 +665,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 </Button>
                 <Button
                   type="button"
-                  className="flex-1 bg-white text-zinc-900 hover:bg-zinc-100"
+                  className="flex-1 bg-brand text-white hover:bg-brand/90"
                   disabled={isPending || !boardStop || !alightStop}
                   onClick={handleSmartSubmit}
                 >
@@ -821,7 +821,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-white text-zinc-900 hover:bg-zinc-100"
+                  className="flex-1 bg-brand text-white hover:bg-brand/90"
                   disabled={isPending}
                 >
                   {isPending

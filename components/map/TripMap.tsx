@@ -130,7 +130,7 @@ export function TripMap({ legs, preview = false, className = '' }: TripMapProps)
           onClick={() => setShowRailway((prev) => !prev)}
           className={`absolute bottom-8 left-3 rounded-md px-3 py-1.5 text-xs font-medium shadow transition-colors ${
             showRailway
-              ? 'bg-white text-zinc-900'
+              ? 'bg-brand text-white'
               : 'bg-zinc-900/80 backdrop-blur text-zinc-300 border border-zinc-700 hover:bg-zinc-800'
           }`}
         >
