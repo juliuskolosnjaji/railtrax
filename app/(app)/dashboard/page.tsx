@@ -544,25 +544,32 @@ export default function DashboardPage() {
     })
   }
 
+  const totalKm = trips
+    ? Math.round(trips.reduce((s, t) => s + t.legs.reduce((ls, l) => ls + (Number(l.distanceKm) || 0), 0), 0))
+    : null
+  const activeCount = trips ? trips.filter(t => t.status === 'active').length : null
+  const co2Saved = totalKm !== null ? Math.round(totalKm * 0.22) : null
+
   return (
-    <div style={{ minHeight: '100%', background: '#080d1a' }}>
+    <div style={{ minHeight: '100%', background: 'hsl(var(--background))' }}>
 
       {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         padding: '20px 16px',
         flexWrap: 'nowrap',
         gap: 12,
-        borderBottom: '1px solid #1e2d4a'
+        borderBottom: '1px solid hsl(var(--border))',
       }}>
         <h1 style={{
           fontSize: 'clamp(18px, 5vw, 24px)',
-          fontWeight: 600,
-          color: '#fff',
+          fontWeight: 700,
+          color: 'hsl(var(--foreground))',
           margin: 0,
           whiteSpace: 'nowrap',
+          letterSpacing: '-0.02em',
         }}>
           Meine Reisen
         </h1>
@@ -618,6 +625,24 @@ export default function DashboardPage() {
       </div>
 
       <NotifBanner />
+
+      {/* Stats row */}
+      {!isLoading && trips && trips.length > 0 && (
+        <div style={{ padding: '0 16px 16px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <div className="glass-panel rounded-xl p-5">
+            <p className="stat-label mb-1">Gesamtstrecke</p>
+            <p className="text-2xl font-bold text-foreground">{totalKm !== null ? `${totalKm.toLocaleString('de-DE')} km` : '–'}</p>
+          </div>
+          <div className="glass-panel rounded-xl p-5">
+            <p className="stat-label mb-1">Aktive Reisen</p>
+            <p className="text-2xl font-bold text-foreground">{activeCount ?? '–'}</p>
+          </div>
+          <div className="glass-panel rounded-xl p-5">
+            <p className="stat-label mb-1">CO₂ gespart</p>
+            <p className="text-2xl font-bold text-success">{co2Saved !== null ? `${co2Saved.toLocaleString('de-DE')} kg` : '–'}</p>
+          </div>
+        </div>
+      )}
 
       {/* Loading */}
       {isLoading && (

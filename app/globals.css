@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
 @tailwind base;
@@ -6,61 +7,64 @@
 
 @layer base {
   :root {
-    /* ─── Railtrax Midnight Blue Design System ─── */
+    /* ─── Railtrax Design System (Lovable edition) ─── */
 
-    /* Backgrounds */
-    --bg-base:       #080d1a;   /* page background */
-    --bg-surface:    #0a1628;   /* card/panel background */
-    --bg-elevated:   #0d1f3c;   /* elevated surfaces, active nav */
-    --bg-muted:      #111e35;   /* hover states */
+    /* shadcn/ui HSL variables */
+    --background:             220 20% 7%;
+    --foreground:             210 20% 92%;
+    --card:                   220 18% 10%;
+    --card-foreground:        210 20% 92%;
+    --popover:                220 18% 10%;
+    --popover-foreground:     210 20% 92%;
+    --primary:                172 66% 50%;
+    --primary-foreground:     220 20% 7%;
+    --secondary:              220 16% 14%;
+    --secondary-foreground:   210 15% 70%;
+    --muted:                  220 14% 12%;
+    --muted-foreground:       215 12% 48%;
+    --accent:                 172 66% 50%;
+    --accent-foreground:      220 20% 7%;
+    --destructive:            0 72% 55%;
+    --destructive-foreground: 210 40% 98%;
+    --border:                 220 14% 16%;
+    --input:                  220 14% 16%;
+    --ring:                   172 66% 50%;
+    --radius:                 0.5rem;
 
-    /* Brand */
-    --brand:         #4f8ef7;   /* primary blue */
-    --brand-dim:     #1e3a6e;   /* borders, secondary elements */
-    --brand-faint:   #0d1f3c;   /* backgrounds with brand tint */
-
-    /* Text */
-    --text-primary:  #ffffff;
-    --text-secondary:#8ba3c7;
-    --text-muted:    #4a6a9a;
-    --text-brand:    #4f8ef7;
-
-    /* Borders */
-    --border-base:   #1e2d4a;
-    --border-bright: #1e3a6e;
+    /* Sidebar tokens */
+    --sidebar-background:         220 20% 8%;
+    --sidebar-foreground:         215 12% 55%;
+    --sidebar-primary:            172 66% 50%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent:             220 16% 12%;
+    --sidebar-accent-foreground:  210 20% 92%;
+    --sidebar-border:             220 14% 14%;
+    --sidebar-ring:               172 66% 50%;
 
     /* Semantic */
-    --success:       #3ecf6e;
-    --success-bg:    #0d2618;
-    --warning:       #f59e0b;
-    --warning-bg:    #1c1508;
+    --success:                152 60% 45%;
+    --success-foreground:     220 20% 7%;
+
+    /* ─── Legacy hex tokens (used by inline styles) ─── */
+    --bg-base:       #0c1221;
+    --bg-surface:    #0f1829;
+    --bg-elevated:   #152236;
+    --bg-muted:      #1a2840;
+    --brand:         #34d4b0;
+    --brand-dim:     #1a4a40;
+    --brand-faint:   #152236;
+    --text-primary:  #eaf0f8;
+    --text-secondary:#8ba3c7;
+    --text-muted:    #4a6a9a;
+    --text-brand:    #34d4b0;
+    --border-base:   #1e2d4a;
+    --border-bright: #1e4a40;
     --danger:        #e25555;
     --danger-bg:     #1f0d0d;
-
-    /* ─── shadcn/ui HSL variables (mapped to Midnight Blue palette) ─── */
-    --background:             223 53% 7%;    /* #080d1a */
-    --foreground:             0 0% 100%;     /* #ffffff */
-    --card:                   216 60% 10%;   /* #0a1628 */
-    --card-foreground:        0 0% 100%;
-    --popover:                217 64% 14%;   /* #0d1f3c */
-    --popover-foreground:     0 0% 100%;
-    --primary:                218 91% 64%;   /* #4f8ef7 */
-    --primary-foreground:     223 53% 7%;    /* #080d1a */
-    --secondary:              217 64% 14%;   /* #0d1f3c */
-    --secondary-foreground:   216 35% 66%;   /* #8ba3c7 */
-    --muted:                  220 53% 14%;   /* #111e35 */
-    --muted-foreground:       216 35% 66%;   /* #8ba3c7 */
-    --accent:                 217 64% 14%;   /* #0d1f3c */
-    --accent-foreground:      218 91% 64%;   /* #4f8ef7 */
-    --destructive:            0 71% 61%;     /* #e25555 */
-    --destructive-foreground: 0 0% 100%;
-    --border:                 220 42% 20%;   /* #1e2d4a */
-    --input:                  220 42% 20%;   /* #1e2d4a */
-    --ring:                   218 91% 64%;   /* #4f8ef7 */
-    --radius:                 0.5rem;
+    --warning:       #f59e0b;
+    --warning-bg:    #1c1508;
   }
 
-  /* Keep dark-mode class for any components that need it */
   .dark { color-scheme: dark; }
 }
 
@@ -70,7 +74,27 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   }
+}
+
+@layer components {
+  .glass-panel {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+}
+
+code, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
 @keyframes live-pulse {
@@ -133,23 +157,23 @@ button, a[href], [role="button"] {
   .sidebar-wrapper {
     display: none !important;
   }
-  
+
   .mobile-bottom-nav {
     display: flex !important;
   }
-  
+
   .main-content {
     margin-left: 0 !important;
     padding-left: 0 !important;
     width: 100% !important;
     max-width: 100vw !important;
     padding-bottom: 72px !important;
+    padding-top: 56px !important;
   }
 }
 
 /* ─── Global Mobile Fixes ─────────────────────────────────────────────────────── */
 
-/* Prevent horizontal overflow globally */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -159,19 +183,16 @@ html, body {
   max-width: 100vw;
 }
 
-/* Mobile: remove large horizontal padding */
 @media (max-width: 767px) {
   .hero-content {
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
-  
-  /* Hide sidebar completely on mobile */
+
   .sidebar-wrapper {
     display: none !important;
   }
-  
-  /* Remove sidebar spacing on main content */
+
   .main-content {
     margin-left: 0 !important;
     padding-left: 0 !important;
@@ -180,21 +201,18 @@ html, body {
   }
 }
 
-/* Ensure images and canvases don't overflow */
 img, canvas, video, iframe {
   max-width: 100%;
 }
 
 /* ─── Global Icon Centering Fixes ─────────────────────────────────────────────── */
 
-/* Ensure icons are always vertically centered in buttons */
 button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Fix lucide icon vertical alignment */
 button svg, a svg {
   display: block;
   flex-shrink: 0;
@@ -203,59 +221,55 @@ button svg, a svg {
 /* ─── Settings Dark Theme ──────────────────────────────────────────────────────── */
 
 .settings-page h1, .settings-page h2, .settings-page h3 {
-  color: #ffffff !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 .settings-page p, .settings-page span:not([class*="badge"]) {
-  color: #8ba3c7;
+  color: hsl(var(--muted-foreground));
 }
 
 .settings-page label,
 .settings-page [class*="Label"] {
-  color: #8ba3c7 !important;
+  color: hsl(var(--muted-foreground)) !important;
 }
 
 .settings-page input,
 .settings-page textarea,
 .settings-page select {
-  background: #080d1a !important;
-  border-color: #1e2d4a !important;
-  color: #fff !important;
+  background: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 .settings-page input::placeholder,
 .settings-page textarea::placeholder {
-  color: #4a6a9a !important;
+  color: hsl(var(--muted-foreground)) !important;
 }
 
 .settings-page [class*="Card"],
 .settings-page .card {
-  background: #0a1628 !important;
-  border-color: #1e2d4a !important;
-  color: #fff !important;
+  background: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 /* ─── Mobile Padding Consistency ───────────────────────────────────────────────── */
 
 @media (max-width: 767px) {
-  /* All page-level containers */
   .page-container {
     padding: 16px !important;
   }
 
-  /* Trip detail specific */
   .trip-header {
     padding: 16px !important;
   }
 
-  /* Leg cards */
   .leg-card {
     padding: 14px !important;
     margin: 0 !important;
     border-radius: 10px !important;
   }
 
-  /* Route card */
   .route-card {
     margin: 0 0 16px 0 !important;
     border-radius: 10px !important;

@@ -62,8 +62,11 @@ export function SidebarNav() {
           <Link
             key={href}
             href={href}
-            className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-[#111e35] hover:text-white"
-            style={{ color: isActive ? '#fff' : '#4a6a9a', background: isActive ? '#111e35' : undefined }}
+            className={
+              isActive
+                ? 'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium bg-sidebar-accent text-sidebar-accent-foreground'
+                : 'w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent/50 transition-colors'
+            }
           >
             <Icon className="h-4 w-4 shrink-0" />
             {label}
@@ -74,12 +77,8 @@ export function SidebarNav() {
       {user === null && (
         <a
           href="/login"
-          className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium"
-          style={{
-            background: '#2563eb', color: '#fff',
-            margin: '8px 4px 0',
-            textDecoration: 'none',
-          }}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors mt-2"
+          style={{ textDecoration: 'none' }}
         >
           <LogIn className="h-4 w-4 shrink-0" />
           Anmelden

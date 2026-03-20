@@ -5,14 +5,14 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Pencil, Share2 } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
 import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
 import { TripEditorSheet } from '@/components/trips/TripEditorSheet'
 import { JournalEntryCard } from '@/components/journal/JournalEntryCard'
-import { SharingSheet } from '@/components/trips/SharingSheet'
+import { ShareButton } from '@/components/trips/ShareButton'
 import { TrainDetailSheet } from '@/components/trains/TrainDetailSheet'
 const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor').then(m => m.JournalEditor), { ssr: false })
 import { UpgradeModal } from '@/components/billing/UpgradeModal'
@@ -23,16 +23,16 @@ import { TripRouteCard } from '@/components/trips/TripRouteCard'
 
 
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; border: string }> = {
-  planned:   { bg: '#0d1f3c', color: '#4f8ef7',  border: '#1e3a6e' },
-  active:    { bg: '#0d2618', color: '#3ecf6e',  border: '#1a4a2e' },
-  completed: { bg: '#1a1a1a', color: '#6b7280',  border: '#2a2a2a' },
-  cancelled: { bg: '#1f0d0d', color: '#e25555',  border: '#3a1515' },
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  active:    'bg-primary/15 text-primary',
+  completed: 'bg-success/15 text-success',
+  planned:   'bg-secondary text-secondary-foreground',
+  cancelled: 'bg-destructive/15 text-destructive',
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  planned: 'Geplant',
-  active: '● Aktiv',
+  planned:   'Geplant',
+  active:    'Aktiv',
   completed: 'Abgeschlossen',
   cancelled: 'Storniert',
 }
@@ -131,89 +131,69 @@ export default function TripDetailPage() {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto">
         <div className="p-8 max-w-7xl mx-auto w-full">
-          <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm text-[#4a6a9a] hover:text-[#8ba3c7] transition-colors mb-6">
-            <ArrowLeft className="h-4 w-4" /> Alle Reisen
-          </Link>
+          <button
+            onClick={() => router.back()}
+            className="tap-small flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors mb-4"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, minHeight: 'unset', minWidth: 'unset' }}
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Alle Reisen
+          </button>
 
-          <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-medium text-white">{trip.title}</h1>
-              {/* Edit button — icon only */}
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">{trip.title}</h1>
               <button
                 onClick={() => setTripEditOpen(true)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 36, height: 36,
-                  background: '#0d1f3c', border: '1px solid #1e3a6e',
-                  borderRadius: 8, cursor: 'pointer', flexShrink: 0,
-                }}
+                className="tap-small w-8 h-8 rounded-lg border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
               >
-                <Pencil size={15} color="#4f8ef7" />
+                <Pencil className="w-3.5 h-3.5" />
               </button>
             </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              flexWrap: 'wrap',
-            }}>
-              {/* PDF button */}
+            <div className="flex items-center gap-2 flex-wrap">
               <a
                 href={`/api/trips/${id}/export/pdf`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  gap: 6, height: 36, padding: '0 14px',
-                  background: '#0d1f3c', border: '1px solid #1e3a6e',
-                  borderRadius: 8, cursor: 'pointer',
-                  fontSize: 13, fontWeight: 500, color: '#4f8ef7',
-                  flexShrink: 0,
-                }}
+                className="tap-small h-8 px-3 rounded-lg border flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+                style={{ borderColor: 'hsl(var(--border))', textDecoration: 'none', minHeight: 'unset' }}
               >
-                <FileText size={14} />
+                <FileText className="w-3.5 h-3.5" />
                 PDF
               </a>
-              {/* Image/Bild button */}
               <button
                 onClick={async () => {
                   const { exportTripAsImage } = await import('@/lib/export/clientExport')
                   await exportTripAsImage(trip, null as unknown as HTMLElement)
                 }}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  gap: 6, height: 36, padding: '0 14px',
-                  background: '#0d1f3c', border: '1px solid #1e3a6e',
-                  borderRadius: 8, cursor: 'pointer',
-                  fontSize: 13, fontWeight: 500, color: '#4f8ef7',
-                  flexShrink: 0,
-                }}
+                className="tap-small h-8 px-3 rounded-lg border flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+                style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
               >
-                <ImageIcon size={14} />
+                <ImageIcon className="w-3.5 h-3.5" />
                 Bild
               </button>
-              {/* Share button */}
-              {trip && (
-                <SharingSheet
-                  tripId={id}
-                  isPublic={trip.isPublic}
-                  shareToken={trip.shareToken}
-                  onShare={handleShareTrip}
-                  onUnshare={handleUnshareTrip}
-                />
-              )}
-              {/* Delete button */}
+              <ShareButton trip={trip} onShare={handleShareTrip} onUnshare={handleUnshareTrip} />
               <button
                 onClick={handleDeleteTrip}
                 disabled={deleteTrip.isPending}
+                className="tap-small w-8 h-8 rounded-lg border flex items-center justify-center transition-colors"
                 style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 36, height: 36,
-                  background: '#0d1f3c', border: '1px solid #1e3a6e',
-                  borderRadius: 8, cursor: 'pointer', flexShrink: 0,
+                  borderColor: 'hsl(var(--destructive) / 0.3)',
+                  color: 'hsl(var(--destructive) / 0.7)',
+                  background: 'transparent', cursor: 'pointer',
+                  minHeight: 'unset', minWidth: 'unset',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = 'hsl(var(--destructive))'
+                  e.currentTarget.style.borderColor = 'hsl(var(--destructive) / 0.6)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = 'hsl(var(--destructive) / 0.7)'
+                  e.currentTarget.style.borderColor = 'hsl(var(--destructive) / 0.3)'
                 }}
               >
-                <Trash2 size={15} color="#e25555" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -221,21 +201,20 @@ export default function TripDetailPage() {
           <div className="flex items-center gap-3 mb-8 flex-wrap">
             {(() => {
               const status = trip.status ?? 'planned'
-              const s = STATUS_STYLES[status] ?? STATUS_STYLES.planned
+              const cls = STATUS_BADGE_CLASS[status] ?? STATUS_BADGE_CLASS.planned
               const label = STATUS_LABELS[status] ?? STATUS_LABELS.planned
               return (
-                <span style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
-                  className="rounded-full px-3 py-1 text-xs font-medium">
+                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider ${cls}`}>
                   {label}
                 </span>
               )
             })()}
             {(startDate || endDate) && (
-              <span className="text-sm text-[#4a6a9a]">
+              <span className="text-sm text-muted-foreground">
                 {startDate && endDate ? `${startDate} → ${endDate}` : startDate ?? endDate}
               </span>
             )}
-            {trip?.description && <p className="w-full text-sm text-[#8ba3c7] mt-1">{trip.description}</p>}
+            {trip?.description && <p className="w-full text-sm text-muted-foreground mt-1">{trip.description}</p>}
           </div>
 
           {trip.legs.length > 0 && (
@@ -270,31 +249,28 @@ export default function TripDetailPage() {
 
           {/* Timeline */}
           <div>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 p-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 min-w-0">
-                  <h2 className="text-base font-semibold text-white whitespace-nowrap">
-                    Zeitlinie
-                  </h2>
-                  {/* Count badge */}
-                  <span className="text-xs text-[#4a6a9a] bg-[#0d1f3c] border border-[#1e2d4a] rounded-sm px-2 py-1 whitespace-nowrap">
+              <div className="flex items-center justify-between mb-4 px-4 pt-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-semibold text-foreground">Zeitlinie</h2>
+                  <span className="px-2.5 py-0.5 rounded-full bg-secondary text-[11px] font-medium text-secondary-foreground whitespace-nowrap">
                     {trip.legs.length} Abschnitte · {entries.length} Einträge
                   </span>
                 </div>
-
-                {/* Action buttons */}
-                <div className="flex gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => openNewEntry()}
-                    className="flex items-center justify-center gap-1.5 h-8 px-3 bg-[#0d1f3c] border border-[#1e3a6e] rounded cursor-pointer text-xs font-medium text-[#4f8ef7]"
+                    className="tap-small h-8 px-3 rounded-lg border flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+                    style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
                   >
-                    <BookOpen size={12} />
+                    <BookOpen className="w-3.5 h-3.5" />
                     Eintrag
                   </button>
                   <button
                     onClick={() => setAddLegOpen(true)}
-                    className="flex items-center justify-center gap-1.5 h-8 px-3 bg-[#2563eb] border-none rounded cursor-pointer text-xs font-semibold text-white"
+                    className="tap-small h-8 px-3 rounded-lg bg-primary text-primary-foreground flex items-center gap-1.5 text-[13px] font-medium hover:bg-primary/90 transition-colors"
+                    style={{ border: 'none', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
                   >
-                    <Plus size={12} />
+                    <Plus className="w-3.5 h-3.5" />
                     Abschnitt
                   </button>
                 </div>

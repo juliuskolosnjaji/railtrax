@@ -5,31 +5,24 @@ import { getPlan } from '@/lib/entitlements'
 import { Logo } from '@/components/ui/Logo'
 import { de } from '@/lib/i18n/de'
 import { MobileBottomNav } from '@/components/shared/MobileBottomNav'
+import { MobileHeader } from '@/components/shared/MobileHeader'
 import { SidebarNav } from '@/components/shared/SidebarNav'
+import { PageTransition } from '@/components/shared/PageTransition'
 
 function LegalFooter() {
   return (
-    <footer
-      style={{
-        borderTop: '1px solid #0d1f3c',
-        padding: '14px 24px',
-        display: 'flex',
-        gap: 20,
-        justifyContent: 'center',
-        flexWrap: 'wrap',
-      }}
-    >
+    <footer className="border-t border-sidebar-border px-6 py-4 flex gap-5 justify-center flex-wrap">
       {[
-        { href: '/impressum',            label: 'Impressum' },
-        { href: '/datenschutz',          label: 'Datenschutz' },
-        { href: '/nutzungsbedingungen',  label: 'AGB' },
+        { href: '/impressum',               label: 'Impressum' },
+        { href: '/datenschutz',             label: 'Datenschutz' },
+        { href: '/nutzungsbedingungen',     label: 'AGB' },
         { href: 'mailto:legal@railtrax.eu', label: 'Kontakt' },
       ].map(({ href, label }) => (
-        <a key={href} href={href} style={{ fontSize: 11, color: '#1e3a6e', textDecoration: 'none' }}>
+        <a key={href} href={href} className="tap-small text-[11px] text-muted-foreground/40 hover:text-muted-foreground transition-colors" style={{ textDecoration: 'none', minHeight: 'unset', minWidth: 'unset' }}>
           {label}
         </a>
       ))}
-      <span style={{ fontSize: 11, color: '#0d1f3c' }}>
+      <span className="text-[11px] text-muted-foreground/30">
         © {new Date().getFullYear()} Railtrax
       </span>
     </footer>
@@ -54,41 +47,51 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const initials = displayName ? displayName.slice(0, 2).toUpperCase() : ''
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#080d1a', color: '#fff' }}>
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      {/* Mobile header + drawer */}
+      <MobileHeader />
+
       {/* Desktop sidebar */}
       <aside
         className="sidebar-wrapper hidden md:flex flex-col w-56 shrink-0"
-        style={{ backgroundColor: '#080d1a', borderRight: '1px solid #1e2d4a' }}
+        style={{
+          background: 'hsl(var(--sidebar-background))',
+          borderRight: '1px solid hsl(var(--sidebar-border))',
+        }}
       >
         {/* Logo */}
         <div className="flex items-center px-4 py-5">
           <Logo />
         </div>
 
-        <div style={{ height: 1, backgroundColor: '#1e2d4a', margin: '0 16px' }} />
+        <div className="border-t border-sidebar-border mx-4" />
 
-        {/* Nav — client component to avoid RSC serialization of forwardRef icons */}
+        {/* Nav */}
         <SidebarNav />
 
-        <div style={{ height: 1, backgroundColor: '#1e2d4a' }} />
+        <div className="border-t border-sidebar-border" />
 
         {/* User info */}
-        <div className="p-3 space-y-1">
+        <div className="px-3 py-3 space-y-1">
           {user ? (
             <>
-              <div className="flex items-center gap-3 px-2 py-2">
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage src={avatarUrl} alt={displayName ?? ''} />
-                  <AvatarFallback
-                    className="text-xs"
-                    style={{ backgroundColor: '#0d1f3c', color: '#8ba3c7' }}
-                  >
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+              <div className="flex items-center gap-2.5 px-3 py-2">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0"
+                  style={{ background: 'hsl(var(--primary) / 0.2)', color: 'hsl(var(--primary))' }}
+                >
+                  {initials || (
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={avatarUrl} alt={displayName ?? ''} />
+                      <AvatarFallback className="text-[11px]" style={{ background: 'hsl(var(--primary) / 0.2)', color: 'hsl(var(--primary))' }}>
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: '#fff' }}>{displayName}</p>
-                  <p className="text-xs" style={{ color: '#4a6a9a' }}>
+                  <p className="text-[13px] font-medium text-foreground truncate">{displayName}</p>
+                  <p className="text-[11px] text-primary">
                     {PLAN_BADGE[plan!] ?? de.settings.free}
                   </p>
                 </div>
@@ -98,13 +101,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           ) : (
             <a
               href="/login"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                background: '#2563eb', color: '#fff',
-                borderRadius: 8, padding: '10px 14px',
-                fontSize: 13, fontWeight: 500,
-                textDecoration: 'none',
-              }}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-md text-[13px] font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
+              style={{ textDecoration: 'none' }}
             >
               Anmelden
             </a>
@@ -115,10 +113,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* Main content */}
       <main
         className="main-content flex-1 overflow-y-auto"
-        style={{ backgroundColor: '#080d1a', paddingBottom: 'var(--bottom-nav-height, 0px)' }}
+        style={{ background: 'hsl(var(--background))' }}
       >
-        {children}
-        <LegalFooter />
+        <PageTransition>
+          {children}
+          <LegalFooter />
+        </PageTransition>
       </main>
 
       {/* Mobile bottom nav */}

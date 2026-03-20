@@ -48,26 +48,24 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        // ─── Railtrax Midnight Blue design tokens ───
-        brand: {
-          DEFAULT: "#4f8ef7",
-          dim:     "#1e3a6e",
-          faint:   "#0d1f3c",
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
         },
-        surface: {
-          base:     "#080d1a",
-          DEFAULT:  "#0a1628",
-          elevated: "#0d1f3c",
-          muted:    "#111e35",
-        },
-        tx: {
-          primary:   "#ffffff",
-          secondary: "#8ba3c7",
-          muted:     "#4a6a9a",
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["DM Sans", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
       },
     },
   },
