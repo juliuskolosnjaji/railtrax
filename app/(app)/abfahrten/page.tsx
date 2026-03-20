@@ -170,7 +170,6 @@ export default function AbfahrtenPage() {
           }}
           data-station-picker
           onClick={() => {
-            console.log('Station selector clicked')
             setShowDropdown(!showDropdown)
             setStationQuery('')
           }}>
@@ -230,7 +229,6 @@ export default function AbfahrtenPage() {
                   <div key={s.id}
                     onClick={(e) => {
                       e.stopPropagation()
-                      console.log('Selected station:', s)
                       setSelectedStation(s)
                       setShowDropdown(false)
                       setStationQuery('')
