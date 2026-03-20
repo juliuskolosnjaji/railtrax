@@ -158,7 +158,7 @@ export default function TripsPage() {
               'flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-colors border',
               filter === tab.key
                 ? 'bg-zinc-800 border-zinc-700 text-zinc-200'
-                : 'bg-transparent border-[#1e2d4a] text-muted-foreground hover:text-foreground hover:border-[#2e3d5a]',
+                : 'bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-[#2e3d5a]',
             ].join(' ')}
             style={{ cursor: 'pointer' }}
           >
@@ -176,7 +176,7 @@ export default function TripsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map(i => (
-            <div key={i} className="rounded-xl border border-[#1e2d4a] bg-[#0a1628] p-5 animate-pulse">
+            <div key={i} className="rounded-xl border border-border bg-card p-5 animate-pulse">
               <div className="flex gap-4 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-[#0d1f3c] shrink-0" />
                 <div className="flex-1 space-y-2">
@@ -198,11 +198,11 @@ export default function TripsPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 rounded-xl border border-dashed border-[#1e2d4a]">
+        <div className="text-center py-16 rounded-xl border border-dashed border-border">
           <p className="text-muted-foreground text-sm mb-3">Keine Reisen gefunden.</p>
           <button
             onClick={() => setSheetOpen(true)}
-            className="px-4 py-2 rounded-lg text-sm font-medium border border-[#1e2d4a] text-muted-foreground hover:text-foreground hover:border-[#2e3d5a] transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-muted-foreground hover:text-foreground hover:border-[#2e3d5a] transition-colors"
             style={{ background: 'transparent', cursor: 'pointer' }}
           >
             + Erste Reise erstellen
@@ -220,7 +220,7 @@ export default function TripsPage() {
               <div
                 key={trip.id}
                 onClick={() => router.push(`/trips/${trip.id}`)}
-                className="rounded-xl border border-[#1e2d4a] bg-[#0a1628] p-5 cursor-pointer hover:border-[#2a3d5e] hover:bg-[#0c1830] transition-all group"
+                className="rounded-xl border border-border bg-card p-5 cursor-pointer hover:border-border/60 hover:bg-secondary/40 transition-all group"
               >
                 {/* Top row: icon + title + arrow */}
                 <div className="flex items-start gap-4">
@@ -268,7 +268,7 @@ export default function TripsPage() {
                 )}
 
                 {/* Stats */}
-                <div className="mt-3 pt-3 border-t border-[#1e2d4a] flex items-center gap-6 flex-wrap">
+                <div className="mt-3 pt-3 border-t border-border flex items-center gap-6 flex-wrap">
                   <div className="flex items-center gap-2">
                     <Route className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
                     <div>

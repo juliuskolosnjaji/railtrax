@@ -129,7 +129,7 @@ export default function StatsPage() {
           >
             {t === 'overview' ? 'Übersicht' : 'Heatmap'}
             {activeTab === t && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-500 rounded-t" />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t" />
             )}
           </button>
         ))}

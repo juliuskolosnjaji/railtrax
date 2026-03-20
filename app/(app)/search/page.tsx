@@ -126,14 +126,14 @@ function StationInput({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, position: 'relative', width: '100%', maxWidth: 280 }}>
       <div style={{
-        fontSize: 10, color: '#4a6a9a', textTransform: 'uppercase',
+        fontSize: 10, color: '#6b7280', textTransform: 'uppercase',
         letterSpacing: '1px', fontWeight: 500,
       }}>
         {label}
       </div>
       <div style={{
         background: '#080d1a',
-        border: `1px solid ${value ? '#4a6a9a' : '#1e2d4a'}`,
+        border: `1px solid ${value ? '#6b7280' : '#1e2d4a'}`,
         borderRadius: 8, padding: '9px 12px',
         display: 'flex', alignItems: 'center', gap: 7,
         width: '100%', cursor: 'text',
@@ -147,7 +147,7 @@ function StationInput({
           placeholder={placeholder}
           style={{
             background: 'none', border: 'none', outline: 'none',
-            color: value ? '#fff' : '#4a6a9a',
+            color: value ? '#fff' : '#6b7280',
             fontSize: 13, width: '100%',
           }}
         />
@@ -155,7 +155,7 @@ function StationInput({
           <button
             onClick={() => { onSelect(null); onChange('') }}
             style={{
-              background: 'none', border: 'none', color: '#4a6a9a',
+              background: 'none', border: 'none', color: '#6b7280',
               cursor: 'pointer', padding: 0, lineHeight: 1,
             }}
           >
@@ -183,7 +183,7 @@ function StationInput({
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="4" stroke="#4a6a9a" strokeWidth="1.5" />
+                <circle cx="6" cy="6" r="4" stroke="#6b7280" strokeWidth="1.5" />
               </svg>
               {s.name}
             </div>
@@ -223,11 +223,11 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                   width: isFirst || isLast ? 10 : 8,
                   height: isFirst || isLast ? 10 : 8,
                   borderRadius: '50%',
-                  background: isLast ? '#4a6a9a' : isFirst ? '#fff' : '#080d1a',
-                  border: `2px solid ${isLast ? '#4a6a9a' : isFirst ? '#fff' : '#4a6a9a'}`,
+                  background: isLast ? '#6b7280' : isFirst ? '#fff' : '#080d1a',
+                  border: `2px solid ${isLast ? '#6b7280' : isFirst ? '#fff' : '#6b7280'}`,
                 }} />
                 <div style={{
-                  fontSize: 9, color: isFirst || isLast ? '#8ba3c7' : '#4a6a9a',
+                  fontSize: 9, color: isFirst || isLast ? '#8ba3c7' : '#6b7280',
                   textAlign: 'center', maxWidth: 65, lineHeight: 1.3, whiteSpace: 'nowrap',
                 }}>
                   {leg.origin.replace(/\s*(Hauptbahnhof|Hbf)\s*/gi, ' Hbf').trim()}
@@ -235,7 +235,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                 {leg.platform && (
                   <div style={{ fontSize: 8, color: '#1e3a6e' }}>Gl. {leg.platform}</div>
                 )}
-                <div style={{ fontSize: 8, color: delay > 0 ? '#e25555' : '#4a6a9a' }}>
+                <div style={{ fontSize: 8, color: delay > 0 ? '#e25555' : '#6b7280' }}>
                   {formatTime(leg.departure)}
                   {delay > 0 && ` +${delay}`}
                 </div>
@@ -272,7 +272,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Wagenreihung"
-                      style={{ display: 'flex', alignItems: 'center', marginTop: 3, color: '#4a6a9a' }}
+                      style={{ display: 'flex', alignItems: 'center', marginTop: 3, color: '#6b7280' }}
                       onClick={e => e.stopPropagation()}
                     >
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -294,7 +294,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                 }}>
                   <div style={{
                     width: 10, height: 10, borderRadius: '50%',
-                    background: '#4a6a9a', border: '2px solid #4a6a9a',
+                    background: '#6b7280', border: '2px solid #6b7280',
                   }} />
                   <div style={{
                     fontSize: 9, color: '#8ba3c7', textAlign: 'center',
@@ -302,7 +302,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                   }}>
                     {leg.destination.replace(/\s*(Hauptbahnhof|Hbf)\s*/gi, ' Hbf').trim()}
                   </div>
-                  <div style={{ fontSize: 8, color: '#4a6a9a' }}>
+                  <div style={{ fontSize: 8, color: '#6b7280' }}>
                     {formatTime(leg.arrival)}
                   </div>
                 </div>
@@ -355,7 +355,7 @@ function TripPickerModal({
           style={{
             width: '100%', padding: '10px 14px', marginBottom: 8,
             background: '#0d1f3c', border: '1px dashed #1e3a6e',
-            borderRadius: 8, color: '#4a6a9a', fontSize: 13,
+            borderRadius: 8, color: '#6b7280', fontSize: 13,
             cursor: 'pointer', textAlign: 'left',
           }}
         >
@@ -374,11 +374,11 @@ function TripPickerModal({
               cursor: 'pointer', textAlign: 'left',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = '#4a6a9a')}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = '#6b7280')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = '#1e2d4a')}
           >
             <span>{trip.title}</span>
-            <span style={{ fontSize: 11, color: '#4a6a9a' }}>
+            <span style={{ fontSize: 11, color: '#6b7280' }}>
               {trip._count?.legs ?? trip.legs?.length ?? 0} Abschnitte
             </span>
           </button>
@@ -417,7 +417,7 @@ function JourneyCard({
         transition: 'border-color 0.15s, transform 0.1s',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = '#4a6a9a'
+        e.currentTarget.style.borderColor = '#6b7280'
         e.currentTarget.style.transform = 'translateY(-1px)'
       }}
       onMouseLeave={e => {
@@ -429,7 +429,7 @@ function JourneyCard({
       {journey.isBest && (
         <div style={{
           background: '#0d1f3c', padding: '4px 16px',
-          fontSize: 10, color: '#4a6a9a', fontWeight: 500,
+          fontSize: 10, color: '#6b7280', fontWeight: 500,
           letterSpacing: '1px', textTransform: 'uppercase',
           display: 'flex', alignItems: 'center', gap: 6,
         }}>
@@ -450,10 +450,10 @@ function JourneyCard({
               {arrTime}
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 4 }}>
-              <span style={{ fontSize: 12, color: '#4a6a9a' }}>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>
                 {formatDuration(journey.totalDuration)}
               </span>
-              <span style={{ fontSize: 11, color: '#4a6a9a' }}>
+              <span style={{ fontSize: 11, color: '#6b7280' }}>
                 {journey.changes === 0 ? 'Direkt' : `${journey.changes} Umstiege`}
               </span>
             </div>
@@ -476,17 +476,17 @@ function JourneyCard({
               onClick={e => { e.stopPropagation(); onAdd(journey) }}
               style={{
                 background: '#0d1f3c', border: '1px solid #1e3a6e',
-                color: '#4a6a9a', borderRadius: 8, padding: '8px 14px',
+                color: '#6b7280', borderRadius: 8, padding: '8px 14px',
                 fontSize: 12, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap',
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = '#4a6a9a'
+                e.currentTarget.style.background = '#6b7280'
                 e.currentTarget.style.color = '#fff'
-                e.currentTarget.style.borderColor = '#4a6a9a'
+                e.currentTarget.style.borderColor = '#6b7280'
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.background = '#0d1f3c'
-                e.currentTarget.style.color = '#4a6a9a'
+                e.currentTarget.style.color = '#6b7280'
                 e.currentTarget.style.borderColor = '#1e3a6e'
               }}
             >
@@ -513,7 +513,7 @@ function JourneyCard({
         <button 
           onClick={() => onDetail?.(journey)}
           style={{
-            marginLeft: 'auto', fontSize: 11, color: '#4a6a9a',
+            marginLeft: 'auto', fontSize: 11, color: '#6b7280',
             background: 'none', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 3,
           }}
@@ -716,7 +716,7 @@ export default function SearchPage() {
       <div style={{ fontSize: 22, fontWeight: 500, color: '#fff', marginBottom: 4 }}>
         Verbindungssuche
       </div>
-      <div style={{ fontSize: 13, color: '#4a6a9a', marginBottom: 20 }}>
+      <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>
         Zugverbindungen suchen und direkt zu deiner Reise hinzufügen
       </div>
 
@@ -736,7 +736,7 @@ export default function SearchPage() {
             Verbindungen zu deinen Reisen hinzufügen — kostenlos anmelden
           </span>
           <a href="/login" style={{
-            fontSize: 12, fontWeight: 500, color: '#4a6a9a',
+            fontSize: 12, fontWeight: 500, color: '#6b7280',
             textDecoration: 'none', whiteSpace: 'nowrap',
           }}>
             Anmelden →
@@ -766,8 +766,8 @@ export default function SearchPage() {
             placeholder="Abfahrtsbahnhof..."
             icon={
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="4" stroke="#4a6a9a" strokeWidth="1.5" />
-                <circle cx="6" cy="6" r="1.5" fill="#4a6a9a" />
+                <circle cx="6" cy="6" r="4" stroke="#6b7280" strokeWidth="1.5" />
+                <circle cx="6" cy="6" r="1.5" fill="#6b7280" />
               </svg>
             }
           />
@@ -785,7 +785,7 @@ export default function SearchPage() {
               cursor: 'pointer', flexShrink: 0,
             }}
           >
-            <ArrowLeftRight size={14} color="#4a6a9a" />
+            <ArrowLeftRight size={14} color="#6b7280" />
           </button>
 
           <StationInput
@@ -800,7 +800,7 @@ export default function SearchPage() {
             placeholder="Zielbahnhof..."
             icon={
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <circle cx="6" cy="6" r="4" stroke="#4a6a9a" strokeWidth="1.5" />
+                <circle cx="6" cy="6" r="4" stroke="#6b7280" strokeWidth="1.5" />
               </svg>
             }
           />
@@ -808,7 +808,7 @@ export default function SearchPage() {
           {/* Date */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <div style={{
-              fontSize: 10, color: '#4a6a9a', textTransform: 'uppercase',
+              fontSize: 10, color: '#6b7280', textTransform: 'uppercase',
               letterSpacing: '1px', fontWeight: 500,
             }}>Datum</div>
             <div style={{
@@ -816,7 +816,7 @@ export default function SearchPage() {
               borderRadius: 8, padding: '9px 12px',
               display: 'flex', alignItems: 'center', gap: 7,
             }}>
-              <Calendar size={11} color="#4a6a9a" />
+              <Calendar size={11} color="#6b7280" />
               <input
                 type="date"
                 value={date}
@@ -832,7 +832,7 @@ export default function SearchPage() {
           {/* Time */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <div style={{
-              fontSize: 10, color: '#4a6a9a', textTransform: 'uppercase',
+              fontSize: 10, color: '#6b7280', textTransform: 'uppercase',
               letterSpacing: '1px', fontWeight: 500,
             }}>Zeit</div>
             <div style={{
@@ -840,7 +840,7 @@ export default function SearchPage() {
               borderRadius: 8, padding: '9px 12px',
               display: 'flex', alignItems: 'center', gap: 7,
             }}>
-              <Clock size={11} color="#4a6a9a" />
+              <Clock size={11} color="#6b7280" />
               <input
                 type="time"
                 value={time}
@@ -856,7 +856,7 @@ export default function SearchPage() {
           {/* Class */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <div style={{
-              fontSize: 10, color: '#4a6a9a', textTransform: 'uppercase',
+              fontSize: 10, color: '#6b7280', textTransform: 'uppercase',
               letterSpacing: '1px', fontWeight: 500,
             }}>Klasse</div>
             <div style={{
@@ -870,7 +870,7 @@ export default function SearchPage() {
                   style={{
                     padding: '9px 14px', fontSize: 13, cursor: 'pointer', border: 'none',
                     background: travelClass === c ? '#0d1f3c' : 'none',
-                    color: travelClass === c ? '#4a6a9a' : '#4a6a9a',
+                    color: travelClass === c ? '#fff' : '#6b7280',
                   }}
                 >
                   {c}.
@@ -884,8 +884,8 @@ export default function SearchPage() {
             onClick={handleSearch}
             disabled={!from || !to}
             style={{
-              background: from && to ? '#4a6a9a' : '#0d1f3c',
-              color: from && to ? '#fff' : '#4a6a9a',
+              background: from && to ? '#6b7280' : '#0d1f3c',
+              color: from && to ? '#fff' : '#6b7280',
               border: 'none', borderRadius: 8, padding: '10px 22px',
               fontSize: 13, fontWeight: 500,
               cursor: from && to ? 'pointer' : 'not-allowed',
@@ -905,7 +905,7 @@ export default function SearchPage() {
           justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
         }}>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, color: '#4a6a9a' }}>Schnellfilter:</span>
+            <span style={{ fontSize: 11, color: '#6b7280' }}>Schnellfilter:</span>
             {([
               { key: 'onlyICE', label: 'Nur ICE/IC' },
               { key: 'direct', label: 'Direkte Züge' },
@@ -920,7 +920,7 @@ export default function SearchPage() {
                   fontSize: 11, padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
                   border: `1px solid ${filters[f.key] ? '#1e3a6e' : '#1e2d4a'}`,
                   background: filters[f.key] ? '#0d1f3c' : '#080d1a',
-                  color: filters[f.key] ? '#4a6a9a' : '#4a6a9a',
+                  color: filters[f.key] ? '#6b7280' : '#6b7280',
                 }}
               >
                 {f.label}
@@ -930,7 +930,7 @@ export default function SearchPage() {
 
           {/* Earlier / Later */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: '#4a6a9a' }}>Früher</span>
+            <span style={{ fontSize: 11, color: '#6b7280' }}>Früher</span>
             <div style={{
               display: 'flex', background: '#080d1a',
               border: '1px solid #1e2d4a', borderRadius: 8, overflow: 'hidden',
@@ -939,19 +939,19 @@ export default function SearchPage() {
                 onClick={() => handleShift('earlier')}
                 style={{
                   padding: '6px 12px', background: 'none', border: 'none',
-                  color: '#4a6a9a', cursor: 'pointer', fontSize: 13,
+                  color: '#6b7280', cursor: 'pointer', fontSize: 13,
                 }}
               >◀</button>
               <button
                 onClick={() => handleShift('later')}
                 style={{
                   padding: '6px 12px', background: 'none', border: 'none',
-                  color: '#4a6a9a', cursor: 'pointer', fontSize: 13,
+                  color: '#6b7280', cursor: 'pointer', fontSize: 13,
                   borderLeft: '1px solid #1e2d4a',
                 }}
               >▶</button>
             </div>
-            <span style={{ fontSize: 11, color: '#4a6a9a' }}>Später</span>
+            <span style={{ fontSize: 11, color: '#6b7280' }}>Später</span>
           </div>
         </div>
       </div>
@@ -960,7 +960,7 @@ export default function SearchPage() {
       {!searchParams && recentSearches.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <div style={{
-            fontSize: 11, color: '#4a6a9a', marginBottom: 8,
+            fontSize: 11, color: '#6b7280', marginBottom: 8,
             textTransform: 'uppercase', letterSpacing: '1px',
           }}>
             Zuletzt gesucht
@@ -990,7 +990,7 @@ export default function SearchPage() {
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', marginBottom: 12,
         }}>
-          <span style={{ fontSize: 13, color: '#4a6a9a' }}>
+          <span style={{ fontSize: 13, color: '#6b7280' }}>
             {filtered.length} Verbindungen
           </span>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -1006,7 +1006,7 @@ export default function SearchPage() {
                   fontSize: 11, padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
                   background: sortBy === s.key ? '#0d1f3c' : '#0a1628',
                   border: `1px solid ${sortBy === s.key ? '#1e3a6e' : '#1e2d4a'}`,
-                  color: sortBy === s.key ? '#4a6a9a' : '#4a6a9a',
+                  color: sortBy === s.key ? '#6b7280' : '#6b7280',
                 }}
               >
                 {s.label}
@@ -1054,7 +1054,7 @@ export default function SearchPage() {
             <div style={{
               background: '#0a1628', border: '1px solid #1e2d4a',
               borderRadius: 12, padding: '40px 24px', textAlign: 'center',
-              color: '#4a6a9a', fontSize: 14,
+              color: '#6b7280', fontSize: 14,
             }}>
               Keine Verbindungen gefunden — Filter anpassen oder andere Zeit wählen
             </div>
