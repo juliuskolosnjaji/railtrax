@@ -154,22 +154,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const desc = trip.description || `Zugreise von ${user?.username || 'einem Reisenden'}${dateRange ? ` · ${dateRange}` : ''}`
 
-  return {
-    title: `${trip.title} – Railtrax`,
-    description: desc,
-    openGraph: {
-      title: trip.title,
-      description: desc,
-      images: [`/api/og/trip/${shareToken}`],
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: trip.title,
-      description: desc,
-      images: [`/api/og/trip/${shareToken}`],
-    },
-  }
+   const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://railtrax.eu'
+   return {
+     title: `${trip.title} – Railtrax`,
+     description: desc,
+     openGraph: {
+       title: trip.title,
+       description: desc,
+       images: [`${baseUrl}/api/og/trip/${shareToken}`],
+       type: 'website',
+     },
+     twitter: {
+       card: 'summary_large_image',
+       title: trip.title,
+       description: desc,
+       images: [`${baseUrl}/api/og/trip/${shareToken}`],
+     },
+   }
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
