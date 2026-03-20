@@ -9,6 +9,42 @@ const MAP_STYLE = 'https://tiles.openfreemap.org/styles/fiord'
 const ROUTE_COLOR = '#40e0b0'
 const BG_COLOR = '#0d1117'
 
+// ── Polyline clipping ──────────────────────────────────────────────────────
+
+function distSq(a: [number, number], b: [number, number]): number {
+  return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+}
+
+function closestIndex(coords: [number, number][], target: [number, number]): number {
+  let best = 0
+  let bestDist = Infinity
+  coords.forEach((c, i) => {
+    const d = distSq(c, target)
+    if (d < bestDist) { bestDist = d; best = i }
+  })
+  return best
+}
+
+function clipPolylineToLeg(
+  coords: [number, number][],
+  originLon: number,
+  originLat: number,
+  destLon: number,
+  destLat: number,
+): [number, number][] {
+  if (coords.length < 2) return coords
+
+  const originIdx = closestIndex(coords, [originLon, originLat])
+  const destIdx   = closestIndex(coords, [destLon,   destLat])
+
+  const start = Math.min(originIdx, destIdx)
+  const end   = Math.max(originIdx, destIdx)
+
+  if (start === end) return [[originLon, originLat], [destLon, destLat]]
+
+  return coords.slice(start, end + 1)
+}
+
 export function TripMapCard({ legs }: { legs: Leg[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -34,14 +70,24 @@ export function TripMapCard({ legs }: { legs: Leg[] }) {
       const allCoords: [number, number][] = []
 
       for (const leg of legs) {
-        if (leg.polyline && leg.polyline.length >= 2) {
-          // polyline is stored as [lon, lat][] pairs
-          allCoords.push(...leg.polyline)
-        } else {
-          if (leg.originLon != null && leg.originLat != null)
-            allCoords.push([leg.originLon, leg.originLat])
-          if (leg.destLon != null && leg.destLat != null)
-            allCoords.push([leg.destLon, leg.destLat])
+        const hasCoords =
+          leg.originLon != null && leg.originLat != null &&
+          leg.destLon   != null && leg.destLat   != null
+
+        if (leg.polyline && leg.polyline.length >= 2 && hasCoords) {
+          // Clip the full train-line polyline to just this leg's segment
+          const clipped = clipPolylineToLeg(
+            leg.polyline,
+            leg.originLon!,
+            leg.originLat!,
+            leg.destLon!,
+            leg.destLat!,
+          )
+          allCoords.push(...clipped)
+        } else if (hasCoords) {
+          // No polyline — straight line between origin and destination
+          allCoords.push([leg.originLon!, leg.originLat!])
+          allCoords.push([leg.destLon!,   leg.destLat!])
         }
       }
 
