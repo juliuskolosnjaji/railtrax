@@ -49,7 +49,7 @@ model Trip {
   interrailPassId String?  @map("interrail_pass_id") @db.Uuid
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user            User     @relation(fields: [userId], references: [id])
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   legs            Leg[]
   journalEntries  JournalEntry[]
   interrailPass   InterrailPass? @relation(fields: [interrailPassId], references: [id])
@@ -170,7 +170,7 @@ model JournalEntry {
   lon          Float?
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  trip         Trip     @relation(fields: [tripId], references: [id])
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
   leg          Leg?     @relation(fields: [legId], references: [id], onDelete: SetNull)
   user         User     @relation(fields: [userId], references: [id])
   photos       JournalPhoto[]
@@ -185,7 +185,7 @@ model JournalPhoto {
   caption  String?
   position Int?
 
-  entry    JournalEntry @relation(fields: [entryId], references: [id])
+  entry    JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@map("journal_photos")
 }

@@ -23,3 +23,15 @@ ALTER TABLE journal_entries
   DROP CONSTRAINT IF EXISTS journal_entries_leg_id_fkey,
   ADD CONSTRAINT journal_entries_leg_id_fkey
     FOREIGN KEY (leg_id) REFERENCES legs(id) ON DELETE SET NULL;
+
+-- journal_entries.trip_id → trips.id  (cascade: delete entries when trip is deleted)
+ALTER TABLE journal_entries
+  DROP CONSTRAINT IF EXISTS journal_entries_trip_id_fkey,
+  ADD CONSTRAINT journal_entries_trip_id_fkey
+    FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE;
+
+-- journal_photos.entry_id → journal_entries.id  (cascade: delete photos when entry is deleted)
+ALTER TABLE journal_photos
+  DROP CONSTRAINT IF EXISTS journal_photos_entry_id_fkey,
+  ADD CONSTRAINT journal_photos_entry_id_fkey
+    FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE CASCADE;
