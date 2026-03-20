@@ -39,27 +39,12 @@ interface HeatmapData {
   }[]
 }
 
-const CARD_STYLE: React.CSSProperties = {
-  background: '#0a1628',
-  border: '1px solid #1e2d4a',
-  borderRadius: 12,
-  padding: 24,
-}
-
-function StatCard({
-  label,
-  value,
-  sub,
-}: {
-  label: string
-  value: string | number
-  sub?: string
-}) {
+function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div style={CARD_STYLE}>
-      <p style={{ fontSize: 12, color: '#4a6a9a', marginBottom: 4 }}>{label}</p>
-      <p style={{ fontSize: 28, fontWeight: 700, color: '#fff' }}>{value}</p>
-      {sub && <p style={{ fontSize: 11, color: '#4a6a9a', marginTop: 4 }}>{sub}</p>}
+    <div className="glass-panel rounded-xl p-6">
+      <p className="stat-label mb-1">{label}</p>
+      <p className="text-[28px] font-bold text-foreground">{value}</p>
+      {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
     </div>
   )
 }
@@ -75,9 +60,7 @@ function findClosestComparison(kg: number) {
   if (kg <= 0) return null
   let closest = CO2_COMPARISONS[0]
   for (const c of CO2_COMPARISONS) {
-    if (Math.abs(kg - c.kg) < Math.abs(kg - closest.kg)) {
-      closest = c
-    }
+    if (Math.abs(kg - c.kg) < Math.abs(kg - closest.kg)) closest = c
   }
   return closest
 }
@@ -85,10 +68,20 @@ function findClosestComparison(kg: number) {
 function formatMonth(monthKey: string): string {
   const [year, month] = monthKey.split('-')
   const date = new Date(parseInt(year), parseInt(month) - 1)
-  return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+  return date.toLocaleDateString('de-DE', { month: 'short', year: '2-digit' })
 }
 
 type Tab = 'overview' | 'heatmap'
+
+// Chart color values derived from CSS vars — used directly in recharts props
+const CHART = {
+  grid:    'hsl(220 14% 16%)',
+  axis:    'hsl(215 12% 38%)',
+  label:   'hsl(215 12% 55%)',
+  tooltip: { bg: 'hsl(220 18% 10%)', border: 'hsl(220 14% 16%)', text: 'hsl(210 20% 92%)' },
+  primary: 'hsl(172 66% 50%)',
+  success: 'hsl(152 60% 45%)',
+}
 
 export default function StatsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('overview')
@@ -111,187 +104,129 @@ export default function StatsPage() {
     ? Object.entries(stats.monthly_distances)
         .sort(([a], [b]) => a.localeCompare(b))
         .slice(-12)
-        .map(([month, km]: [string, number]) => ({
-          month: formatMonth(month),
-          km: Math.round(km),
-        }))
+        .map(([month, km]: [string, number]) => ({ month: formatMonth(month), km: Math.round(km) }))
     : []
 
   const operatorData = stats?.top_operators ?? []
-
   const co2Comparison = stats?.co2_saved_kg ? findClosestComparison(stats.co2_saved_kg) : null
 
   return (
-    <div style={{ background: '#080d1a', minHeight: '100vh', padding: '24px 16px', maxWidth: 900 }} className="md:p-8">
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Statistik</h1>
-      <p style={{ fontSize: 13, color: '#4a6a9a', marginBottom: 24 }}>Zurückgelegte Strecke, besuchte Länder, CO₂ gespart und mehr.</p>
+    <div className="p-8 max-w-4xl mx-auto w-full">
+      <h1 className="text-2xl font-bold text-foreground tracking-tight mb-1">Statistik</h1>
+      <p className="text-sm text-muted-foreground mb-6">Zurückgelegte Strecke, besuchte Länder, CO₂ gespart und mehr.</p>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid #1e2d4a' }}>
+      <div className="flex gap-1 mb-6 border-b border-border">
         {(['overview', 'heatmap'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setActiveTab(t)}
-            style={{
-              padding: '8px 16px', fontSize: 14, fontWeight: 500,
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: activeTab === t ? '#fff' : '#4a6a9a',
-              position: 'relative', transition: 'color 0.15s',
-            }}
+            className={[
+              'tap-small px-4 py-2 text-sm font-medium transition-colors relative',
+              activeTab === t ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+            ].join(' ')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
             {t === 'overview' ? 'Übersicht' : 'Heatmap'}
             {activeTab === t && (
-              <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: '#4f8ef7', borderRadius: 2 }} />
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t" />
             )}
           </button>
         ))}
       </div>
 
       {isError && (
-        <p style={{ color: '#e25555', fontSize: 13, marginBottom: 24 }}>Fehler beim Laden der Statistik.</p>
+        <p className="text-destructive text-sm mb-6">Fehler beim Laden der Statistik.</p>
       )}
 
       {activeTab === 'overview' && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             {isLoading ? (
-              <>
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 animate-pulse">
-                    <div className="h-3 w-20 bg-zinc-800 rounded mb-3" />
-                    <div className="h-8 w-16 bg-zinc-700 rounded" />
-                  </div>
-                ))}
-              </>
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-xl border border-border bg-card p-6 animate-pulse">
+                  <div className="h-3 w-20 bg-secondary rounded mb-3" />
+                  <div className="h-8 w-16 bg-secondary rounded" />
+                </div>
+              ))
             ) : (
               <>
-                <StatCard
-                  label="Gesamtstrecke"
-                  value={stats ? `${stats.total_km.toLocaleString('de-DE')} km` : '—'}
-                />
-                <StatCard
-                  label="Reisen gesamt"
-                  value={stats?.total_trips ?? '—'}
-                  sub={stats ? `${stats.total_legs} Abschnitte` : undefined}
-                />
-                <StatCard
-                  label="Zeit im Zug"
-                  value={stats ? `${stats.total_hours} Std.` : '—'}
-                />
-                <StatCard
-                  label="Besuchte Länder"
-                  value={stats?.countries.length ?? '—'}
-                  sub={stats?.countries.join(' · ') || undefined}
-                />
+                <StatCard label="Gesamtstrecke" value={stats ? `${stats.total_km.toLocaleString('de-DE')} km` : '—'} />
+                <StatCard label="Reisen gesamt" value={stats?.total_trips ?? '—'} sub={stats ? `${stats.total_legs} Abschnitte` : undefined} />
+                <StatCard label="Zeit im Zug" value={stats ? `${stats.total_hours} Std.` : '—'} />
+                <StatCard label="Besuchte Länder" value={stats?.countries.length ?? '—'} sub={stats?.countries.join(' · ') || undefined} />
               </>
             )}
           </div>
 
-          {/* CO2 card */}
+          {/* CO₂ card */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {isLoading ? (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 animate-pulse">
-                <div className="h-3 w-20 bg-zinc-800 rounded mb-3" />
-                <div className="h-8 w-16 bg-zinc-700 rounded" />
+              <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
+                <div className="h-3 w-20 bg-secondary rounded mb-3" />
+                <div className="h-8 w-16 bg-secondary rounded" />
               </div>
             ) : (
-              <div className="rounded-xl border border-green-900/50 bg-green-950/30 p-6">
-                <p className="text-sm text-green-400 mb-1">CO₂ eingespart</p>
-                <p className="text-3xl font-bold text-green-400">{stats?.co2_saved_kg ?? 0} kg</p>
+              <div className="rounded-xl border border-success/30 bg-success/10 p-6">
+                <p className="text-sm text-success mb-1">CO₂ eingespart</p>
+                <p className="text-3xl font-bold text-success">{stats?.co2_saved_kg ?? 0} kg</p>
                 {co2Comparison && (
-                  <p className="text-xs text-green-500/70 mt-1">
-                    ≈ {co2Comparison.label}
-                  </p>
+                  <p className="text-xs text-success/60 mt-1">≈ {co2Comparison.label}</p>
                 )}
               </div>
             )}
           </div>
 
-          {/* Monthly distance chart */}
+          {/* Charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {isLoading ? (
               <>
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 animate-pulse min-h-[300px]" />
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 animate-pulse min-h-[300px]" />
+                <div className="rounded-xl border border-border bg-card p-6 animate-pulse min-h-[300px]" />
+                <div className="rounded-xl border border-border bg-card p-6 animate-pulse min-h-[300px]" />
               </>
             ) : (
               <>
-                {/* Monthly distance bar chart */}
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-                  <p className="text-sm text-zinc-500 mb-4">Monatliche Strecke</p>
+                <div className="glass-panel rounded-xl p-6">
+                  <p className="stat-label mb-4">Monatliche Strecke</p>
                   {monthlyData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart data={monthlyData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" vertical={false} />
-                        <XAxis
-                          dataKey="month"
-                          tick={{ fill: '#71717a', fontSize: 11 }}
-                          tickLine={false}
-                          axisLine={{ stroke: '#3f3f46' }}
-                        />
-                        <YAxis
-                          tick={{ fill: '#71717a', fontSize: 11 }}
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(v) => `${v}km`}
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
+                        <XAxis dataKey="month" tick={{ fill: CHART.axis, fontSize: 11 }} tickLine={false} axisLine={{ stroke: CHART.grid }} />
+                        <YAxis tick={{ fill: CHART.axis, fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}km`} />
                         <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#18181b',
-                            border: '1px solid #3f3f46',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                          }}
-                          labelStyle={{ color: '#e4e4e7' }}
-                          itemStyle={{ color: '#a1a1aa' }}
+                          contentStyle={{ backgroundColor: CHART.tooltip.bg, border: `1px solid ${CHART.tooltip.border}`, borderRadius: 8, fontSize: 12 }}
+                          labelStyle={{ color: CHART.tooltip.text }}
+                          itemStyle={{ color: CHART.label }}
                           formatter={(value) => [`${value} km`, 'Strecke']}
                         />
-                        <Bar dataKey="km" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="km" fill={CHART.success} radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <p className="text-sm text-zinc-500 text-center py-8">Noch keine Daten</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">Noch keine Daten</p>
                   )}
                 </div>
 
-                {/* Top operators horizontal bar chart */}
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-                  <p className="text-sm text-zinc-500 mb-4">Top-Betreiber</p>
+                <div className="glass-panel rounded-xl p-6">
+                  <p className="stat-label mb-4">Top-Betreiber</p>
                   {operatorData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart data={operatorData.slice(0, 5)} layout="vertical" margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" horizontal={false} />
-                        <XAxis
-                          type="number"
-                          tick={{ fill: '#71717a', fontSize: 11 }}
-                          tickLine={false}
-                          axisLine={{ stroke: '#3f3f46' }}
-                          tickFormatter={(v) => `${v}km`}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="operator"
-                          tick={{ fill: '#a1a1aa', fontSize: 11 }}
-                          tickLine={false}
-                          axisLine={false}
-                          width={60}
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} horizontal={false} />
+                        <XAxis type="number" tick={{ fill: CHART.axis, fontSize: 11 }} tickLine={false} axisLine={{ stroke: CHART.grid }} tickFormatter={(v) => `${v}km`} />
+                        <YAxis type="category" dataKey="operator" tick={{ fill: CHART.label, fontSize: 11 }} tickLine={false} axisLine={false} width={60} />
                         <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#18181b',
-                            border: '1px solid #3f3f46',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                          }}
-                          labelStyle={{ color: '#e4e4e7' }}
-                          itemStyle={{ color: '#a1a1aa' }}
+                          contentStyle={{ backgroundColor: CHART.tooltip.bg, border: `1px solid ${CHART.tooltip.border}`, borderRadius: 8, fontSize: 12 }}
+                          labelStyle={{ color: CHART.tooltip.text }}
+                          itemStyle={{ color: CHART.label }}
                           formatter={(value) => [`${value} km`, 'Strecke']}
                         />
-                        <Bar dataKey="km" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="km" fill={CHART.primary} radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
-                    <p className="text-sm text-zinc-500 text-center py-8">Noch keine Daten</p>
+                    <p className="text-sm text-muted-foreground text-center py-8">Noch keine Daten</p>
                   )}
                 </div>
               </>
@@ -301,11 +236,11 @@ export default function StatsPage() {
       )}
 
       {activeTab === 'heatmap' && (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden" style={{ height: '500px' }}>
+        <div className="rounded-xl border border-border bg-card overflow-hidden" style={{ height: 500 }}>
           {heatmapData?.data?.features?.length ? (
             <HeatmapMap geojson={heatmapData.data} />
           ) : (
-            <div className="flex items-center justify-center h-full text-zinc-500 text-sm">
+            <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
               Noch keine Routendaten zum Anzeigen
             </div>
           )}

@@ -94,12 +94,12 @@ export default function TripDetailPage() {
   if (isLoading) {
     return (
       <div className="p-8 space-y-4">
-        <Skeleton className="h-8 w-64 bg-[#0d1f3c]" />
-        <Skeleton className="h-4 w-40 bg-[#0d1f3c]" />
-        <Skeleton className="h-[400px] rounded-xl bg-[#0d1f3c] mt-6" />
+        <Skeleton className="h-8 w-64 bg-secondary" />
+        <Skeleton className="h-4 w-40 bg-secondary" />
+        <Skeleton className="h-[400px] rounded-xl bg-secondary mt-6" />
         <div className="mt-4 space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl bg-[#0d1f3c]" />
+            <Skeleton key={i} className="h-24 rounded-xl bg-secondary" />
           ))}
         </div>
       </div>
@@ -275,7 +275,7 @@ export default function TripDetailPage() {
                   <Button
                     variant="outline" size="sm"
                     onClick={() => setAddLegOpen(true)}
-                    className="border-[#1e2d4a] text-[#8ba3c7] hover:bg-[#0d1f3c] gap-1.5"
+                    className="border-[#1e2d4a] text-[#8ba3c7] hover:bg-secondary gap-1.5"
                   >
                     <Plus className="h-4 w-4" /> Abschnitt hinzufügen
                   </Button>

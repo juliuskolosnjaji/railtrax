@@ -228,7 +228,7 @@ export function LegCard({ leg, tripId, onTrainClick }: { leg: Leg; tripId: strin
                     rel="noopener noreferrer"
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
-                      fontSize: 12, color: '#4a6a9a', textDecoration: 'none',
+                      fontSize: 12, color: 'hsl(var(--muted-foreground))', textDecoration: 'none',
                       padding: '3px 0',
                     }}
                   >
@@ -292,7 +292,7 @@ export function LegCard({ leg, tripId, onTrainClick }: { leg: Leg; tripId: strin
             )}
             {isCheckedIn && !isCompleted && (
                <div className="pt-2 border-t border-border mt-1 flex flex-col gap-2">
-                  <div className="flex items-center gap-1.5 text-[#3ecf6e] text-sm font-medium">
+                  <div className="flex items-center gap-1.5 text-success text-sm font-medium">
                      <CheckCircle2 className="h-4 w-4" /> Eingecheckt
                   </div>
                   <Button
@@ -300,7 +300,7 @@ export function LegCard({ leg, tripId, onTrainClick }: { leg: Leg; tripId: strin
                     variant="outline"
                     onClick={handleComplete}
                     disabled={updateLeg.isPending}
-                    className="w-full sm:w-auto bg-success/10 text-success hover:bg-[#133520] border-[#1a4a2e] h-8 font-medium transition-colors"
+                    className="w-full sm:w-auto bg-success/10 text-success hover:bg-success/15 border-success/30 h-8 font-medium transition-colors"
                   >
                     {updateLeg.isPending ? <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-2" />}
                     Als abgeschlossen markieren
@@ -309,7 +309,7 @@ export function LegCard({ leg, tripId, onTrainClick }: { leg: Leg; tripId: strin
             )}
             {isCompleted && (
                <div className="pt-2 border-t border-border mt-1 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-[#3ecf6e] text-sm font-medium">
+                  <div className="flex items-center gap-1.5 text-success text-sm font-medium">
                      <CheckCircle2 className="h-4 w-4" /> Abgeschlossen
                   </div>
                   <Button

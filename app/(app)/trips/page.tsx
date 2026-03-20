@@ -135,7 +135,7 @@ export default function TripsPage() {
         </div>
         <button
           onClick={() => setSheetOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shrink-0"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-zinc-700 text-zinc-100 text-sm font-medium hover:bg-zinc-600 transition-colors shrink-0"
           style={{ border: 'none', cursor: 'pointer' }}
         >
           <Plus className="w-4 h-4" />
@@ -157,14 +157,14 @@ export default function TripsPage() {
             className={[
               'flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-colors border',
               filter === tab.key
-                ? 'bg-primary/10 border-primary/30 text-primary'
+                ? 'bg-zinc-800 border-zinc-700 text-zinc-200'
                 : 'bg-transparent border-[#1e2d4a] text-muted-foreground hover:text-foreground hover:border-[#2e3d5a]',
             ].join(' ')}
             style={{ cursor: 'pointer' }}
           >
             {tab.label}
             {tab.count > 0 && (
-              <span className={`text-xs ${filter === tab.key ? 'text-primary/70' : 'text-muted-foreground/50'}`}>
+              <span className={`text-xs ${filter === tab.key ? 'text-zinc-400' : 'text-muted-foreground/50'}`}>
                 {tab.count}
               </span>
             )}
@@ -224,8 +224,8 @@ export default function TripsPage() {
               >
                 {/* Top row: icon + title + arrow */}
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                    <Train className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-xl bg-[#1e2d4a] flex items-center justify-center shrink-0">
+                    <Train className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -252,8 +252,8 @@ export default function TripsPage() {
                         <div className="flex flex-col items-center gap-1 w-14">
                           <div className={`w-2.5 h-2.5 rounded-full border-2 ${
                             i === 0 || i === stops.length - 1
-                              ? 'bg-primary border-primary'
-                              : 'bg-transparent border-[#4a6a9a]'
+                              ? 'bg-[#4a6a9a] border-[#4a6a9a]'
+                              : 'bg-transparent border-[#2e3d5a]'
                           }`} />
                           <span className="text-[10px] text-muted-foreground text-center w-14 truncate leading-tight px-0.5">
                             {stop}
