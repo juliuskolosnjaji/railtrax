@@ -22,7 +22,7 @@ export function ShareButton({ trip, onShare, onUnshare }: ShareButtonProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   const shareUrl = trip.shareToken
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/trip/${trip.shareToken}`
+    ? `${process.env.NEXT_PUBLIC_URL}/trip/${trip.shareToken}`
     : null
 
   useEffect(() => {
