@@ -315,9 +315,9 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="bg-background border-border text-white w-full sm:max-w-xl overflow-y-auto">
+      <SheetContent className="bg-background border-border text-foreground w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-white">{isEditing ? 'Edit leg' : 'Add leg'}</SheetTitle>
+          <SheetTitle className="text-foreground">{isEditing ? 'Edit leg' : 'Add leg'}</SheetTitle>
           <SheetDescription className="text-muted-foreground">
             One train ride — one vehicle, one departure to one arrival.
           </SheetDescription>
@@ -334,7 +334,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 className={[
                   'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                   tab === t
-                    ? 'bg-secondary text-white'
+                    ? 'bg-secondary text-foreground'
                     : 'text-muted-foreground hover:text-foreground/80',
                 ].join(' ')}
               >
@@ -364,7 +364,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                       setShowSuggestions(true)
                     }}
                     onFocus={() => { if (!selectedStation) setShowSuggestions(true) }}
-                    className="bg-card border-border text-white placeholder:text-muted-foreground pr-8"
+                    className="bg-card border-border text-foreground placeholder:text-muted-foreground pr-8"
                   />
                   {(selectedStation || stationInput) && (
                     <button
@@ -414,7 +414,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   type="datetime-local"
                   value={depDatetime}
                   onChange={(e) => setDepDatetime(e.target.value)}
-                  className="bg-card border-border text-white"
+                  className="bg-card border-border text-foreground"
                 />
               </div>
 
@@ -440,7 +440,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                       className={[
                         'w-full text-left rounded-lg border p-3 cursor-pointer transition-all',
                         dep.tripId === selectedTripId
-                          ? 'border-zinc-400 bg-card text-white'
+                          ? 'border-primary bg-secondary text-foreground'
                           : 'border-border bg-background text-foreground/80 hover:border-border',
                       ].join(' ')}
                     >
@@ -489,7 +489,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   placeholder="ICE 724"
                   value={trainInput}
                   onChange={(e) => setTrainInput(e.target.value)}
-                  className="bg-card border-border text-white placeholder:text-muted-foreground"
+                  className="bg-card border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
               <div className="space-y-1.5">
@@ -498,14 +498,14 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   type="date"
                   value={trainDate}
                   onChange={(e) => setTrainDate(e.target.value)}
-                  className="bg-card border-border text-white"
+                  className="bg-card border-border text-foreground"
                 />
               </div>
               <Button
                 type="button"
                 disabled={fetchingTrain || !trainInput || !trainDate}
                 onClick={() => setTrainSearchKey(`${trainInput}__${trainDate}__${Date.now()}`)}
-                className="w-full bg-secondary hover:bg-zinc-600 text-white border-border"
+                className="w-full bg-secondary hover:bg-secondary/80 text-foreground border-border"
               >
                 {fetchingTrain ? (
                   <span className="flex items-center gap-2">
@@ -564,14 +564,14 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     }
                   }}
                 >
-                  <SelectTrigger className="bg-card border-border text-white">
+                  <SelectTrigger className="bg-card border-border text-foreground">
                     <SelectValue placeholder="Select boarding stop…" />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     {activeJourney.stopovers.map((s, i) => {
                       if (!s.plannedDeparture) return null
                       return (
-                        <SelectItem key={i} value={String(i)} className="text-white focus:bg-secondary">
+                        <SelectItem key={i} value={String(i)} className="text-foreground focus:bg-secondary">
                           <span className="font-mono tabular-nums text-xs mr-2">
                             {fmtTime(s.plannedDeparture)}
                           </span>
@@ -590,14 +590,14 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   value={String(alightIdx)}
                   onValueChange={(v) => setAlightIdx(Number(v))}
                 >
-                  <SelectTrigger className="bg-card border-border text-white">
+                  <SelectTrigger className="bg-card border-border text-foreground">
                     <SelectValue placeholder="Select alighting stop…" />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     {alightStops.map((s) => {
                       const realIdx = activeJourney.stopovers.indexOf(s)
                       return (
-                        <SelectItem key={realIdx} value={String(realIdx)} className="text-white focus:bg-secondary">
+                        <SelectItem key={realIdx} value={String(realIdx)} className="text-foreground focus:bg-secondary">
                           <span className="font-mono tabular-nums text-xs mr-2">
                             {fmtTime(s.plannedArrival)}
                           </span>
@@ -612,7 +612,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
               {/* Preview */}
               {boardStop && alightStop && (
                 <div className="rounded-lg bg-secondary/50 border border-border p-3 text-sm space-y-1">
-                  <div className="flex items-center gap-2 text-white">
+                  <div className="flex items-center gap-2 text-foreground">
                     <span className="font-medium">{boardStop.stationName}</span>
                     <span className="font-mono text-muted-foreground">{fmtTime(boardStop.plannedDeparture)}</span>
                     <span className="text-muted-foreground">→</span>
@@ -633,7 +633,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     placeholder="Wagen 5, Platz 42"
                     value={smartSeat}
                     onChange={(e) => setSmartSeat(e.target.value)}
-                    className="bg-card border-border text-white placeholder:text-muted-foreground"
+                    className="bg-card border-border text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -643,7 +643,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     rows={2}
                     value={smartNotes}
                     onChange={(e) => setSmartNotes(e.target.value)}
-                    className="bg-card border-border text-white placeholder:text-muted-foreground resize-none"
+                    className="bg-card border-border text-foreground placeholder:text-muted-foreground resize-none"
                   />
                 </div>
               </div>
@@ -665,7 +665,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 </Button>
                 <Button
                   type="button"
-                  className="flex-1 bg-brand text-white hover:bg-brand/90"
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                   disabled={isPending || !boardStop || !alightStop}
                   onClick={handleSmartSubmit}
                 >
@@ -687,7 +687,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     <Input
                       id="originName"
                       placeholder="München Hbf"
-                      className="bg-card border-border text-white placeholder:text-muted-foreground"
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
                       {...register('originName')}
                     />
                     {errors.originName && <p className="text-xs text-red-400">{errors.originName.message}</p>}
@@ -697,7 +697,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     <Input
                       id="originIbnr"
                       placeholder="8000261"
-                      className="bg-card border-border text-white placeholder:text-muted-foreground"
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
                       {...register('originIbnr')}
                     />
                   </div>
@@ -707,7 +707,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   <Input
                     id="plannedDeparture"
                     type="datetime-local"
-                    className="bg-card border-border text-white"
+                    className="bg-card border-border text-foreground"
                     {...register('plannedDeparture')}
                   />
                   {errors.plannedDeparture && <p className="text-xs text-red-400">{errors.plannedDeparture.message}</p>}
@@ -723,7 +723,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     <Input
                       id="destName"
                       placeholder="Berlin Hbf"
-                      className="bg-card border-border text-white placeholder:text-muted-foreground"
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
                       {...register('destName')}
                     />
                     {errors.destName && <p className="text-xs text-red-400">{errors.destName.message}</p>}
@@ -733,7 +733,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     <Input
                       id="destIbnr"
                       placeholder="8011160"
-                      className="bg-card border-border text-white placeholder:text-muted-foreground"
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
                       {...register('destIbnr')}
                     />
                   </div>
@@ -743,7 +743,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   <Input
                     id="plannedArrival"
                     type="datetime-local"
-                    className="bg-card border-border text-white"
+                    className="bg-card border-border text-foreground"
                     {...register('plannedArrival')}
                   />
                   {errors.plannedArrival && <p className="text-xs text-red-400">{errors.plannedArrival.message}</p>}
@@ -760,12 +760,12 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                       value={watch('operator') ?? ''}
                       onValueChange={(v) => setValue('operator', v as typeof OPERATORS[number])}
                     >
-                      <SelectTrigger className="bg-card border-border text-white">
+                      <SelectTrigger className="bg-card border-border text-foreground">
                         <SelectValue placeholder="Select…" />
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border">
                         {OPERATORS.map((op) => (
-                          <SelectItem key={op} value={op} className="text-white focus:bg-secondary">
+                          <SelectItem key={op} value={op} className="text-foreground focus:bg-secondary">
                             {op}
                           </SelectItem>
                         ))}
@@ -777,7 +777,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     <Input
                       id="trainNumber"
                       placeholder="ICE 724"
-                      className="bg-card border-border text-white placeholder:text-muted-foreground"
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
                       {...register('trainNumber')}
                     />
                   </div>
@@ -787,7 +787,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   <Input
                     id="seat"
                     placeholder="Wagen 5, Platz 42"
-                    className="bg-card border-border text-white placeholder:text-muted-foreground"
+                    className="bg-card border-border text-foreground placeholder:text-muted-foreground"
                     {...register('seat')}
                   />
                 </div>
@@ -799,7 +799,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   id="notes"
                   placeholder="Any notes about this leg…"
                   rows={2}
-                  className="bg-card border-border text-white placeholder:text-muted-foreground resize-none"
+                  className="bg-card border-border text-foreground placeholder:text-muted-foreground resize-none"
                   {...register('notes')}
                 />
               </div>
@@ -821,7 +821,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-brand text-white hover:bg-brand/90"
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                   disabled={isPending}
                 >
                   {isPending

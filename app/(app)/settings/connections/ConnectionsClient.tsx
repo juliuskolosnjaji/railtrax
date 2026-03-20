@@ -91,7 +91,7 @@ export function ConnectionsClient({
             <div className="flex items-center justify-between p-3 rounded-lg bg-surface border border-border">
               <div className="flex items-center gap-2.5">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
-                <span className="text-sm text-secondary">
+                <span className="text-sm text-foreground">
                   Verbunden als <strong className="text-foreground">@{username}</strong>
                 </span>
               </div>
@@ -110,7 +110,7 @@ export function ConnectionsClient({
             <form onSubmit={handleConnect} className="space-y-3">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="token" className="text-xs text-secondary">Persönlicher Zugriffstoken</Label>
+                  <Label htmlFor="token" className="text-xs text-foreground">Persönlicher Zugriffstoken</Label>
                   <a
                     href="https://traewelling.de/profile/token"
                     target="_blank"

@@ -54,10 +54,10 @@ function DeleteAccountButton() {
             <h3 className="text-base font-semibold text-destructive mb-2">
               Konto wirklich löschen?
             </h3>
-            <p className="text-sm text-secondary leading-relaxed mb-5">
-              Diese Aktion kann nicht rückgängig gemacht werden. Gib{' '}
-              <strong className="text-foreground">LÖSCHEN</strong> ein, um fortzufahren.
-            </p>
+              <p className="text-sm text-foreground leading-relaxed mb-5">
+                Diese Aktion kann nicht rückgängig gemacht werden. Gib{' '}
+                <strong className="text-foreground">LÖSCHEN</strong> ein, um fortzufahren.
+              </p>
             <Input
               value={confirmation}
               onChange={(e) => setConfirmation(e.target.value)}
@@ -155,7 +155,7 @@ export default function PrivacyPage() {
             <Link
               key={href}
               href={href}
-              className="flex items-center justify-between py-2.5 px-1 border-b border-border last:border-0 text-sm text-secondary hover:text-foreground transition-colors"
+              className="flex items-center justify-between py-2.5 px-1 border-b border-border last:border-0 text-sm text-foreground hover:text-muted-foreground transition-colors"
             >
               {label}
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -180,10 +180,9 @@ export default function PrivacyPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-xs text-secondary leading-relaxed mb-4">
+          <p className="text-xs text-muted-foreground leading-relaxed mb-4">
             Alle Reisen, Abschnitte, Fotos und Einstellungen werden dauerhaft gelöscht.
-            Ein aktives Abonnement wird sofort gekündigt. Die vollständige Löschung erfolgt
-            binnen 30 Tagen.
+            Die vollständige Löschung erfolgt binnen 30 Tagen.
           </p>
           <DeleteAccountButton />
         </CardContent>
