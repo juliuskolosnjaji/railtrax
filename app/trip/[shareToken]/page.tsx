@@ -1,16 +1,10 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { Logo } from '@/components/ui/Logo'
-
 import { LeafIcon } from '@/components/ui/icons/LeafIcon'
 import Link from 'next/link'
-
-const TripMapCard = dynamic(
-  () => import('@/components/map/TripMapCard').then(m => m.TripMapCard),
-  { ssr: false, loading: () => <div style={{ height: 280, background: '#0d1117' }} /> },
-)
+import { TripMapCard } from '@/components/map/TripMapClient'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -7,4 +7,9 @@ const TripMap = dynamic(
   { ssr: false, loading: () => <div className="h-full w-full animate-pulse" style={{ background: '#0d1f3c' }} /> },
 )
 
-export { TripMap }
+const TripMapCard = dynamic(
+  () => import('@/components/map/TripMapCard').then((m) => m.TripMapCard),
+  { ssr: false, loading: () => <div style={{ height: 280, background: '#0d1117' }} /> },
+)
+
+export { TripMap, TripMapCard }
