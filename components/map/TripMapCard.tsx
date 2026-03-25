@@ -45,7 +45,7 @@ function clipPolylineToLeg(
   return coords.slice(start, end + 1)
 }
 
-export function TripMapCard({ legs }: { legs: Leg[] }) {
+export function TripMapCard({ legs, height = 280 }: { legs: Leg[]; height?: number }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
 
@@ -228,7 +228,7 @@ export function TripMapCard({ legs }: { legs: Leg[] }) {
     <div
       ref={containerRef}
       className="trip-map-card"
-      style={{ height: 280, background: BG_COLOR }}
+      style={{ height, background: BG_COLOR }}
     />
   )
 }

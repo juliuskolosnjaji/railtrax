@@ -2,7 +2,6 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Logo } from '@/components/ui/Logo'
-import { LeafIcon } from '@/components/ui/icons/LeafIcon'
 import Link from 'next/link'
 import { TripMapCard } from '@/components/map/TripMapClient'
 
@@ -211,21 +210,53 @@ export default async function PublicTripPage({ params }: PageProps) {
     return s + (ms > 0 ? ms : 0)
   }, 0)
   const co2SavedKg = Math.round(totalDistanceKm * 0.22)
-  const treesEquiv = Math.round(co2SavedKg / 22)
-
-  const countries = getCountries(legs)
-  const uniqueOperators = [...new Set(legs.map(l => l.operator).filter(Boolean))] as string[]
 
   const authorName = (trip.user as { username?: string; display_name?: string } | null)?.display_name
     || (trip.user as { username?: string; display_name?: string } | null)?.username
     || 'Unbekannt'
 
-  const statChips = [
-    { label: 'ZÜGE', value: `${legs.length}` },
-    ...(totalDistanceKm > 0 ? [{ label: 'STRECKE', value: `${Math.round(totalDistanceKm).toLocaleString('de-DE')} km` }] : []),
-    ...(totalDurationMs > 0 ? [{ label: 'DAUER', value: formatTotalDuration(totalDurationMs) }] : []),
-    ...(countries.length > 0 ? [{ label: 'LÄNDER', value: `${countries.map(c => c.flag).join('')} ${countries.length}` }] : []),
-  ]
+  const firstLeg = legs[0]
+  const lastLeg  = legs[legs.length - 1]
+  const mapLegs  = legs.map(leg => ({
+    id: leg.id,
+    tripId: '',
+    position: leg.position,
+    originName: leg.origin_name ?? '',
+    originIbnr: leg.origin_ibnr ?? null,
+    originLat: leg.origin_lat ?? null,
+    originLon: leg.origin_lon ?? null,
+    plannedDeparture: leg.planned_departure,
+    actualDeparture: leg.actual_departure ?? null,
+    destName: leg.dest_name ?? '',
+    destIbnr: leg.dest_ibnr ?? null,
+    destLat: leg.dest_lat ?? null,
+    destLon: leg.dest_lon ?? null,
+    plannedArrival: leg.planned_arrival,
+    actualArrival: leg.actual_arrival ?? null,
+    operator: leg.operator ?? null,
+    lineName: leg.train_type ?? null,
+    trainType: leg.train_type ?? null,
+    trainNumber: leg.train_number ?? null,
+    platformPlanned: leg.platform_planned ?? null,
+    platformActual: leg.platform_actual ?? null,
+    arrivalPlatformPlanned: null,
+    arrivalPlatformActual: null,
+    status: null,
+    delayMinutes: leg.delay_minutes ?? 0,
+    cancelled: false,
+    distanceKm: leg.distance_km ?? null,
+    tripIdVendo: null,
+    journeyNumber: null,
+    polyline: (leg.polyline as [number, number][] | null) ?? null,
+    seat: null,
+    notes: null,
+    traewellingStatusId: null,
+  }))
+
+  const statusLabel = trip.status === 'completed' ? 'Abgeschlossen'
+    : trip.status === 'active' ? 'Aktiv' : 'Geplant'
+  const statusColor = trip.status === 'completed' ? '#2dd4b0' : '#4f8ef7'
+  const statusBg    = trip.status === 'completed' ? 'rgba(45,212,176,0.1)' : 'rgba(79,142,247,0.1)'
 
   return (
     <div className="min-h-screen bg-background">
@@ -254,231 +285,149 @@ export default async function PublicTripPage({ params }: PageProps) {
       </nav>
 
       {/* ── Main content ── */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '24px 20px' }}>
 
-        {/* Top grid: info card + map */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 items-start">
-
-          {/* ── Left: info card ── */}
-          <div className="bg-card border border-border rounded-xl p-6 flex flex-col gap-5">
-
-            {/* Title + description */}
-            <div>
-              <h1 className="text-xl font-semibold text-foreground leading-snug mb-1.5">
-                {trip.title}
-              </h1>
-              {trip.description && (
-                <p className="text-sm text-muted-foreground leading-relaxed">{trip.description}</p>
-              )}
-            </div>
-
-            {/* Stats chips */}
-            <div className="grid grid-cols-2 gap-2">
-              {statChips.map(chip => (
-                <div key={chip.label} className="bg-secondary border border-border rounded-lg px-3 py-2">
-                  <p className="text-[10px] text-muted-foreground/60 font-semibold tracking-widest uppercase mb-1">
-                    {chip.label}
-                  </p>
-                  <p className="text-[15px] font-semibold text-foreground">{chip.value}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Date */}
-            <div>
-              <p className="text-[10px] text-muted-foreground/60 font-semibold tracking-widest uppercase mb-1">
-                Datum
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {formatDateRange(trip.start_date, trip.end_date)}
-              </p>
-            </div>
-
-            {/* Operators */}
-            {uniqueOperators.length > 0 && (
-              <div>
-                <p className="text-[10px] text-muted-foreground/60 font-semibold tracking-widest uppercase mb-2">
-                  Betreiber
-                </p>
-                <div className="flex gap-1.5 flex-wrap">
-                  {uniqueOperators.map(op => {
-                    const s = getOperatorStyle(op)
-                    return (
-                      <span key={op} style={{ ...s, padding: '3px 10px', borderRadius: 5, fontSize: 12, fontWeight: 600 }}>
-                        {op}
-                      </span>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* CO₂ */}
-            {co2SavedKg > 0 && (
-              <div className="bg-success/10 border border-success/20 rounded-lg px-3.5 py-3 flex gap-2.5 items-start">
-                <LeafIcon size={16} className="text-success mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-success">
-                    {co2SavedKg.toLocaleString('de-DE')} kg CO₂ gespart vs. Fliegen
-                  </p>
-                  {treesEquiv > 0 && (
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      entspricht {treesEquiv} {treesEquiv === 1 ? 'Baum' : 'Bäumen'} pro Jahr
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Divider + shared by + CTA */}
-            <div className="border-t border-border pt-4 flex flex-col gap-3">
-              <p className="text-sm text-muted-foreground">
-                Geteilt von{' '}
-                <span className="text-primary font-medium">{authorName}</span>
-              </p>
-              <Link
-                href="/signup"
-                className="block text-center py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-              >
-                Eigene Reise planen →
-              </Link>
-            </div>
-          </div>
-
-          {/* ── Right: map ── */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <TripMapCard legs={legs.map(leg => ({
-              id: leg.id,
-              tripId: '',
-              position: leg.position,
-              originName: leg.origin_name ?? '',
-              originIbnr: leg.origin_ibnr ?? null,
-              originLat: leg.origin_lat ?? null,
-              originLon: leg.origin_lon ?? null,
-              plannedDeparture: leg.planned_departure,
-              actualDeparture: leg.actual_departure ?? null,
-              destName: leg.dest_name ?? '',
-              destIbnr: leg.dest_ibnr ?? null,
-              destLat: leg.dest_lat ?? null,
-              destLon: leg.dest_lon ?? null,
-              plannedArrival: leg.planned_arrival,
-              actualArrival: leg.actual_arrival ?? null,
-              operator: leg.operator ?? null,
-              lineName: leg.train_type ?? null,
-              trainType: leg.train_type ?? null,
-              trainNumber: leg.train_number ?? null,
-              platformPlanned: leg.platform_planned ?? null,
-              platformActual: leg.platform_actual ?? null,
-              arrivalPlatformPlanned: null,
-              arrivalPlatformActual: null,
-              status: null,
-              delayMinutes: leg.delay_minutes ?? 0,
-              cancelled: false,
-              distanceKm: leg.distance_km ?? null,
-              tripIdVendo: null,
-              journeyNumber: null,
-              polyline: (leg.polyline as [number, number][] | null) ?? null,
-              seat: null,
-              notes: null,
-              traewellingStatusId: null,
-            }))} />
+        {/* Title + status */}
+        <div style={{ marginBottom: 16 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'hsl(var(--foreground))', marginBottom: 6 }}>
+            {trip.title}
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: 11, fontWeight: 600,
+              padding: '3px 10px', borderRadius: 20,
+              background: statusBg, color: statusColor,
+              textTransform: 'uppercase', letterSpacing: '0.05em',
+            }}>
+              {statusLabel}
+            </span>
+            <span style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
+              {formatDateRange(trip.start_date, trip.end_date)}
+            </span>
           </div>
         </div>
 
-        {/* ── Legs timeline card ── */}
-        <div className="mt-6 bg-card border border-border rounded-xl overflow-hidden">
-          {/* Card header */}
+        {/* ── Route card ── */}
+        <div style={{
+          background: '#0f1117',
+          border: '1px solid #1e2530',
+          borderRadius: 14,
+          overflow: 'hidden',
+          marginBottom: 20,
+        }}>
+          {/* Von → Nach header + train badges */}
+          <div style={{
+            padding: '14px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 10,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 9, color: '#4a5568', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, marginBottom: 2 }}>Von</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#f0f4f8' }}>{firstLeg?.origin_name ?? '–'}</div>
+              </div>
+              <span style={{ color: '#2dd4b0', fontSize: 16 }}>→</span>
+              <div>
+                <div style={{ fontSize: 9, color: '#4a5568', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, marginBottom: 2 }}>Nach</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#f0f4f8' }}>{lastLeg?.dest_name ?? '–'}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {legs.slice(0, 5).map(leg => (
+                <span key={leg.id} style={{
+                  fontSize: 11, fontWeight: 600,
+                  padding: '3px 8px', borderRadius: 5,
+                  background: '#1a2030', border: '1px solid #2a3545',
+                  color: '#8ba3c7',
+                  fontFamily: '"JetBrains Mono", monospace',
+                }}>
+                  {leg.train_type ?? leg.train_number ?? '–'}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Full-width map */}
+          <TripMapCard legs={mapLegs} height={360} />
+
+          {/* Stats row */}
+          <div className="shared-trip-stats" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            borderTop: '1px solid #1e2530',
+          }}>
+            {[
+              { label: 'Strecke',    value: `${Math.round(totalDistanceKm).toLocaleString('de-DE')} km`, color: '#f0f4f8' },
+              { label: 'Dauer',      value: formatTotalDuration(totalDurationMs), color: '#f0f4f8' },
+              { label: 'Abschnitte', value: String(legs.length), color: '#f0f4f8' },
+              { label: 'CO₂ Gespart', value: `${co2SavedKg.toLocaleString('de-DE')} kg`, color: '#2dd4b0' },
+            ].map(({ label, value, color }, i) => (
+              <div key={label} style={{
+                padding: '14px 16px',
+                paddingLeft: i === 0 ? 20 : 16,
+                borderLeft: i > 0 ? '1px solid #1e2530' : 'none',
+              }}>
+                <div style={{ fontSize: 9, color: '#4a5568', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, marginBottom: 4 }}>
+                  {label}
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 700, color, letterSpacing: '-0.5px' }}>
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Legs list ── */}
+        <div className="mt-0 bg-card border border-border rounded-xl overflow-hidden" style={{ marginBottom: 20 }}>
           <div className="px-6 py-4 border-b border-border flex items-center gap-2.5">
             <h2 className="text-[15px] font-semibold text-foreground">Streckenverlauf</h2>
             <span className="bg-secondary border border-border text-muted-foreground px-2 py-0.5 rounded-md text-xs">
               {legs.length} {legs.length === 1 ? 'Abschnitt' : 'Abschnitte'}
             </span>
           </div>
-
           <div className="p-6">
             {legs.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-6">
-                Keine Abschnitte vorhanden
-              </p>
+              <p className="text-muted-foreground text-sm text-center py-6">Keine Abschnitte vorhanden</p>
             ) : (
               <div>
                 {legs.map((leg, index) => {
-                  const isLast = index === legs.length - 1
-                  const opStyle = getOperatorStyle(leg.operator)
+                  const isLast   = index === legs.length - 1
+                  const opStyle  = getOperatorStyle(leg.operator)
                   const duration = formatLegDuration(leg.planned_departure, leg.planned_arrival)
-                  const depTime = formatTime(leg.planned_departure)
-                  const arrTime = formatTime(leg.planned_arrival)
+                  const depTime  = formatTime(leg.planned_departure)
+                  const arrTime  = formatTime(leg.planned_arrival)
                   const platform = leg.platform_actual ?? leg.platform_planned
                   const trainLabel = [leg.train_type, leg.train_number].filter(Boolean).join(' ')
-                  const rs = leg.leg_rolling_stock?.[0]?.rolling_stock
+                  const rs     = leg.leg_rolling_stock?.[0]?.rolling_stock
                   const setNum = leg.leg_rolling_stock?.[0]?.set_number
                   const hasDelay = (leg.delay_minutes ?? 0) > 0
 
                   return (
                     <div key={leg.id} className={`relative flex gap-4 ${isLast ? '' : 'pb-7'}`}>
-                      {/* Connecting dotted line */}
                       {!isLast && (
                         <div className="absolute left-[15px] top-9 bottom-0 border-l-2 border-dashed border-border pointer-events-none" />
                       )}
-
-                      {/* Number badge */}
                       <div className="w-8 h-8 shrink-0 bg-secondary border border-border rounded-lg flex items-center justify-center text-[13px] font-semibold text-primary relative z-10">
                         {index + 1}
                       </div>
-
-                      {/* Leg content */}
                       <div className="flex-1 min-w-0">
-                        {/* Station names row */}
                         <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                          <span className="text-[15px] font-medium text-foreground">
-                            {leg.origin_name ?? '–'}
-                          </span>
+                          <span className="text-[15px] font-medium text-foreground">{leg.origin_name ?? '–'}</span>
                           <span className="text-primary text-sm font-semibold">→</span>
-                          <span className="text-[15px] font-medium text-foreground">
-                            {leg.dest_name ?? '–'}
-                          </span>
+                          <span className="text-[15px] font-medium text-foreground">{leg.dest_name ?? '–'}</span>
                         </div>
-
-                        {/* Details row */}
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm text-muted-foreground">
-                            {depTime} → {arrTime}
-                          </span>
-
-                          {duration && (
-                            <>
-                              <span className="text-border text-xs">•</span>
-                              <span className="text-sm text-muted-foreground">{duration}</span>
-                            </>
-                          )}
-
-                          {leg.operator && (
-                            <>
-                              <span className="text-border text-xs">•</span>
-                              <span style={{ ...opStyle, padding: '1px 7px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>
-                                {leg.operator}
-                              </span>
-                            </>
-                          )}
-
-                          {trainLabel && (
-                            <span className="text-sm text-primary font-medium">{trainLabel}</span>
-                          )}
-
-                          {hasDelay && (
-                            <span className="bg-amber-950/60 border border-amber-500/50 text-amber-400 px-1.5 py-px rounded text-[11px] font-semibold">
-                              +{leg.delay_minutes} min
-                            </span>
-                          )}
-
-                          {platform && (
-                            <span className="bg-secondary border border-border text-muted-foreground px-1.5 py-px rounded text-[11px]">
-                              Gl. {platform}
-                            </span>
-                          )}
+                          <span className="text-sm text-muted-foreground">{depTime} → {arrTime}</span>
+                          {duration && (<><span className="text-border text-xs">•</span><span className="text-sm text-muted-foreground">{duration}</span></>)}
+                          {leg.operator && (<><span className="text-border text-xs">•</span><span style={{ ...opStyle, padding: '1px 7px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>{leg.operator}</span></>)}
+                          {trainLabel && <span className="text-sm text-primary font-medium">{trainLabel}</span>}
+                          {hasDelay && <span className="bg-amber-950/60 border border-amber-500/50 text-amber-400 px-1.5 py-px rounded text-[11px] font-semibold">+{leg.delay_minutes} min</span>}
+                          {platform && <span className="bg-secondary border border-border text-muted-foreground px-1.5 py-px rounded text-[11px]">Gl. {platform}</span>}
                         </div>
-
-                        {/* Rolling stock chip */}
                         {rs && (
                           <div className="mt-1.5">
                             <span className="bg-secondary border border-border text-primary px-2 py-0.5 rounded text-xs font-medium">
@@ -495,18 +444,50 @@ export default async function PublicTripPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* ── Footer ── */}
-        <div className="mt-10 pt-5 border-t border-border flex items-center justify-between">
-          <p className="text-xs text-muted-foreground/40">
-            © {new Date().getFullYear()} Railtrax
+        {/* ── CTA + shared by ── */}
+        <div style={{
+          background: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
+          borderRadius: 12,
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 12,
+          textAlign: 'center',
+          marginBottom: 32,
+        }}>
+          <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))' }}>
+            Geteilt von{' '}
+            <span style={{ color: 'hsl(var(--primary))', fontWeight: 500 }}>
+              {authorName}
+            </span>
           </p>
+          <Link
+            href="/signup"
+            style={{
+              display: 'block',
+              background: 'hsl(var(--primary))',
+              color: 'hsl(var(--primary-foreground))',
+              padding: '12px 32px',
+              borderRadius: 9,
+              fontSize: 14, fontWeight: 600,
+              textDecoration: 'none',
+              width: '100%',
+              maxWidth: 320,
+              textAlign: 'center',
+            }}
+          >
+            Eigene Reise planen →
+          </Link>
+        </div>
+
+        {/* ── Footer ── */}
+        <div className="pt-5 border-t border-border flex items-center justify-between">
+          <p className="text-xs text-muted-foreground/40">© {new Date().getFullYear()} Railtrax</p>
           <div className="flex gap-5">
-            <Link href="/signup" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Registrieren
-            </Link>
-            <Link href="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Anmelden
-            </Link>
+            <Link href="/signup" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Registrieren</Link>
+            <Link href="/login" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Anmelden</Link>
           </div>
         </div>
       </div>

@@ -383,4 +383,15 @@ button svg, a svg {
     margin: 0 0 16px 0 !important;
     border-radius: 10px !important;
   }
+
+  .shared-trip-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .shared-trip-stats > div:nth-child(3) {
+    border-left: none !important;
+    border-top: 1px solid #1e2530 !important;
+  }
+  .shared-trip-stats > div:nth-child(4) {
+    border-top: 1px solid #1e2530 !important;
+  }
 }
