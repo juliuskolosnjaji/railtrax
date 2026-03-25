@@ -1,10 +1,16 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
-import { TripMap } from '@/components/map/TripMapClient'
 import { Logo } from '@/components/ui/Logo'
+
 import { LeafIcon } from '@/components/ui/icons/LeafIcon'
 import Link from 'next/link'
+
+const TripMapCard = dynamic(
+  () => import('@/components/map/TripMapCard').then(m => m.TripMapCard),
+  { ssr: false, loading: () => <div style={{ height: 280, background: '#0d1117' }} /> },
+)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -346,9 +352,42 @@ export default async function PublicTripPage({ params }: PageProps) {
           </div>
 
           {/* ── Right: map ── */}
-          <div className="bg-card border border-border rounded-xl overflow-hidden h-[480px]">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <TripMap legs={legs as any} />
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <TripMapCard legs={legs.map(leg => ({
+              id: leg.id,
+              tripId: '',
+              position: leg.position,
+              originName: leg.origin_name ?? '',
+              originIbnr: leg.origin_ibnr ?? null,
+              originLat: leg.origin_lat ?? null,
+              originLon: leg.origin_lon ?? null,
+              plannedDeparture: leg.planned_departure,
+              actualDeparture: leg.actual_departure ?? null,
+              destName: leg.dest_name ?? '',
+              destIbnr: leg.dest_ibnr ?? null,
+              destLat: leg.dest_lat ?? null,
+              destLon: leg.dest_lon ?? null,
+              plannedArrival: leg.planned_arrival,
+              actualArrival: leg.actual_arrival ?? null,
+              operator: leg.operator ?? null,
+              lineName: leg.train_type ?? null,
+              trainType: leg.train_type ?? null,
+              trainNumber: leg.train_number ?? null,
+              platformPlanned: leg.platform_planned ?? null,
+              platformActual: leg.platform_actual ?? null,
+              arrivalPlatformPlanned: null,
+              arrivalPlatformActual: null,
+              status: null,
+              delayMinutes: leg.delay_minutes ?? 0,
+              cancelled: false,
+              distanceKm: leg.distance_km ?? null,
+              tripIdVendo: null,
+              journeyNumber: null,
+              polyline: (leg.polyline as [number, number][] | null) ?? null,
+              seat: null,
+              notes: null,
+              traewellingStatusId: null,
+            }))} />
           </div>
         </div>
 
