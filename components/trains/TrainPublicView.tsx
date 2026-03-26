@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle } from 'lucide-react'
+import { TrainRouteMap } from '@/components/map/TrainRouteMap'
 
 interface Props {
   trainNumber: string
@@ -149,6 +150,23 @@ export function TrainPublicView({ trainNumber, date, tripId }: Props) {
           </div>
         )}
       </div>
+
+      {/* Map */}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {((data.stopovers as any[])?.filter((s: any) => s.lat != null && s.lon != null).length ?? 0) >= 2 && (
+        <div style={{
+          border: '1px solid hsl(var(--border))',
+          borderRadius: 14,
+          overflow: 'hidden',
+          marginBottom: 16,
+        }}>
+          <TrainRouteMap
+            stopovers={data.stopovers}
+            currentIdx={data.currentIdx}
+            height={300}
+          />
+        </div>
+      )}
 
       {/* Remarks */}
       {(data.remarks?.length ?? 0) > 0 && (

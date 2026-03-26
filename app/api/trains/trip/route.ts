@@ -36,6 +36,8 @@ export async function GET(req: Request) {
       return {
         name:             s.stop?.name ?? '–',
         id:               s.stop?.id ?? null,
+        lat:              s.stop?.location?.latitude  ?? null,
+        lon:              s.stop?.location?.longitude ?? null,
         plannedDeparture: s.plannedDeparture ?? null,
         actualDeparture:  s.departure ?? null,
         plannedArrival:   s.plannedArrival ?? null,

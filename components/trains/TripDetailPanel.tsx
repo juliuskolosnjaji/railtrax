@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { X, AlertTriangle, Info, Share2, Check, Copy, Mail, ExternalLink } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { TrainRouteMap } from '@/components/map/TrainRouteMap'
 
 interface Departure {
   tripId: string
@@ -338,6 +339,18 @@ export function TripDetailPanel({ departure, stationName, onClose }: Props) {
             </div>
           )}
         </div>
+
+        {/* ── Compact map ── */}
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {((data?.stopovers as any[])?.filter((s: any) => s.lat != null && s.lon != null).length ?? 0) >= 2 && (
+          <div style={{ borderBottom: '1px solid hsl(var(--border))', flexShrink: 0 }}>
+            <TrainRouteMap
+              stopovers={data.stopovers}
+              currentIdx={data.currentIdx}
+              height={200}
+            />
+          </div>
+        )}
 
         {/* ── Remarks / warnings ── */}
         {(data?.remarks?.length ?? 0) > 0 && (
