@@ -117,8 +117,17 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
         source: 'stations',
         filter: ['!', ['get', 'isCurrent']],
         paint: {
-          'circle-radius': ['case', ['get', 'isEnd'], 8, 5],
-          'circle-color':  'rgba(45,212,176,0.08)',
+          'circle-radius': [
+            'case',
+            ['get', 'isCurrent'], 10,
+            ['get', 'isEnd'],      7,
+            5,
+          ],
+          'circle-color': [
+            'case',
+            ['get', 'isCurrent'], 'rgba(45,212,176,0.15)',
+            'rgba(45,212,176,0.06)',
+          ],
         },
       })
 
@@ -129,7 +138,12 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
         source: 'stations',
         filter: ['!', ['get', 'isCurrent']],
         paint: {
-          'circle-radius': ['case', ['get', 'isEnd'], 5, 3.5],
+          'circle-radius': [
+            'case',
+            ['get', 'isCurrent'], 5,
+            ['get', 'isEnd'],      4,
+            2.5,
+          ],
           'circle-color': [
             'case',
             ['get', 'isPassed'],  TEAL,
@@ -175,19 +189,24 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
       if (currentStop?.lon != null && currentStop?.lat != null) {
         const el = document.createElement('div')
         el.style.cssText = `
-          width: 10px; height: 10px; border-radius: 50%;
-          background: #ffffff; border: 2px solid ${BG};
-          animation: trainPulse 2s infinite;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background: #2dd4b0;
+          border: 2.5px solid #0d1117;
+          box-shadow: 0 0 0 0 rgba(45,212,176,0.4);
+          animation: mapPulse 2s infinite;
+          cursor: default;
         `
         // Inject pulse keyframes once
-        if (!document.getElementById('train-pulse-style')) {
+        if (!document.getElementById('map-pulse-style')) {
           const style = document.createElement('style')
-          style.id = 'train-pulse-style'
+          style.id = 'map-pulse-style'
           style.textContent = `
-            @keyframes trainPulse {
-              0%   { box-shadow: 0 0 0 0  rgba(255,255,255,0.5); }
-              70%  { box-shadow: 0 0 0 7px rgba(255,255,255,0);   }
-              100% { box-shadow: 0 0 0 0  rgba(255,255,255,0);    }
+            @keyframes mapPulse {
+              0%   { box-shadow: 0 0 0 0  rgba(45,212,176,0.4); }
+              70%  { box-shadow: 0 0 0 10px rgba(45,212,176,0); }
+              100% { box-shadow: 0 0 0 0  rgba(45,212,176,0); }
             }
           `
           document.head.appendChild(style)

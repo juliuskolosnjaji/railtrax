@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server'
+import { Redis } from '@upstash/redis'
+
+const redis = Redis.fromEnv()
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -7,6 +10,21 @@ export async function GET(req: Request) {
 
   if (!tripId) {
     return NextResponse.json({ error: 'missing tripId' }, { status: 400 })
+  }
+
+  const cacheKey = `trip:${tripId}`
+
+  try {
+    const cached = await redis.get(cacheKey)
+    if (cached) {
+      console.log('Cache hit:', cacheKey)
+      return NextResponse.json(
+        { data: cached, cached: true },
+        { headers: { 'X-Cache': 'HIT', 'Cache-Control': 'public, max-age=30' } }
+      )
+    }
+  } catch (e) {
+    console.warn('Redis read error (non-fatal):', e)
   }
 
   try {
@@ -56,26 +74,37 @@ export async function GET(req: Request) {
       new Date(s.plannedDeparture).getTime() > now
     )
 
-    return NextResponse.json({
-      data: {
-        tripId:      trip.id,
-        lineName:    trip.line?.name ?? lineName,
-        operator:    trip.line?.operator?.name ?? null,
-        direction:   trip.direction ?? null,
-        origin:      stopovers[0]?.name ?? null,
-        destination: stopovers[stopovers.length - 1]?.name ?? null,
-        cancelled:   trip.cancelled ?? false,
-        currentIdx:  currentIdx === -1 ? stopovers.length - 1 : currentIdx,
-        stopovers,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        remarks: ((trip.remarks ?? []) as any[])
-          .filter((r: any) => r.type === 'warning' || r.type === 'hint')
-          .map((r: any) => ({ type: r.type, text: r.summary ?? r.text }))
-          .slice(0, 3),
-      },
-    }, {
-      headers: { 'Cache-Control': 'public, max-age=30' },
-    })
+    const data = {
+      tripId:      trip.id,
+      lineName:    trip.line?.name ?? lineName,
+      operator:    trip.line?.operator?.name ?? null,
+      direction:   trip.direction ?? null,
+      origin:      stopovers[0]?.name ?? null,
+      destination: stopovers[stopovers.length - 1]?.name ?? null,
+      cancelled:   trip.cancelled ?? false,
+      currentIdx:  currentIdx === -1 ? stopovers.length - 1 : currentIdx,
+      stopovers,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      remarks: ((trip.remarks ?? []) as any[])
+        .filter((r: any) => r.type === 'warning' || r.type === 'hint')
+        .map((r: any) => ({ type: r.type, text: r.summary ?? r.text }))
+        .slice(0, 3),
+    }
+
+    try {
+      await redis.setex(cacheKey, 45, data)
+    } catch (e) {
+      console.warn('Redis write error (non-fatal):', e)
+    }
+
+    return NextResponse.json(
+      { data },
+      { headers: {
+          'X-Cache': 'MISS',
+          'Cache-Control': 'public, max-age=30',
+        }
+      }
+    )
 
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'fetch failed'

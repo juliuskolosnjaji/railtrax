@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDepartures } from '@/lib/vendo'
+import { Redis } from '@upstash/redis'
+
+const redis = Redis.fromEnv()
 
 export async function GET(
   req: NextRequest,
@@ -10,11 +13,23 @@ export async function GET(
   const duration = parseInt(searchParams.get('duration') ?? '60')
   const type = searchParams.get('type') ?? 'dep'
 
+  const cacheKey = `departures:${ibnr}:${type}`
+
+  try {
+    const cached = await redis.get(cacheKey)
+    if (cached) {
+      return NextResponse.json(
+        { data: cached },
+        { headers: { 'X-Cache': 'HIT' } }
+      )
+    }
+  } catch (e) {
+    console.warn('Redis read error (non-fatal):', e)
+  }
+
   try {
     const fn = type === 'arr' 
       ? async (ibnr: string, when: Date, duration: number) => {
-          // For arrivals, we'll use departures and filter logic
-          // In a real implementation, you'd use arrivals endpoint if available
           return getDepartures(ibnr, when, duration)
         }
       : getDepartures
@@ -24,20 +39,25 @@ export async function GET(
     const normalized = results.map((d) => ({
       tripId:         d.tripId,
       trainNumber:    d.trainNumber,
-      operator:       null, // Would need to derive from IBNR or line data
+      operator:       null,
       direction:      d.direction,
       plannedTime:    d.plannedWhen,
       actualTime:     d.actualWhen,
-      delay:          d.delayMinutes * 60, // Convert minutes to seconds
+      delay:          d.delayMinutes * 60,
       platform:       d.plannedPlatform,
       platformActual: d.actualPlatform,
       cancelled:      d.cancelled,
-      remarks:        [], // Would need to fetch from remarks data
+      remarks:        [],
     }))
 
-    // Cache 60 seconds
+    try {
+      await redis.setex(cacheKey, 60, normalized)
+    } catch (e) {
+      console.warn('Redis write error (non-fatal):', e)
+    }
+
     return NextResponse.json({ data: normalized }, {
-      headers: { 'Cache-Control': 'public, max-age=60' }
+      headers: { 'X-Cache': 'MISS', 'Cache-Control': 'public, max-age=60' }
     })
   } catch (err) {
     console.error('Departures error:', err)
