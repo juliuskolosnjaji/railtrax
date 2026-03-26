@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from '@/hooks/useDebounce'
 import { SlidersHorizontal } from 'lucide-react'
+import { TripDetailPanel } from '@/components/trains/TripDetailPanel'
 
 // Station presets for quick selection
 const PRESET_STATIONS = [
@@ -22,6 +23,7 @@ export default function AbfahrtenPage() {
   const [searchQuery, setSearchQuery]         = useState('')  // filter by train/dest
   const [tab, setTab]                         = useState<'dep'|'arr'>('dep')
   const [lastUpdated, setLastUpdated]         = useState(new Date())
+  const [selectedDep, setSelectedDep]         = useState<any>(null)
 
   const debouncedStation = useDebounce(stationQuery, 300)
 
@@ -389,7 +391,7 @@ export default function AbfahrtenPage() {
           return (
             <div
               key={i}
-              onClick={() => {/* open TrainDetailSheet */}}
+              onClick={() => setSelectedDep(dep)}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '90px 130px 1fr 100px 120px',
@@ -531,6 +533,15 @@ export default function AbfahrtenPage() {
           50% { opacity: 0.5; }
         }
       `}</style>
+
+      {/* ── Trip detail panel ── */}
+      {selectedDep && (
+        <TripDetailPanel
+          departure={selectedDep}
+          stationName={selectedStation.name}
+          onClose={() => setSelectedDep(null)}
+        />
+      )}
     </div>
   )
 }
