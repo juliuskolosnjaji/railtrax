@@ -189,11 +189,11 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
       if (currentStop?.lon != null && currentStop?.lat != null) {
         const el = document.createElement('div')
         el.style.cssText = `
-          width: 14px;
-          height: 14px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
           background: #2dd4b0;
-          border: 2.5px solid #0d1117;
+          border: 2px solid #0d1117;
           box-shadow: 0 0 0 0 rgba(45,212,176,0.4);
           animation: mapPulse 2s infinite;
           cursor: default;
