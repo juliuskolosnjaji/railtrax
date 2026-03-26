@@ -20,7 +20,7 @@ interface Stop {
 interface Props {
   stopovers: Stop[]
   currentIdx: number
-  height?: number
+  height?: number | string
 }
 
 const BG     = '#0d1117'

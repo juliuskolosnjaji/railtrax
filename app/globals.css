@@ -399,4 +399,13 @@ button svg, a svg {
   .shared-trip-stats > div:nth-child(4) {
     border-top: 1px solid #1e2530 !important;
   }
+
+  /* Mobile: single-column train public view */
+  .train-public-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .train-map-sticky {
+    position: static !important;
+    order: -1;
+  }
 }

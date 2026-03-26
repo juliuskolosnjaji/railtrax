@@ -40,7 +40,7 @@ export default async function TrainPublicPage({ params, searchParams }: Props) {
         </Link>
       </header>
 
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px' }}>
         <TrainPublicView
           trainNumber={trainNumber}
           date={date}
