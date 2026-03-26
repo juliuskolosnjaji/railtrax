@@ -116,8 +116,8 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
         type: 'circle',
         source: 'stations',
         paint: {
-          'circle-radius': ['case', ['get', 'isCurrent'], 14, ['get', 'isEnd'], 10, 7],
-          'circle-color':  ['case', ['get', 'isCurrent'], 'rgba(45,212,176,0.2)', 'rgba(45,212,176,0.08)'],
+          'circle-radius': ['case', ['get', 'isCurrent'], 8, ['get', 'isEnd'], 8, 5],
+          'circle-color':  ['case', ['get', 'isCurrent'], 'rgba(255,255,255,0.15)', 'rgba(45,212,176,0.08)'],
         },
       })
 
@@ -127,15 +127,15 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
         type: 'circle',
         source: 'stations',
         paint: {
-          'circle-radius': ['case', ['get', 'isCurrent'], 7, ['get', 'isEnd'], 5, 3.5],
+          'circle-radius': ['case', ['get', 'isCurrent'], 5, ['get', 'isEnd'], 5, 3.5],
           'circle-color': [
             'case',
-            ['get', 'isCurrent'], TEAL,
+            ['get', 'isCurrent'], '#ffffff',
             ['get', 'isPassed'],  TEAL,
             ['get', 'isEnd'],     '#ffffff',
             '#4a5568',
           ],
-          'circle-stroke-width': ['case', ['get', 'isCurrent'], 2.5, ['get', 'isEnd'], 2, 1.5],
+          'circle-stroke-width': ['case', ['get', 'isCurrent'], 2, ['get', 'isEnd'], 2, 1.5],
           'circle-stroke-color': BG,
         },
       })
@@ -174,8 +174,8 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
       if (currentStop?.lon != null && currentStop?.lat != null) {
         const el = document.createElement('div')
         el.style.cssText = `
-          width: 16px; height: 16px; border-radius: 50%;
-          background: ${TEAL}; border: 2.5px solid ${BG};
+          width: 10px; height: 10px; border-radius: 50%;
+          background: #ffffff; border: 2px solid ${BG};
           animation: trainPulse 2s infinite;
         `
         // Inject pulse keyframes once
@@ -184,9 +184,9 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
           style.id = 'train-pulse-style'
           style.textContent = `
             @keyframes trainPulse {
-              0%   { box-shadow: 0 0 0 0   rgba(45,212,176,0.4); }
-              70%  { box-shadow: 0 0 0 10px rgba(45,212,176,0);   }
-              100% { box-shadow: 0 0 0 0   rgba(45,212,176,0);    }
+              0%   { box-shadow: 0 0 0 0  rgba(255,255,255,0.5); }
+              70%  { box-shadow: 0 0 0 7px rgba(255,255,255,0);   }
+              100% { box-shadow: 0 0 0 0  rgba(255,255,255,0);    }
             }
           `
           document.head.appendChild(style)
