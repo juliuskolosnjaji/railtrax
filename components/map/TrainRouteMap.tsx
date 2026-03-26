@@ -110,32 +110,33 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
 
       map.addSource('stations', { type: 'geojson', data: { type: 'FeatureCollection', features } })
 
-      // Glow ring
+      // Glow ring (skip current stop — covered by pulsing HTML marker)
       map.addLayer({
         id: 'station-glow',
         type: 'circle',
         source: 'stations',
+        filter: ['!', ['get', 'isCurrent']],
         paint: {
-          'circle-radius': ['case', ['get', 'isCurrent'], 8, ['get', 'isEnd'], 8, 5],
-          'circle-color':  ['case', ['get', 'isCurrent'], 'rgba(255,255,255,0.15)', 'rgba(45,212,176,0.08)'],
+          'circle-radius': ['case', ['get', 'isEnd'], 8, 5],
+          'circle-color':  'rgba(45,212,176,0.08)',
         },
       })
 
-      // Dot fill
+      // Dot fill (skip current stop — covered by pulsing HTML marker)
       map.addLayer({
         id: 'station-dot',
         type: 'circle',
         source: 'stations',
+        filter: ['!', ['get', 'isCurrent']],
         paint: {
-          'circle-radius': ['case', ['get', 'isCurrent'], 5, ['get', 'isEnd'], 5, 3.5],
+          'circle-radius': ['case', ['get', 'isEnd'], 5, 3.5],
           'circle-color': [
             'case',
-            ['get', 'isCurrent'], '#ffffff',
             ['get', 'isPassed'],  TEAL,
             ['get', 'isEnd'],     '#ffffff',
             '#4a5568',
           ],
-          'circle-stroke-width': ['case', ['get', 'isCurrent'], 2, ['get', 'isEnd'], 2, 1.5],
+          'circle-stroke-width': ['case', ['get', 'isEnd'], 2, 1.5],
           'circle-stroke-color': BG,
         },
       })
