@@ -94,18 +94,14 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDet
   // ── Content row with timeline border + dot ───────────────────────
 
   const Row = ({
-    children, lineColor, dot
+    children, dot
   }: {
     children: React.ReactNode
-    lineColor: string
     dot?: { size: number; bg: string; border?: string; boxShadow?: string }
   }) => (
     <div style={{
       position: 'relative',
       padding: '8px 0',
-      borderLeft: `2px solid ${lineColor}`,
-      marginLeft: 9,
-      paddingLeft: 20,
     }}>
       {dot && <Dot size={dot.size} bg={dot.bg} border={dot.border} boxShadow={dot.boxShadow} />}
       {children}
@@ -264,7 +260,7 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDet
 
                   {/* Origin (first leg) or Departure (transfer) */}
                   {i === 0 ? (
-                    <Row lineColor="#2dd4b0" dot={{
+                    <Row dot={{
                       size: 10, bg: '#2dd4b0',
                       boxShadow: '0 0 0 3px rgba(45,212,176,0.15)',
                     }}>
@@ -276,7 +272,7 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDet
                       />
                     </Row>
                   ) : (
-                    <Row lineColor="#2dd4b0" dot={{
+                    <Row dot={{
                       size: 7, bg: 'hsl(var(--background))',
                       border: 'hsl(var(--border))',
                     }}>
@@ -292,9 +288,6 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDet
                   <div style={{
                     position: 'relative',
                     padding: '6px 0',
-                    borderLeft: '2px solid #2dd4b0',
-                    marginLeft: 9,
-                    paddingLeft: 20,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{
@@ -327,7 +320,7 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDet
 
                   {/* Intermediate stops (expanded) */}
                   {isExpanded && midStops.map((stop, si) => (
-                    <Row key={si} lineColor="#2dd4b0" dot={{
+                    <Row key={si} dot={{
                       size: 5, bg: 'hsl(var(--border))',
                     }}>
                       <StopContent
@@ -341,7 +334,7 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDet
 
                   {/* Arrival (not last) or Destination (last) */}
                   {isLast ? (
-                    <Row lineColor="#2dd4b0" dot={{
+                    <Row dot={{
                       size: 10, bg: 'hsl(var(--foreground))',
                     }}>
                       <StopContent
@@ -352,7 +345,7 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDet
                       />
                     </Row>
                   ) : (
-                    <Row lineColor="#2dd4b0" dot={{
+                    <Row dot={{
                       size: 7, bg: 'hsl(var(--background))',
                       border: 'hsl(var(--border))',
                     }}>
