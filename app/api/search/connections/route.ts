@@ -26,9 +26,19 @@ export async function GET(req: NextRequest) {
   }
 
   const travelClass = classParam === '1' ? 1 : 2
+  const via = req.nextUrl.searchParams.get('via') ?? undefined
+  const bike = req.nextUrl.searchParams.get('bike') === 'true'
+  const maxTransfersStr = req.nextUrl.searchParams.get('maxTransfers')
+  const maxTransfers = maxTransfersStr ? parseInt(maxTransfersStr, 10) : undefined
+  const onlyLongDistance = req.nextUrl.searchParams.get('onlyLongDistance') === 'true'
 
   try {
-    const journeys = await searchJourneys(from, to, datetime, travelClass)
+    const journeys = await searchJourneys(from, to, datetime, travelClass, {
+      viaIbnr: via,
+      bike: bike || undefined,
+      maxTransfers,
+      onlyLongDistance: onlyLongDistance || undefined,
+    })
     return NextResponse.json({ data: journeys })
   } catch {
     return NextResponse.json(

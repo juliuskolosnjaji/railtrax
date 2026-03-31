@@ -307,6 +307,13 @@ export async function getTripById(tripId: string): Promise<VendoTrip | null> {
   })
 }
 
+export interface JourneySearchOptions {
+  viaIbnr?: string
+  bike?: boolean
+  maxTransfers?: number
+  onlyLongDistance?: boolean
+}
+
 // ─── d. searchJourneys ────────────────────────────────────────────────────────
 
 /**
@@ -319,9 +326,11 @@ export async function searchJourneys(
   toIbnr: string,
   datetime: Date,
   travelClass: 1 | 2,
+  options?: JourneySearchOptions,
 ): Promise<Journey[]> {
+  const { viaIbnr, bike, maxTransfers, onlyLongDistance } = options ?? {}
   const bucket = Math.floor(datetime.getTime() / 300_000)
-  const key = `journeys:${fromIbnr}:${toIbnr}:${bucket}:${travelClass}`
+  const key = `journeys:${fromIbnr}:${toIbnr}:${viaIbnr ?? 'none'}:${bucket}:${travelClass}:${bike ? 'bike' : 'nobike'}:${maxTransfers ?? 'any'}:${onlyLongDistance ? 'ld' : 'all'}`
   return cached(key, 300, async () => {
     const client = await getClient()
     const result = await client.journeys(fromIbnr, toIbnr, {
@@ -330,10 +339,13 @@ export async function searchJourneys(
       tickets: false,
       firstClass: travelClass === 1,
       products: LONG_DISTANCE_PRODUCTS,
+      ...(viaIbnr && { via: viaIbnr }),
+      ...(bike && { bike: true }),
+      ...(maxTransfers !== undefined && { transfers: maxTransfers }),
     })
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (result.journeys as any[])
+    let journeys = (result.journeys as any[])
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((j: any) => !j.legs?.every((l: any) => l.walking))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -362,6 +374,15 @@ export async function searchJourneys(
           })),
       }))
       .filter((j: Journey) => j.legs.length > 0)
+
+    if (onlyLongDistance) {
+      const longDistancePattern = /^(ICE|IC|EC|RJ|NJ|TGV|OUIGO|FR)/i
+      journeys = journeys.filter((j: Journey) =>
+        j.legs.some(l => longDistancePattern.test(l.trainNumber ?? ''))
+      )
+    }
+
+    return journeys
   })
 }
 

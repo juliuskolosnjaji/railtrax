@@ -578,6 +578,8 @@ export default function SearchPage() {
 
   const [from, setFrom] = useState<Station | null>(null)
   const [to, setTo] = useState<Station | null>(null)
+  const [showVia, setShowVia] = useState(false)
+  const [via, setVia] = useState<Station | null>(null)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [time, setTime] = useState(() => {
     const now = new Date()
@@ -596,10 +598,13 @@ export default function SearchPage() {
   // Autocomplete
   const [fromQuery, setFromQuery] = useState('')
   const [toQuery, setToQuery] = useState('')
+  const [viaQuery, setViaQuery] = useState('')
   const [fromFocus, setFromFocus] = useState(false)
   const [toFocus, setToFocus] = useState(false)
+  const [viaFocus, setViaFocus] = useState(false)
   const debouncedFrom = useDebounce(fromQuery, 300)
   const debouncedTo = useDebounce(toQuery, 300)
+  const debouncedVia = useDebounce(viaQuery, 300)
 
   // Recent searches
   const [recentSearches] = useState<{ from: Station; to: Station }[]>(() => {
@@ -629,9 +634,20 @@ export default function SearchPage() {
     staleTime: 1000 * 60 * 60,
   })
 
+  const { data: viaSuggestions } = useQuery({
+    queryKey: ['stations', debouncedVia],
+    queryFn: () =>
+      fetch(`/api/stations/search?q=${encodeURIComponent(debouncedVia)}`)
+        .then(r => r.json())
+        .then(d => d.data as Station[]),
+    enabled: debouncedVia.length >= 2 && viaFocus,
+    staleTime: 1000 * 60 * 60,
+  })
+
   // Journey search
   const [searchParams, setSearchParams] = useState<{
-    from: string; to: string; datetime: string; class: number
+    from: string; to: string; via?: string; datetime: string; class: number
+    bike?: boolean; maxTransfers?: number; onlyLongDistance?: boolean
   } | null>(null)
 
   const { data: journeys, isLoading, isError, error } = useQuery({
@@ -644,6 +660,10 @@ export default function SearchPage() {
         datetime: searchParams.datetime,
         class: String(searchParams.class),
       })
+      if (searchParams.via) p.set('via', searchParams.via)
+      if (searchParams.bike) p.set('bike', 'true')
+      if (searchParams.maxTransfers !== undefined) p.set('maxTransfers', String(searchParams.maxTransfers))
+      if (searchParams.onlyLongDistance) p.set('onlyLongDistance', 'true')
       const res = await fetch(`/api/search/connections?${p}`)
       if (res.status === 503) throw new Error('service_unavailable')
       if (!res.ok) throw new Error('fetch_failed')
@@ -671,7 +691,21 @@ export default function SearchPage() {
   function handleSearch() {
     if (!from || !to) return
     const datetime = new Date(`${date}T${time}`).toISOString()
-    setSearchParams({ from: from.id, to: to.id, datetime, class: travelClass })
+
+    let maxTransfers: number | undefined
+    if (filters.direct) maxTransfers = 0
+    else if (filters.maxChanges2) maxTransfers = 2
+
+    setSearchParams({
+      from: from.id,
+      to: to.id,
+      via: via?.id,
+      datetime,
+      class: travelClass,
+      bike: filters.bike || undefined,
+      maxTransfers,
+      onlyLongDistance: filters.onlyICE || undefined,
+    })
     try {
       const recent = JSON.parse(localStorage.getItem('recent-searches') || '[]')
       const updated = [{ from, to }, ...recent.filter((r: { from: Station; to: Station }) =>
@@ -691,22 +725,13 @@ export default function SearchPage() {
     }
   }
 
-  function applyFilters(journeys: Journey[]): Journey[] {
-    return journeys.filter(j => {
-      if (filters.direct && j.changes > 0) return false
-      if (filters.maxChanges2 && j.changes > 2) return false
-      if (filters.onlyICE && !j.legs.some(l => (l.trainNumber ?? '').match(/^ICE|^IC |^EC /i))) return false
-      return true
-    }).sort((a, b) => {
-      if (sortBy === 'duration') return a.totalDuration - b.totalDuration
-      if (sortBy === 'changes') return a.changes - b.changes
-      const aTime = new Date(a.legs[0]?.departure ?? 0).getTime()
-      const bTime = new Date(b.legs[0]?.departure ?? 0).getTime()
-      return aTime - bTime
-    })
-  }
-
-  const filtered = journeys ? applyFilters(journeys) : []
+  const filtered = journeys ? [...journeys].sort((a, b) => {
+    if (sortBy === 'duration') return a.totalDuration - b.totalDuration
+    if (sortBy === 'changes') return a.changes - b.changes
+    const aTime = new Date(a.legs[0]?.departure ?? 0).getTime()
+    const bTime = new Date(b.legs[0]?.departure ?? 0).getTime()
+    return aTime - bTime
+  }) : []
 
   return (
     <>
@@ -783,6 +808,37 @@ export default function SearchPage() {
               </svg>
             }
           />
+
+          {!showVia ? (
+            <button
+              onClick={() => setShowVia(true)}
+              style={{
+                fontSize: 11, padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
+                border: '1px dashed hsl(var(--border))', background: 'none',
+                color: 'hsl(var(--muted-foreground))', alignSelf: 'flex-end', height: 36,
+              }}
+            >
+              + Via
+            </button>
+          ) : (
+            <StationInput
+              label="Via"
+              value={via}
+              query={viaQuery}
+              onChange={setViaQuery}
+              onSelect={v => setVia(v)}
+              suggestions={viaSuggestions}
+              onFocus={() => setViaFocus(true)}
+              onBlur={() => setViaFocus(false)}
+              placeholder="Zwischenstopp..."
+              icon={
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="4" stroke="hsl(var(--muted-foreground))" strokeWidth="1.5" />
+                  <circle cx="6" cy="6" r="1.5" fill="hsl(var(--muted-foreground))" />
+                </svg>
+              }
+            />
+          )}
 
           {/* Date */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -948,7 +1004,7 @@ export default function SearchPage() {
             {recentSearches.map((r, i) => (
               <button
                 key={i}
-                onClick={() => { setFrom(r.from); setTo(r.to) }}
+                onClick={() => { setFrom(r.from); setTo(r.to); setVia(null); setShowVia(false) }}
                 style={{
                   background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
                   borderRadius: 8, padding: '7px 12px', cursor: 'pointer',
