@@ -49,6 +49,7 @@ function convertToDetailJourney(journey: Journey): any {
   return {
     legs: journey.legs.map(leg => ({
       ...leg,
+      stopovers: (leg as any).stopovers ?? [],
       tripId: null,
       plannedDeparturePlatform: leg.platform,
       plannedArrivalPlatform: leg.platform,
@@ -1113,7 +1114,8 @@ export default function SearchPage() {
         journey={convertToDetailJourney(detailJourney)}
         onClose={() => setDetailJourney(null)}
         onAddToTrip={() => {
-          setDetailJourney(null);
+          setDetailJourney(null)
+          setPickerJourney(detailJourney)
         }}
       />
     )}

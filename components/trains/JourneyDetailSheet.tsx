@@ -1,369 +1,400 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Train, AlertTriangle, ChevronRight } from 'lucide-react'
-import { OperatorBadge } from '@/components/ui/OperatorBadge'
-import { TrainDetailSheet } from './TrainDetailSheet'
+import { X, Clock, AlertTriangle } from 'lucide-react'
 
-interface JourneyLeg {
-  origin: string
-  originIbnr: string | null
-  originLat: number | null
-  originLon: number | null
-  destination: string
-  destinationIbnr: string | null
-  destinationLat: number | null
-  destinationLon: number | null
-  departure: string
-  arrival: string
-  operator: string | null
-  trainNumber: string
-  tripId: string | null
-  delayMinutes: number
+interface Stop {
+  name: string
+  plannedArrival: string | null
+  plannedDeparture: string | null
   platform: string | null
+}
+
+interface Leg {
+  line: { name: string; operator?: { name: string } } | null
+  origin: { name: string }
+  destination: { name: string }
+  plannedDeparture: string
+  plannedArrival: string
   plannedDeparturePlatform: string | null
   plannedArrivalPlatform: string | null
   departurePlatform: string | null
   arrivalPlatform: string | null
-  line?: {
-    name: string
-    operator?: {
-      name: string
-    }
-  }
-}
-
-interface Journey {
-  legs: JourneyLeg[]
-  totalDuration?: number
-  changes?: number
+  stopovers: Stop[]
 }
 
 interface JourneyDetailSheetProps {
-  journey: Journey
+  journey: {
+    legs: Leg[]
+    totalDuration: number
+    changes: number
+  }
   onClose: () => void
-  onAddToTrip: (tripId: string) => void
+  onAddToTrip: () => void
 }
 
 export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: JourneyDetailSheetProps) {
-  const [showTripPicker, setShowTripPicker] = useState(false)
-  const [selectedTrain, setSelectedTrain] = useState<string|null>(null)
+  const [expandedLegs, setExpandedLegs] = useState<Set<number>>(new Set())
 
-  const totalDelayMin = journey.legs.reduce((sum, l) =>
-    sum + (l.delayMinutes ?? 0), 0)
+  const toggleLeg = (i: number) => {
+    setExpandedLegs(prev => {
+      const next = new Set(prev)
+      next.has(i) ? next.delete(i) : next.add(i)
+      return next
+    })
+  }
+
+  const fmtTime = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : '–'
+
+  const getTrainColor = (lineName: string | null | undefined) => {
+    const n = (lineName ?? '').toUpperCase()
+    if (n.startsWith('ICE') || n.startsWith('EC'))
+      return { bg: '#2a0808', border: '#3a1515', color: '#E32228' }
+    if (n.startsWith('IC') || n.startsWith('IR') || n.startsWith('RE') || n.startsWith('RB'))
+      return { bg: '#111e35', border: '#1e3a6e', color: '#60a5fa' }
+    if (n.startsWith('S') && n.length <= 3)
+      return { bg: '#081a10', border: '#1a4a2e', color: '#3ecf6e' }
+    if (n.includes('BUS') || n.startsWith('B'))
+      return { bg: '#1a1200', border: '#3a2800', color: '#f59e0b' }
+    return {
+      bg: 'hsl(var(--secondary))',
+      border: 'hsl(var(--border))',
+      color: 'hsl(var(--muted-foreground))'
+    }
+  }
+
+  const legs = journey.legs
+
+  // ── Timeline primitives ──────────────────────────────────────────
+
+  const Line = ({ type }: { type: 'train' | 'xfer' | 'xfer-warn' }) => (
+    <div style={{
+      width: 2,
+      flex: 1,
+      minHeight: 6,
+      background: type === 'train' ? '#2dd4b0'
+        : type === 'xfer-warn' ? '#f59e0b'
+        : 'hsl(var(--muted-foreground))',
+      opacity: type === 'train' ? 1 : 0.35,
+    }} />
+  )
+
+  const Dot = ({ type }: {
+    type: 'origin' | 'dest' | 'xfer' | 'xfer-warn' | 'mid'
+  }) => {
+    const styles: Record<string, React.CSSProperties> = {
+      origin: {
+        width: 10, height: 10, borderRadius: '50%',
+        background: '#2dd4b0', flexShrink: 0,
+        boxShadow: '0 0 0 3px rgba(45,212,176,0.15)',
+      },
+      dest: {
+        width: 10, height: 10, borderRadius: '50%',
+        background: 'hsl(var(--foreground))', flexShrink: 0,
+      },
+      xfer: {
+        width: 7, height: 7, borderRadius: '50%',
+        background: 'none', flexShrink: 0,
+        border: '1.5px solid hsl(var(--border))',
+      },
+      'xfer-warn': {
+        width: 7, height: 7, borderRadius: '50%',
+        background: 'rgba(245,158,11,0.15)', flexShrink: 0,
+        border: '1.5px solid #f59e0b',
+      },
+      mid: {
+        width: 5, height: 5, borderRadius: '50%',
+        background: 'hsl(var(--border))', flexShrink: 0,
+      },
+    }
+    return <div style={styles[type]} />
+  }
+
+  const Row = ({
+    topLine, dot, bottomLine, children, style
+  }: {
+    topLine?: 'train' | 'xfer' | 'xfer-warn' | null
+    dot: 'origin' | 'dest' | 'xfer' | 'xfer-warn' | 'mid'
+    bottomLine?: 'train' | 'xfer' | 'xfer-warn' | null
+    children: React.ReactNode
+    style?: React.CSSProperties
+  }) => (
+    <div style={{ display: 'flex', alignItems: 'stretch', ...style }}>
+      <div style={{
+        width: 24, display: 'flex', flexDirection: 'column',
+        alignItems: 'center', flexShrink: 0, marginRight: 14,
+      }}>
+        {topLine ? <Line type={topLine} /> : <div style={{ flex: 1 }} />}
+        <Dot type={dot} />
+        {bottomLine ? <Line type={bottomLine} /> : <div style={{ flex: 1 }} />}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {children}
+      </div>
+    </div>
+  )
 
   return (
     <>
+      {/* Backdrop */}
       <div onClick={onClose} style={{
-        position:'fixed',inset:0,zIndex:100,
-        background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)',
-      }}/>
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)',
+      }} />
+
+      {/* Sheet */}
       <div style={{
-        position:'fixed',bottom:0,left:0,right:0,zIndex:101,
-        background:'#0a1628',border:'1px solid #1e2d4a',
-        borderRadius:'14px 14px 0 0',
-        maxHeight:'92vh',display:'flex',flexDirection:'column',
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        zIndex: 101,
+        background: 'hsl(var(--card))',
+        border: '1px solid hsl(var(--border))',
+        borderRadius: '14px 14px 0 0',
+        maxHeight: '92vh',
+        display: 'flex', flexDirection: 'column',
       }}>
 
         {/* Header */}
         <div style={{
-          padding:'14px 16px',borderBottom:'1px solid #1e2d4a',
-          display:'flex',alignItems:'center',gap:10,flexShrink:0,
+          padding: '14px 18px', flexShrink: 0,
+          borderBottom: '1px solid hsl(var(--border))',
+          display: 'flex', alignItems: 'center', gap: 10,
         }}>
           <button onClick={onClose} style={{
-            width:28,height:28,display:'flex',
-            alignItems:'center',justifyContent:'center',
-            background:'#0d1f3c',border:'1px solid #1e3a6e',
-            borderRadius:6,cursor:'pointer',flexShrink:0,
+            width: 28, height: 28, borderRadius: 7,
+            border: '1px solid hsl(var(--border))',
+            background: 'hsl(var(--secondary))',
+            display: 'flex', alignItems: 'center',
+            justifyContent: 'center', cursor: 'pointer',
+            color: 'hsl(var(--muted-foreground))',
+            flexShrink: 0,
           }}>
-            <X size={14} color="#4f8ef7"/>
+            <X size={13} />
           </button>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontSize:14,fontWeight:500,color:'#fff'}}>
-              {journey.legs[0]?.origin} →{' '}
-              {journey.legs[journey.legs.length-1]?.destination}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: 14, fontWeight: 500,
+              color: 'hsl(var(--foreground))',
+              overflow: 'hidden', textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {legs[0]?.origin?.name} → {legs[legs.length - 1]?.destination?.name}
             </div>
-            <div style={{fontSize:11,color:'#4a6a9a',marginTop:1}}>
-              {formatDuration(journey.totalDuration || 0)} ·{' '}
-              {(journey.changes || 0) === 0 ? 'Direkt'
-                : `${journey.changes || 0} Umstieg${(journey.changes || 0)>1?'e':''}`}
+            <div style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 1 }}>
+              {Math.floor(journey.totalDuration / 60)}h {journey.totalDuration % 60}m
+              {' · '}{journey.changes} Umstieg{journey.changes !== 1 ? 'e' : ''}
             </div>
           </div>
-          {/* Total delay badge */}
-          {totalDelayMin > 0 ? (
-            <span style={{
-              fontSize:11,padding:'3px 8px',borderRadius:4,
-              background:'#1f0d0d',color:'#e25555',
-              border:'1px solid #3a1515',flexShrink:0,
-            }}>
-              +{totalDelayMin} Min.
-            </span>
-          ) : (
-            <span style={{
-              fontSize:11,padding:'3px 8px',borderRadius:4,
-              background:'#0d2618',color:'#3ecf6e',
-              border:'1px solid #1a4a2e',flexShrink:0,
-            }}>
-              Pünktlich
-            </span>
-          )}
         </div>
 
-        {/* Delay warning */}
-        {totalDelayMin > 5 && (
-          <div style={{
-            padding:'10px 16px',
-            background:'rgba(245,158,11,0.08)',
-            borderBottom:'1px solid rgba(245,158,11,0.2)',
-            display:'flex',alignItems:'center',gap:8,flexShrink:0,
-          }}>
-            <AlertTriangle size={13} color="#f59e0b"/>
-            <span style={{fontSize:12,color:'#f59e0b'}}>
-              Verspätung auf dieser Verbindung — Anschlusszüge prüfen
-            </span>
-          </div>
-        )}
-
-        {/* Journey timeline */}
-        <div style={{flex:1,overflowY:'auto',padding:'8px 0',
-                     WebkitOverflowScrolling:'touch'}}>
-          {journey.legs.map((leg, i) => {
-            const isLast = i === journey.legs.length - 1
-            const nextLeg = journey.legs[i + 1]
-            const transferMin = nextLeg && leg.departure
-              ? Math.round(
-                  (new Date(nextLeg.departure).getTime() -
-                   new Date(leg.arrival).getTime()) / 60000
-                )
-              : null
-            const tightTransfer = transferMin !== null && transferMin < 6
+        {/* Scrollable body */}
+        <div style={{
+          flex: 1, overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          padding: '14px 18px',
+        }}>
+          {legs.map((leg, i) => {
+            const isLast = i === legs.length - 1
+            const nextLeg = legs[i + 1]
+            const xferMin = nextLeg
+              ? Math.round((new Date(nextLeg.plannedDeparture).getTime() - new Date(leg.plannedArrival).getTime()) / 60000)
+              : 0
+            const isTight = xferMin > 0 && xferMin < 8
+            const xferType: 'xfer' | 'xfer-warn' = isTight ? 'xfer-warn' : 'xfer'
+            const trainColors = getTrainColor(leg.line?.name)
+            const isExpanded = expandedLegs.has(i)
+            const midStops = leg.stopovers ?? []
+            const legDuration = Math.round(
+              (new Date(leg.plannedArrival).getTime() - new Date(leg.plannedDeparture).getTime()) / 60000
+            )
 
             return (
               <div key={i}>
-                {/* Leg block */}
-                <div style={{
-                  margin:'0 12px 0 16px',
-                  background:'#0d1628',
-                  border:'1px solid #1e2d4a',
-                  borderRadius:10,
-                  overflow:'hidden',
-                }}>
-                  {/* Origin row */}
-                  <div style={{
-                    display:'flex',alignItems:'center',
-                    justifyContent:'space-between',
-                    padding:'10px 12px',
-                  }}>
-                    <div>
-                      <div style={{fontSize:15,fontWeight:600,
-                                   color:'#fff',fontVariantNumeric:'tabular-nums'}}>
-                        {formatTime(leg.departure)}
-                        {(leg.delayMinutes ?? 0) > 0 && (
-                          <span style={{fontSize:11,color:'#e25555',marginLeft:6}}>
-                            +{Math.round(leg.delayMinutes)}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{fontSize:12,color:'#8ba3c7',marginTop:1}}>
-                        {leg.origin}
-                      </div>
-                    </div>
-                    {leg.plannedDeparturePlatform && (
-                      <div style={{
-                        fontSize:11,
-                        color: leg.departurePlatform &&
-                               leg.departurePlatform !== leg.plannedDeparturePlatform
-                          ? '#f59e0b' : '#4a6a9a',
+
+                {/* ORIGIN (first leg only) */}
+                {i === 0 && (
+                  <Row dot="origin" bottomLine="train">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+                      <span style={{
+                        fontSize: 14, fontWeight: 600, color: 'hsl(var(--foreground))',
+                        fontVariantNumeric: 'tabular-nums', width: 42, flexShrink: 0,
                       }}>
-                        Gl. {leg.departurePlatform ?? leg.plannedDeparturePlatform}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Middle: train info */}
-                  <div style={{
-                    padding:'8px 12px',
-                    borderTop:'1px solid #1e2d4a',
-                    borderBottom:'1px solid #1e2d4a',
-                    display:'flex',alignItems:'center',
-                    justifyContent:'space-between',gap:8,
-                    background:'#080d1a',
-                  }}>
-                    <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <OperatorBadge
-                        operator={leg.operator}
-                        lineName={leg.line?.name ?? leg.trainNumber}
-                      />
-                      <span style={{fontSize:12,color:'#4a6a9a'}}>
-                        {formatDuration(
-                          Math.round(
-                            (new Date(leg.arrival).getTime() -
-                             new Date(leg.departure).getTime()) / 60000
-                          )
-                        )}
+                        {fmtTime(leg.plannedDeparture)}
                       </span>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: 'hsl(var(--foreground))', flex: 1 }}>
+                        {leg.origin.name}
+                      </span>
+                      {leg.departurePlatform ?? leg.plannedDeparturePlatform ? (
+                        <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
+                          Gl. {leg.departurePlatform ?? leg.plannedDeparturePlatform}
+                        </span>
+                      ) : null}
                     </div>
-                    {/* Tap to see train detail */}
-                    <button
-                      onClick={() => setSelectedTrain(
-                        leg.line?.name ?? leg.trainNumber
-                      )}
-                      style={{
-                        fontSize:11,color:'#4f8ef7',background:'none',
-                        border:'none',cursor:'pointer',padding:0,
-                        display:'flex',alignItems:'center',gap:3,
-                      }}
-                    >
-                      Details
-                      <ChevronRight size={11}/>
-                    </button>
-                  </div>
+                  </Row>
+                )}
 
-                  {/* Destination row */}
-                  <div style={{
-                    display:'flex',alignItems:'center',
-                    justifyContent:'space-between',
-                    padding:'10px 12px',
-                  }}>
-                    <div>
-                      <div style={{fontSize:15,fontWeight:600,
-                                   color:'#fff',fontVariantNumeric:'tabular-nums'}}>
-                        {formatTime(leg.arrival)}
-                        {(leg.delayMinutes ?? 0) > 0 && (
-                          <span style={{fontSize:11,color:'#e25555',marginLeft:6}}>
-                            +{Math.round(leg.delayMinutes)}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{fontSize:12,color:'#8ba3c7',marginTop:1}}>
-                        {leg.destination}
-                      </div>
-                    </div>
-                    {leg.plannedArrivalPlatform && (
-                      <div style={{fontSize:11,color:'#4a6a9a'}}>
-                        Gl. {leg.arrivalPlatform ?? leg.plannedArrivalPlatform}
-                      </div>
+                {/* LEG LABEL */}
+                <Row topLine="train" dot="mid" bottomLine="train" style={{ alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 5,
+                      fontFamily: 'monospace',
+                      background: trainColors.bg,
+                      border: `1px solid ${trainColors.border}`,
+                      color: trainColors.color,
+                      flexShrink: 0,
+                    }}>
+                      {leg.line?.name ?? '?'}
+                    </span>
+                    <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>
+                      {legDuration} Min.
+                    </span>
+                    {midStops.length > 0 && (
+                      <button
+                        onClick={() => toggleLeg(i)}
+                        style={{
+                          marginLeft: 'auto', background: 'none', border: 'none',
+                          fontSize: 11, color: '#2dd4b0', cursor: 'pointer', padding: 0,
+                          display: 'flex', alignItems: 'center', gap: 3,
+                        }}
+                      >
+                        {isExpanded ? 'Weniger ▴' : `${midStops.length} Zwischenhalte ▾`}
+                      </button>
                     )}
                   </div>
-                </div>
+                </Row>
 
-                {/* Transfer block between legs */}
-                {!isLast && transferMin !== null && (
-                  <div style={{
-                    display:'flex',alignItems:'center',gap:8,
-                    padding:'8px 20px',
-                    color: tightTransfer ? '#f59e0b' : '#4a6a9a',
-                  }}>
-                    <div style={{
-                      width:2,height:24,
-                      background: tightTransfer ? '#f59e0b' : '#1e2d4a',
-                      marginLeft:16,flexShrink:0,
-                    }}/>
-                    <span style={{fontSize:11}}>
-                      {tightTransfer && '⚠ '}
-                      Umstieg · {transferMin} Min.
-                      {tightTransfer && ' (knapper Anschluss)'}
-                    </span>
-                  </div>
+                {/* INTERMEDIATE STOPS (expanded) */}
+                {isExpanded && midStops.map((stop, si) => (
+                  <Row key={si} topLine="train" dot="mid" bottomLine="train">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0' }}>
+                      <span style={{
+                        fontSize: 12, color: 'hsl(var(--muted-foreground))',
+                        fontVariantNumeric: 'tabular-nums', width: 42, flexShrink: 0,
+                      }}>
+                        {fmtTime(stop.plannedDeparture ?? stop.plannedArrival)}
+                      </span>
+                      <span style={{
+                        fontSize: 12, color: 'hsl(var(--muted-foreground))',
+                        flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {stop.name}
+                      </span>
+                      {stop.platform && (
+                        <span style={{ fontSize: 10, color: 'hsl(var(--muted-foreground))' }}>
+                          Gl. {stop.platform}
+                        </span>
+                      )}
+                    </div>
+                  </Row>
+                ))}
+
+                {/* ARRIVAL / TRANSFER */}
+                {!isLast ? (
+                  <>
+                    {/* Arrival at transfer station */}
+                    <Row topLine="train" dot={xferType} bottomLine={xferType}>
+                      <div style={{ padding: '8px 0 2px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <span style={{
+                            fontSize: 13, fontWeight: 500, color: 'hsl(var(--muted-foreground))',
+                            fontVariantNumeric: 'tabular-nums', width: 42, flexShrink: 0,
+                          }}>
+                            {fmtTime(leg.plannedArrival)}
+                          </span>
+                          <span style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', flex: 1 }}>
+                            {leg.destination.name}
+                          </span>
+                          {leg.arrivalPlatform ?? leg.plannedArrivalPlatform ? (
+                            <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
+                              Gl. {leg.arrivalPlatform ?? leg.plannedArrivalPlatform}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {/* Transfer badge */}
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          fontSize: 12, fontWeight: 500,
+                          padding: '4px 10px', borderRadius: 6,
+                          border: `0.5px solid ${isTight ? 'rgba(245,158,11,0.3)' : 'hsl(var(--border))'}`,
+                          background: isTight ? 'rgba(245,158,11,0.06)' : 'hsl(var(--secondary))',
+                          color: isTight ? '#f59e0b' : 'hsl(var(--muted-foreground))',
+                          marginBottom: 8,
+                        }}>
+                          {isTight ? <AlertTriangle size={11} /> : <Clock size={11} />}
+                          {xferMin} Min. Umstieg
+                        </div>
+                      </div>
+                    </Row>
+
+                    {/* Departure from transfer station */}
+                    <Row topLine={xferType} dot={xferType} bottomLine="train">
+                      <div style={{ padding: '2px 0 8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{
+                            fontSize: 13, fontWeight: 500, color: 'hsl(var(--foreground))',
+                            fontVariantNumeric: 'tabular-nums', width: 42, flexShrink: 0,
+                          }}>
+                            {fmtTime(nextLeg.plannedDeparture)}
+                          </span>
+                          <span style={{ fontSize: 13, color: 'hsl(var(--foreground))', flex: 1 }}>
+                            {nextLeg.origin.name}
+                          </span>
+                          {nextLeg.departurePlatform ?? nextLeg.plannedDeparturePlatform ? (
+                            <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
+                              Gl. {nextLeg.departurePlatform ?? nextLeg.plannedDeparturePlatform}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </Row>
+                  </>
+                ) : (
+                  /* FINAL DESTINATION */
+                  <Row topLine="train" dot="dest" bottomLine={null}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+                      <span style={{
+                        fontSize: 14, fontWeight: 600, color: 'hsl(var(--foreground))',
+                        fontVariantNumeric: 'tabular-nums', width: 42, flexShrink: 0,
+                      }}>
+                        {fmtTime(leg.plannedArrival)}
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: 'hsl(var(--foreground))', flex: 1 }}>
+                        {leg.destination.name}
+                      </span>
+                      {leg.arrivalPlatform ?? leg.plannedArrivalPlatform ? (
+                        <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
+                          Gl. {leg.arrivalPlatform ?? leg.plannedArrivalPlatform}
+                        </span>
+                      ) : null}
+                    </div>
+                  </Row>
                 )}
               </div>
             )
           })}
         </div>
 
-        {/* Bottom action */}
+        {/* CTA */}
         <div style={{
-          padding:'12px 16px',borderTop:'1px solid #1e2d4a',
-          flexShrink:0,
+          padding: '12px 16px', flexShrink: 0,
+          borderTop: '1px solid hsl(var(--border))',
         }}>
           <button
-            onClick={() => setShowTripPicker(true)}
+            onClick={onAddToTrip}
             style={{
-              width:'100%',padding:'13px',
-              background:'#2563eb',color:'#fff',
-              border:'none',borderRadius:9,
-              fontSize:14,fontWeight:600,cursor:'pointer',
+              width: '100%', height: 42,
+              background: 'hsl(var(--primary))',
+              color: 'hsl(var(--primary-foreground))',
+              border: 'none', borderRadius: 9,
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}
           >
             + Zur Reise hinzufügen
           </button>
         </div>
-
-        {/* Nested: train detail */}
-        {selectedTrain && (
-          <TrainDetailSheet
-            trainNumber={selectedTrain}
-            date={journey.legs[0]?.departure?.slice(0,10)}
-            onClose={() => setSelectedTrain(null)}
-          />
-        )}
-
-        {showTripPicker && (
-          <div style={{
-            position:'fixed',inset:0,zIndex:102,
-            background:'rgba(0,0,0,0.5)',backdropFilter:'blur(4px)',
-            display:'flex',alignItems:'center',justifyContent:'center',
-            padding:20,
-          }}
-          onClick={() => setShowTripPicker(false)}
-          >
-            <div style={{
-              background:'#0a1628',border:'1px solid #1e2d4a',
-              borderRadius:14,padding:20,maxWidth:400,width:'100%',
-            }}
-            onClick={e => e.stopPropagation()}
-            >
-              <h3 style={{fontSize:16,fontWeight:600,color:'#fff',margin:0}}>
-                Reise auswählen
-              </h3>
-              <p style={{fontSize:12,color:'#4a6a9a',marginTop:4}}>
-                Wähle eine bestehende Reise oder erstelle eine neue
-              </p>
-              <div style={{marginTop:16}}>
-                <button
-                  onClick={() => {
-                    setShowTripPicker(false)
-                    // Create new trip logic would go here
-                  }}
-                  style={{
-                    width:'100%',padding:'12px',
-                    background:'#2563eb',color:'#fff',
-                    border:'none',borderRadius:8,
-                    fontSize:14,fontWeight:500,cursor:'pointer',
-                    marginBottom:8,
-                  }}
-                >
-                  + Neue Reise erstellen
-                </button>
-                <button
-                  onClick={() => setShowTripPicker(false)}
-                  style={{
-                    width:'100%',padding:'12px',
-                    background:'transparent',color:'#4a6a9a',
-                    border:'1px solid #1e2d4a',borderRadius:8,
-                    fontSize:14,fontWeight:500,cursor:'pointer',
-                  }}
-                >
-                  Abbrechen
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   )
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('de-DE', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  })
-}
-
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
 }

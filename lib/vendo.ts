@@ -72,6 +72,28 @@ export interface VendoTrip {
   polyline: { type: 'LineString'; coordinates: [number, number][] } | null
 }
 
+export interface Stop {
+  name: string
+  ibnr: string
+  plannedArrival: string | null
+  actualArrival: string | null
+  plannedDeparture: string | null
+  actualDeparture: string | null
+  platform: string | null
+  cancelled: boolean
+}
+
+export interface Stop {
+  name: string
+  ibnr: string
+  plannedArrival: string | null
+  actualArrival: string | null
+  plannedDeparture: string | null
+  actualDeparture: string | null
+  platform: string | null
+  cancelled: boolean
+}
+
 export interface JourneyLeg {
   origin: string
   originIbnr: string | null
@@ -88,6 +110,7 @@ export interface JourneyLeg {
   tripId: string | null
   delayMinutes: number
   platform: string | null
+  stopovers: Stop[]
 }
 
 export interface Journey {
@@ -339,6 +362,7 @@ export async function searchJourneys(
       tickets: false,
       firstClass: travelClass === 1,
       products: LONG_DISTANCE_PRODUCTS,
+      stopovers: true,
       ...(viaIbnr && { via: viaIbnr }),
       ...(bike && { bike: true }),
       ...(maxTransfers !== undefined && { transfers: maxTransfers }),
@@ -355,23 +379,40 @@ export async function searchJourneys(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .filter((l: any) => l.line) // skip walking legs
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((l: any): JourneyLeg => ({
-            origin: l.origin?.name ?? '',
-            originIbnr: l.origin?.id ?? null,
-            originLat: l.origin?.location?.latitude ?? null,
-            originLon: l.origin?.location?.longitude ?? null,
-            destination: l.destination?.name ?? '',
-            destinationIbnr: l.destination?.id ?? null,
-            destinationLat: l.destination?.location?.latitude ?? null,
-            destinationLon: l.destination?.location?.longitude ?? null,
-            departure: l.plannedDeparture ?? l.departure ?? '',
-            arrival: l.plannedArrival ?? l.arrival ?? '',
-            operator: l.line?.operator?.name ?? deriveOperatorFromIbnr(l.origin?.id ?? null),
-            trainNumber: l.line?.name ?? '',
-            tripId: l.tripId ?? null,
-            delayMinutes: Math.round(((l.departureDelay ?? 0)) / 60),
-            platform: l.plannedDeparturePlatform ?? l.departurePlatform ?? null,
-          })),
+          .map((l: any): JourneyLeg => {
+            const originId = l.origin?.id
+            const destId = l.destination?.id
+            const midStops: Stop[] = (l.stopovers as any[] ?? [])
+              .filter((s: any) => s.stop?.id !== originId && s.stop?.id !== destId)
+              .map((s: any): Stop => ({
+                name: s.stop?.name ?? '',
+                ibnr: s.stop?.id ?? '',
+                plannedArrival: s.plannedArrival ?? null,
+                actualArrival: s.actualArrival ?? null,
+                plannedDeparture: s.plannedDeparture ?? null,
+                actualDeparture: s.actualDeparture ?? null,
+                platform: s.platform ?? null,
+                cancelled: s.cancelled ?? false,
+              }))
+            return {
+              origin: l.origin?.name ?? '',
+              originIbnr: l.origin?.id ?? null,
+              originLat: l.origin?.location?.latitude ?? null,
+              originLon: l.origin?.location?.longitude ?? null,
+              destination: l.destination?.name ?? '',
+              destinationIbnr: l.destination?.id ?? null,
+              destinationLat: l.destination?.location?.latitude ?? null,
+              destinationLon: l.destination?.location?.longitude ?? null,
+              departure: l.plannedDeparture ?? l.departure ?? '',
+              arrival: l.plannedArrival ?? l.arrival ?? '',
+              operator: l.line?.operator?.name ?? deriveOperatorFromIbnr(l.origin?.id ?? null),
+              trainNumber: l.line?.name ?? '',
+              tripId: l.tripId ?? null,
+              delayMinutes: Math.round(((l.departureDelay ?? 0)) / 60),
+              platform: l.plannedDeparturePlatform ?? l.departurePlatform ?? null,
+              stopovers: midStops,
+            }
+          }),
       }))
       .filter((j: Journey) => j.legs.length > 0)
 
