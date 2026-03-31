@@ -48,17 +48,19 @@ interface Journey {
 function convertToDetailJourney(journey: Journey): any {
   return {
     legs: journey.legs.map(leg => ({
-      ...leg,
-      stopovers: (leg as any).stopovers ?? [],
-      tripId: null,
+      origin: { name: leg.origin },
+      destination: { name: leg.destination },
+      line: {
+        name: leg.trainNumber,
+        operator: leg.operator ? { name: leg.operator } : undefined
+      },
+      plannedDeparture: leg.departure,
+      plannedArrival: leg.arrival,
       plannedDeparturePlatform: leg.platform,
       plannedArrivalPlatform: leg.platform,
       departurePlatform: leg.platform,
       arrivalPlatform: leg.platform,
-      line: {
-        name: leg.trainNumber,
-        operator: leg.operator ? { name: leg.operator } : undefined
-      }
+      stopovers: (leg as any).stopovers ?? [],
     })),
     totalDuration: journey.totalDuration,
     changes: journey.changes
