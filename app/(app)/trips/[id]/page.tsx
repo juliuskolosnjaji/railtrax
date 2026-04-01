@@ -69,12 +69,20 @@ export default function TripDetailPage() {
 
   useEffect(() => {
     if (!trip?.legs.length) return
-    const hasLegsWithoutPolyline = trip.legs.some((l) => !l.polyline && l.originIbnr && l.trainNumber)
-    if (!hasLegsWithoutPolyline) return
-    fetch(`/api/trips/${id}/polylines`)
-      .then((r) => r.json())
-      .then((j) => { if ((j.data?.updated ?? 0) > 0) qc.invalidateQueries({ queryKey: ['trips', id] }) })
-      .catch(() => {})
+    const hasLegsToEnrich = trip.legs.some(
+      (l) => (!l.polyline && l.originIbnr && l.trainNumber) || (!l.platformPlanned && !l.platformActual && l.originIbnr && l.trainNumber),
+    )
+    if (!hasLegsToEnrich) return
+    // Fire both in parallel — polylines and platform data
+    const promises = [
+      fetch(`/api/trips/${id}/polylines`).then((r) => r.json()),
+      fetch(`/api/trips/${id}/platforms`).then((r) => r.json()),
+    ]
+    Promise.allSettled(promises).then((results) => {
+      if (results.some((r) => r.status === 'fulfilled' && ((r.value?.data?.updated ?? 0) > 0))) {
+        qc.invalidateQueries({ queryKey: ['trips', id] })
+      }
+    }).catch(() => {})
   }, [id, trip, qc])
 
   function openNewEntry(legId?: string) {

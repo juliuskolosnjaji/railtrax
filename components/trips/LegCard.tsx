@@ -29,6 +29,29 @@ function durationMinutes(dep: string, arr: string) {
   return Math.round((new Date(arr).getTime() - new Date(dep).getTime()) / 60000)
 }
 
+// ── Platform pill component ─────────────────────────────────────────────────
+
+function PlatformPill({ value, changed }: { value: string; changed: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1 shrink-0" style={{
+      height: 22,
+      padding: '0 6px',
+      borderRadius: 4,
+      background: changed ? 'hsl(var(--destructive) / 0.12)' : 'hsl(var(--primary) / 0.1)',
+      border: `1px solid ${changed ? 'hsl(var(--destructive) / 0.3)' : 'hsl(var(--primary) / 0.2)'}`,
+      fontSize: 10,
+      fontWeight: 700,
+      fontFamily: '"JetBrains Mono", "Fira Mono", monospace',
+      color: changed ? 'hsl(var(--destructive))' : 'hsl(var(--primary))',
+      letterSpacing: '0.3px',
+    }}>
+      {value}
+    </span>
+  )
+}
+
+// ── Main card ────────────────────────────────────────────────────────────────
+
 interface Props {
   leg: Leg
   tripId: string
@@ -56,9 +79,8 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
 
   async function handleCheckin() {
     setCheckinError(null)
-    try {
-      await checkin.mutateAsync(leg.id)
-    } catch (err) {
+    try { await checkin.mutateAsync(leg.id) }
+    catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       setCheckinError(message)
       setTimeout(() => setCheckinError(null), 5000)
@@ -66,11 +88,8 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
   }
 
   async function handleComplete() {
-    try {
-      await updateLeg.mutateAsync({ id: leg.id, data: { status: 'completed' } })
-    } catch (err) {
-      console.error('Failed to complete leg:', err)
-    }
+    try { await updateLeg.mutateAsync({ id: leg.id, data: { status: 'completed' } }) }
+    catch (err) { console.error('Failed to complete leg:', err) }
   }
 
   const depDate = fmtDate(leg.plannedDeparture)
@@ -83,13 +102,19 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
   const operatorStyle = OPERATOR_STYLES[leg.operator ?? ''] ?? 'bg-zinc-800 text-zinc-300 border-zinc-700'
   const trainLabel = leg.lineName ?? leg.trainNumber
 
-  // Fetch journey number from bahn.expert (only when card is expanded,
-  // or if already cached in DB via leg.journeyNumber)
   const { data: journeyData } = useJourneyNumber(leg.id, isExpanded)
   const journeyNumber = leg.journeyNumber ?? journeyData?.journeyNumber ?? null
   const trainDisplay = journeyNumber && trainLabel
     ? `${trainLabel} (${journeyNumber})`
     : (trainLabel ?? null)
+
+  // ── Platform resolution ──────────────────────────────────────────────────
+  // Prefer actual (real-time) platform, fall back to planned.
+  // Show change indicator when planned ≠ actual.
+  const depPlatform = leg.platformActual ?? leg.platformPlanned
+  const arrPlatform = leg.arrivalPlatformActual ?? leg.arrivalPlatformPlanned
+  const depPlatformChanged = !!(leg.platformActual && leg.platformPlanned && leg.platformActual !== leg.platformPlanned)
+  const arrPlatformChanged = !!(leg.arrivalPlatformActual && leg.arrivalPlatformPlanned && leg.arrivalPlatformActual !== leg.arrivalPlatformPlanned)
 
   return (
     <>
@@ -102,11 +127,8 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
 
         {/* Card */}
         <div className="flex-1 pb-4">
-          <div
-            className="rounded-xl border border-border bg-card overflow-hidden"
-            style={{ borderRadius: 10 }}
-          >
-            {/* Main row — always visible, clickable to expand */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden" style={{ borderRadius: 10 }}>
+            {/* Main row — always visible */}
             <button
               onClick={onToggle}
               className="w-full text-left"
@@ -123,33 +145,47 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
             >
               <div style={{ minWidth: 0, flex: 1 }}>
                 {/* Date */}
-                <p style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
+                <p style={{ fontSize: 11, color: 'hsla(var(--muted-foreground))', marginBottom: 6 }}>
                   {depDate}
                 </p>
 
-                {/* Times + stations + platforms */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  flexWrap: 'wrap',
-                }}>
-                  <span style={{ color: 'hsl(var(--foreground))' }}>{depTime}</span>
-                  <span style={{ color: 'hsl(var(--primary))', fontWeight: 500 }}>{leg.originName}</span>
-                  {leg.platformActual && (
-                    <span style={{ fontSize: 11, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
-                      Gl. {leg.platformActual}
-                    </span>
+                {/* Departure row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: 'hsl(var(--foreground))', fontVariantNumeric: 'tabular-nums' }}>
+                    {depTime}
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                    {leg.originName}
+                  </span>
+                  {depPlatform && (
+                    <PlatformPill value={`Gl. ${depPlatform}`} changed={depPlatformChanged} />
                   )}
-                  <ArrowRight style={{ color: 'hsl(var(--primary))', fontSize: 12, flexShrink: 0 }} />
-                  <span style={{ color: 'hsl(var(--foreground))' }}>{arrTime}</span>
-                  <span style={{ color: 'hsl(var(--primary))', fontWeight: 500 }}>{leg.destName}</span>
                 </div>
 
-                {/* Status badges */}
-                <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* Connector line + arrow */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2, padding: '2px 0' }}>
+                  <span style={{ width: 8, height: 2, borderRadius: 1 }} />
+                  <ArrowRight size={12} style={{ color: 'hsl(var(--muted-foreground) / 0.4)' }} />
+                </div>
+
+                {/* Arrival row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: 'hsl(var(--foreground))', fontVariantNumeric: 'tabular-nums' }}>
+                    {arrTime}
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                    {leg.destName}
+                  </span>
+                  {arrPlatform && (
+                    <PlatformPill
+                      value={`Gl. ${arrPlatform}`}
+                      changed={arrPlatformChanged}
+                    />
+                  )}
+                </div>
+
+                {/* Status badges row */}
+                <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                   {leg.delayMinutes > 0 && (
                     <span className="tap-small flex items-center gap-1 text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded">
                       +{leg.delayMinutes} min
