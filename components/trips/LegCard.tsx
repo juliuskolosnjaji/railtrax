@@ -1,17 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Trash2, Clock, MapPin, Train, ChevronDown, Plus, Loader2, CheckCircle2, Star } from 'lucide-react'
+import { Pencil, Trash2, Clock, MapPin, Train, ChevronDown, CheckCircle2, Loader2, ArrowRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LegEditorSheet } from './LegEditorSheet'
 import { useDeleteLeg, useUpdateLeg, type Leg } from '@/hooks/useTrips'
 import { useTraewellingStatus, useTraewellingCheckin } from '@/hooks/useTraewelling'
 import { ReviewPrompt } from '@/components/reviews/ReviewPrompt'
-import { useLegRollingStock, useLinkRollingStock, useUnlinkRollingStock } from '@/hooks/useRollingStock'
-import { RollingStockSelectorSheet } from '@/components/rolling-stock/RollingStockSelectorSheet'
-import { getWagenreihungUrl } from '@/lib/wagenreihung'
-import { PlatformBadge } from '@/components/ui/PlatformBadge'
 import { formatDate as fmtDate } from '@/lib/i18n/format'
 import { useJourneyNumber } from '@/hooks/useJourneyNumber'
 
@@ -44,18 +40,12 @@ interface Props {
 export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Props) {
   const [editOpen, setEditOpen] = useState(false)
   const [reviewOpen, setReviewOpen] = useState(false)
-  const [rollingStockOpen, setRollingStockOpen] = useState(false)
   const deleteLeg = useDeleteLeg(tripId)
   const updateLeg = useUpdateLeg(tripId)
 
   const { data: traewelling } = useTraewellingStatus()
   const checkin = useTraewellingCheckin(tripId)
   const [checkinError, setCheckinError] = useState<string | null>(null)
-
-  const { data: legRollingStockData } = useLegRollingStock(leg.id)
-  const legRollingStock = legRollingStockData?.manualLink ?? null
-  const linkRollingStock = useLinkRollingStock(leg.id)
-  const unlinkRollingStock = useUnlinkRollingStock(leg.id)
 
   const now = new Date()
   const depDateObj = new Date(leg.plannedDeparture)
@@ -83,22 +73,6 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
     }
   }
 
-  async function handleLinkRollingStock(rollingStock: { id: string; series: string; operator: string; [key: string]: unknown }, setNumber?: string) {
-    try {
-      await linkRollingStock.mutateAsync({ rollingStockId: rollingStock.id, setNumber, source: 'manual' })
-    } catch (err) {
-      console.error('Failed to link rolling stock:', err)
-    }
-  }
-
-  async function handleUnlinkRollingStock() {
-    try {
-      await unlinkRollingStock.mutateAsync()
-    } catch (err) {
-      console.error('Failed to unlink rolling stock:', err)
-    }
-  }
-
   const depDate = fmtDate(leg.plannedDeparture)
   const depTime = formatTime(leg.plannedDeparture)
   const arrTime = formatTime(leg.plannedArrival)
@@ -116,14 +90,6 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
   const trainDisplay = journeyNumber && trainLabel
     ? `${trainLabel} (${journeyNumber})`
     : (trainLabel ?? null)
-
-  const wagenreihungUrl = getWagenreihungUrl({
-    trainNumber: leg.trainNumber,
-    lineName: leg.lineName,
-    operator: leg.operator,
-    originIbnr: leg.originIbnr,
-    plannedDeparture: leg.plannedDeparture,
-  })
 
   return (
     <>
@@ -161,7 +127,7 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
                   {depDate}
                 </p>
 
-                {/* Times + stations in teal */}
+                {/* Times + stations + platforms */}
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -172,7 +138,12 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
                 }}>
                   <span style={{ color: 'hsl(var(--foreground))' }}>{depTime}</span>
                   <span style={{ color: 'hsl(var(--primary))', fontWeight: 500 }}>{leg.originName}</span>
-                  <span style={{ color: 'hsl(var(--primary))', fontSize: 12 }}>→</span>
+                  {leg.platformActual && (
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'hsl(var(--muted-foreground))' }}>
+                      Gl. {leg.platformActual}
+                    </span>
+                  )}
+                  <ArrowRight style={{ color: 'hsl(var(--primary))', fontSize: 12, flexShrink: 0 }} />
                   <span style={{ color: 'hsl(var(--foreground))' }}>{arrTime}</span>
                   <span style={{ color: 'hsl(var(--primary))', fontWeight: 500 }}>{leg.destName}</span>
                 </div>
@@ -184,7 +155,6 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
                       +{leg.delayMinutes} min
                     </span>
                   )}
-                  <PlatformBadge planned={leg.platformPlanned} actual={leg.platformActual} />
                   {isCheckedIn && (
                     <span className="flex items-center gap-1 text-xs text-success">
                       <CheckCircle2 className="h-3 w-3" /> Eingecheckt
@@ -330,38 +300,6 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
                   borderTop: '1px solid hsl(var(--border) / 0.5)',
                   flexWrap: 'wrap',
                 }}>
-                  {wagenreihungUrl && (
-                    <a
-                      href={wagenreihungUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        fontSize: 12, color: 'hsl(var(--muted-foreground))', textDecoration: 'none',
-                      }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <rect x="1" y="3" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-                        <line x1="4" y1="3" x2="4" y2="10" stroke="currentColor" strokeWidth="0.8" />
-                        <line x1="8" y1="3" x2="8" y2="10" stroke="currentColor" strokeWidth="0.8" />
-                      </svg>
-                      Wagenreihung
-                    </a>
-                  )}
-
-                  <button
-                    onClick={e => { e.stopPropagation(); setRollingStockOpen(true) }}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 4,
-                      fontSize: 12, color: 'hsl(var(--muted-foreground))',
-                      background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                    }}
-                  >
-                    <Plus size={11} />
-                    {legRollingStock ? 'Zugtyp ändern' : 'Zugtyp verknüpfen'}
-                  </button>
-
                   {traewelling?.connected && !isCheckedIn && canCheckIn && (
                     <button
                       onClick={e => { e.stopPropagation(); handleCheckin() }}
@@ -443,17 +381,6 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
           trainType: leg.trainType,
         }}
         onComplete={() => {}}
-      />
-
-      <RollingStockSelectorSheet
-        open={rollingStockOpen}
-        onOpenChange={setRollingStockOpen}
-        operator={leg.operator || undefined}
-        onSelect={handleLinkRollingStock}
-        currentSelection={legRollingStock ? {
-          rollingStockId: legRollingStock.rollingStockId,
-          setNumber: legRollingStock.setNumber || undefined,
-        } : undefined}
       />
     </>
   )
