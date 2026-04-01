@@ -101,23 +101,30 @@ export function NachfahrenModal({ communityTrip, onClose }: NachfahrenModalProps
           position: 'fixed',
           inset: 0,
           zIndex: 100,
-          background: 'rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(4px)',
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
         }}
       />
       <div
         style={{
           position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           zIndex: 101,
           background: 'hsl(var(--card))',
           border: '1px solid hsl(var(--border))',
-          borderRadius: '14px 14px 0 0',
-          maxHeight: '92vh',
+          borderRadius: 16,
+          width: '100%',
+          maxWidth: 480,
+          maxHeight: '85vh',
           display: 'flex',
           flexDirection: 'column',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         }}
       >
         {/* Header */}
