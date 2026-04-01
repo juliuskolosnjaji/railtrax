@@ -27,6 +27,7 @@ interface NavItem {
 
 const PUBLIC_NAV: NavItem[] = [
   { href: '/search',        label: 'Verbindungssuche',  iconKey: 'search'    },
+  { href: '/entdecken',     label: 'Entdecken',         iconKey: 'entdecken' },
   { href: '/abfahrten',     label: 'Live Abfahrten',    iconKey: 'abfahrten' },
   { href: '/rolling-stock', label: 'Züge',              iconKey: 'trains'    },
 ]
@@ -34,6 +35,7 @@ const PUBLIC_NAV: NavItem[] = [
 const AUTH_NAV: NavItem[] = [
   { href: '/dashboard',     label: 'Übersicht',         iconKey: 'dashboard' },
   { href: '/search',        label: 'Verbindungssuche',  iconKey: 'search'    },
+  { href: '/entdecken',     label: 'Entdecken',         iconKey: 'entdecken' },
   { href: '/abfahrten',     label: 'Live Abfahrten',    iconKey: 'abfahrten' },
   { href: '/stats',         label: 'Statistik',         iconKey: 'stats'     },
   { href: '/trips',         label: 'Meine Reisen',      iconKey: 'trips'     },
