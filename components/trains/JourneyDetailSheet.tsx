@@ -223,30 +223,80 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: Props) {
     </div>
   )
 
-  // Transfer badge
-  const XferBadge = ({ min, tight, platform }: {
-    min: number
-    tight: boolean
-    platform?: string | null
-  }) => (
-    <div style={{ padding: '6px 0' }}>
+  // Transfer card — combines arrival + wait + departure in one block
+  const TransferCard = ({
+    arrTime, arrDelay, arrName, arrPlat,
+    depTime, depDelay, depName, depPlat,
+    xfer, tight,
+  }: {
+    arrTime: string | null; arrDelay: number; arrName: string; arrPlat: string | null
+    depTime: string | null; depDelay: number; depName: string; depPlat: string | null
+    xfer: number; tight: boolean
+  }) => {
+    const longWait = xfer >= 30
+    const borderColor = tight ? '#EF9F27' : longWait ? 'hsl(var(--border))' : 'hsl(var(--border))'
+    const bg = tight ? 'rgba(239,159,39,0.07)' : 'hsl(var(--secondary))'
+    const timeW = 44
+
+    return (
       <div style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5,
-        fontSize: 12, padding: '4px 10px',
-        borderRadius: 8,
-        border: `0.5px solid ${tight ? '#EF9F27' : 'var(--border)'}`,
-        background: tight ? '#FAEEDA' : 'hsl(var(--secondary))',
-        color: tight ? '#633806' : 'hsl(var(--muted-foreground))',
-        fontWeight: 400,
+        border: `1px solid ${borderColor}`,
+        borderRadius: 10,
+        background: bg,
+        overflow: 'hidden',
+        margin: '2px 0',
       }}>
-        {tight
-          ? <AlertTriangle size={11} />
-          : <Clock size={11} />
-        }
-        {min} Min. Umstieg{platform ? ` · Gl. ${platform}` : ''}
+        {/* Arrival row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px 4px' }}>
+          <span style={{
+            fontSize: 13, fontVariantNumeric: 'tabular-nums',
+            width: timeW, flexShrink: 0,
+            color: 'hsl(var(--muted-foreground))',
+          }}>
+            {arrTime ?? '–'}
+            {arrDelay > 0 && <span style={{ fontSize: 10, color: '#E24B4A', marginLeft: 3 }}>+{arrDelay}</span>}
+          </span>
+          <span style={{
+            fontSize: 13, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            color: 'hsl(var(--muted-foreground))',
+          }}>{arrName}</span>
+          {arrPlat && <span style={{ fontSize: 11, flexShrink: 0, color: 'hsl(var(--muted-foreground))' }}>Gl. {arrPlat}</span>}
+        </div>
+
+        {/* Wait indicator */}
+        <div style={{ padding: '3px 12px 3px', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ height: 1, width: timeW, flexShrink: 0, background: 'hsl(var(--border))', opacity: 0.5 }} />
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            fontSize: 11, color: tight ? '#633806' : longWait ? 'hsl(var(--muted-foreground))' : 'hsl(var(--muted-foreground))',
+          }}>
+            {tight ? <AlertTriangle size={10} color="#EF9F27" /> : <Clock size={10} />}
+            <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+              {longWait ? `${Math.floor(xfer / 60)}h ${xfer % 60}m` : `${xfer} Min.`} Umstieg
+              {depPlat ? ` · Gl. ${depPlat}` : ''}
+            </span>
+          </div>
+        </div>
+
+        {/* Departure row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 12px 8px' }}>
+          <span style={{
+            fontSize: 13, fontVariantNumeric: 'tabular-nums',
+            width: timeW, flexShrink: 0, fontWeight: 500,
+            color: 'hsl(var(--foreground))',
+          }}>
+            {depTime ?? '–'}
+            {depDelay > 0 && <span style={{ fontSize: 10, color: '#E24B4A', marginLeft: 3 }}>+{depDelay}</span>}
+          </span>
+          <span style={{
+            fontSize: 13, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            fontWeight: 500, color: 'hsl(var(--foreground))',
+          }}>{depName}</span>
+          {depPlat && <span style={{ fontSize: 11, flexShrink: 0, color: 'hsl(var(--muted-foreground))' }}>Gl. {depPlat}</span>}
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   // ── Render ─────────────────────────────────────────────────
   return (
@@ -452,47 +502,35 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: Props) {
                 {/* ── TRANSFER or DESTINATION ── */}
                 {!isLast ? (
                   <>
-                    {/* Arrival at transfer station */}
-                    <Row top="teal" dot="xfer" bottom={xferT as any}>
-                      <StopLine
-                        time={fmt(leg.arr)}
-                        delay={leg.arrDelay}
-                        name={leg.destName}
-                        platform={leg.arrPlat}
-                        muted
-                      />
-                    </Row>
-
-                    {/* Transfer badge — line passthrough, no dot */}
+                    {/* Single transfer card row */}
                     <div style={{ display: 'flex', alignItems: 'stretch' }}>
                       <div style={{
                         width: 20, display: 'flex', flexDirection: 'column',
                         alignItems: 'center', flexShrink: 0, marginRight: 16,
                       }}>
-                        <Line type={xferT as any} />
+                        <Line type="teal" />
+                        <div style={{
+                          width: 7, height: 7, borderRadius: '50%', flexShrink: 0, zIndex: 2,
+                          background: tight ? '#FAEEDA' : 'hsl(var(--background))',
+                          border: `1.5px solid ${tight ? '#EF9F27' : 'hsl(var(--border))'}`,
+                        }} />
+                        <Line type="teal" />
                       </div>
-                      <div style={{ flex: 1, minWidth: 0, padding: '0 0 4px' }}>
-                        <XferBadge
-                          min={xfer}
+                      <div style={{ flex: 1, minWidth: 0, padding: '4px 0' }}>
+                        <TransferCard
+                          arrTime={fmt(leg.arr)}
+                          arrDelay={leg.arrDelay}
+                          arrName={leg.destName}
+                          arrPlat={leg.arrPlat}
+                          depTime={fmt(nextLeg.dep)}
+                          depDelay={nextLeg.depDelay}
+                          depName={nextLeg.originName}
+                          depPlat={nextLeg.depPlat}
+                          xfer={xfer}
                           tight={tight}
-                          platform={nextLeg.depPlat}
                         />
                       </div>
                     </div>
-
-                    {/* Departure from transfer station */}
-                    <Row
-                      top={xferT as any}
-                      dot={tight ? 'xfer-amber' : 'xfer'}
-                      bottom="teal"
-                    >
-                      <StopLine
-                        time={fmt(nextLeg.dep)}
-                        delay={nextLeg.depDelay}
-                        name={nextLeg.originName}
-                        platform={nextLeg.depPlat}
-                      />
-                    </Row>
                   </>
                 ) : (
                   /* ── DESTINATION ── */
