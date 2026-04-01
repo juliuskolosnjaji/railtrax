@@ -4,10 +4,41 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import dynamic from 'next/dynamic'
 import { TrainLegsSection } from '@/components/community/TrainLegsSection'
 import { PhotosSection } from '@/components/community/PhotosSection'
 import { CommentsSection } from '@/components/community/CommentsSection'
 import { NachfahrenModal } from '@/components/community/NachfahrenModal'
+
+const TripMapCard = dynamic(
+  () => import('@/components/map/TripMapCard').then((m) => m.TripMapCard),
+  { ssr: false, loading: () => <div style={{ height: 340, background: 'hsl(var(--secondary))' }} /> },
+)
+
+function ShareButton() {
+  const [copied, setCopied] = useState(false)
+  return (
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(window.location.href)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }}
+      style={{
+        height: 40,
+        padding: '0 16px',
+        background: copied ? 'hsl(var(--primary) / 0.1)' : 'hsl(var(--secondary))',
+        border: `1px solid ${copied ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
+        borderRadius: 9,
+        fontSize: 13,
+        color: copied ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+        cursor: 'pointer',
+      }}
+    >
+      {copied ? '✓ Kopiert' : 'Teilen'}
+    </button>
+  )
+}
 
 export default function CommunityTripDetailPage() {
   const { id } = useParams()
@@ -214,20 +245,20 @@ export default function CommunityTripDetailPage() {
           </div>
         </div>
 
-        {/* Map placeholder */}
-        <div
-          style={{
-            height: 340,
-            background: 'hsl(var(--secondary))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'hsl(var(--muted-foreground))',
-            fontSize: 14,
-          }}
-        >
-          🗺 Karte
-        </div>
+        {/* Map */}
+        <TripMapCard
+          legs={(sortedLegs as any[]).map((l) => ({
+            ...l,
+            originLon: l.originLon ?? null,
+            originLat: l.originLat ?? null,
+            destLon: l.destLon ?? null,
+            destLat: l.destLat ?? null,
+            polyline: l.polyline ?? null,
+            originName: l.originName,
+            destName: l.destName,
+          }))}
+          height={340}
+        />
 
         {/* Stats footer */}
         <div
@@ -357,23 +388,7 @@ export default function CommunityTripDetailPage() {
         </button>
 
         {/* Share */}
-        <button
-          onClick={() =>
-            navigator.clipboard.writeText(window.location.href)
-          }
-          style={{
-            height: 40,
-            padding: '0 16px',
-            background: 'hsl(var(--secondary))',
-            border: '1px solid hsl(var(--border))',
-            borderRadius: 9,
-            fontSize: 13,
-            color: 'hsl(var(--muted-foreground))',
-            cursor: 'pointer',
-          }}
-        >
-          Teilen
-        </button>
+        <ShareButton />
 
         {/* Star rating */}
         <div
