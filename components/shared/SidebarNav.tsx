@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Search, BarChart2, Train, Settings, Clock, LogIn, Map } from 'lucide-react'
+import { LayoutDashboard, Search, BarChart2, Train, Settings, Clock, LogIn, Map, Compass } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -14,6 +14,7 @@ const ICON_MAP = {
   abfahrten:     Clock,
   settings:      Settings,
   trips:         Map,
+  entdecken:     Compass,
 } as const
 
 type IconKey = keyof typeof ICON_MAP
