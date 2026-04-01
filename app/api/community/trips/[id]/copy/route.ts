@@ -40,7 +40,7 @@ export async function POST(
 
     if (!originIbnr || !destIbnr)
       return NextResponse.json(
-        { error: 'missing_station_ids' },
+        { error: `Fehlende Stations-IDs (origin: ${originIbnr}, dest: ${destIbnr})` },
         { status: 400 },
       )
 
@@ -111,7 +111,8 @@ export async function POST(
     return NextResponse.json({
       data: { tripId: newTrip.id, legsCreated: legData.length },
     })
-  } catch {
+  } catch (err) {
+    console.error('Copy route error:', err)
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 }

@@ -41,9 +41,11 @@ export function NachfahrenModal({ communityTrip, onClose }: NachfahrenModalProps
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [newTripId, setNewTripId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSearch = async () => {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch(
         `/api/community/trips/${communityTrip.id}/copy`,
@@ -54,12 +56,18 @@ export function NachfahrenModal({ communityTrip, onClose }: NachfahrenModalProps
         },
       )
       const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Suche fehlgeschlagen')
+        return
+      }
       if (data.data?.options) {
         setOptions(data.data.options)
         setStep(2)
+      } else {
+        setError('Keine Verbindungen gefunden')
       }
-    } catch {
-      // silent
+    } catch (e) {
+      setError('Netzwerkfehler: ' + (e instanceof Error ? e.message : 'Unbekannt'))
     } finally {
       setLoading(false)
     }
@@ -68,6 +76,7 @@ export function NachfahrenModal({ communityTrip, onClose }: NachfahrenModalProps
   const handleCreate = async () => {
     if (selectedIndex === null) return
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch(
         `/api/community/trips/${communityTrip.id}/copy`,
@@ -82,12 +91,16 @@ export function NachfahrenModal({ communityTrip, onClose }: NachfahrenModalProps
         },
       )
       const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Erstellung fehlgeschlagen')
+        return
+      }
       if (data.data?.tripId) {
         setNewTripId(data.data.tripId)
         setStep(3)
       }
-    } catch {
-      // silent
+    } catch (e) {
+      setError('Netzwerkfehler: ' + (e instanceof Error ? e.message : 'Unbekannt'))
     } finally {
       setLoading(false)
     }
@@ -283,6 +296,20 @@ export function NachfahrenModal({ communityTrip, onClose }: NachfahrenModalProps
                   />
                 </div>
               </div>
+
+              {error && (
+                <div style={{
+                  padding: '10px 14px',
+                  background: 'hsl(var(--destructive) / 0.1)',
+                  border: '1px solid hsl(var(--destructive) / 0.3)',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  color: 'hsl(var(--destructive))',
+                  marginBottom: 16,
+                }}>
+                  {error}
+                </div>
+              )}
 
               <button
                 onClick={handleSearch}
