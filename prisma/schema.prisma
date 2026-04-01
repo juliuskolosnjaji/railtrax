@@ -37,11 +37,7 @@ model User {
   communityLikes  CommunityLike[]
   communityComments CommunityComment[]
   commentLikes    CommentLike[]
-  communityTrips  CommunityTrip[]
-  communityRatings CommunityRating[]
-  communityLikes  CommunityLike[]
-  communityComments CommunityComment[]
-  commentLikes    CommentLike[]
+  communityPhotos CommunityPhoto[]
 
   @@map("users")
 }
@@ -378,7 +374,7 @@ model LegRollingStock {
 }
 
 model CommunityTrip {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid()) @db.Uuid
   userId      String   @map("user_id") @db.Uuid
   tripId      String   @unique @map("trip_id") @db.Uuid
   title       String
@@ -400,7 +396,7 @@ model CommunityTrip {
 }
 
 model CommunityRating {
-  id              String   @id @default(cuid())
+  id              String   @id @default(uuid()) @db.Uuid
   communityTripId String   @map("community_trip_id") @db.Uuid
   userId          String   @map("user_id") @db.Uuid
   rating          Int
@@ -414,7 +410,7 @@ model CommunityRating {
 }
 
 model CommunityLike {
-  id              String   @id @default(cuid())
+  id              String   @id @default(uuid()) @db.Uuid
   communityTripId String   @map("community_trip_id") @db.Uuid
   userId          String   @map("user_id") @db.Uuid
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
@@ -427,7 +423,7 @@ model CommunityLike {
 }
 
 model CommunityComment {
-  id              String   @id @default(cuid())
+  id              String   @id @default(uuid()) @db.Uuid
   communityTripId String   @map("community_trip_id") @db.Uuid
   userId          String   @map("user_id") @db.Uuid
   text            String   @db.Text
@@ -442,7 +438,7 @@ model CommunityComment {
 }
 
 model CommentLike {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid()) @db.Uuid
   commentId String   @map("comment_id") @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
@@ -455,98 +451,7 @@ model CommentLike {
 }
 
 model CommunityPhoto {
-  id              String   @id @default(cuid())
-  communityTripId String   @map("community_trip_id") @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
-  url             String
-  caption         String?
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  communityTrip   CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("community_photos")
-}
-
-model CommunityTrip {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id") @db.Uuid
-  tripId      String   @unique @map("trip_id") @db.Uuid
-  title       String
-  description String?  @db.Text
-  isPublic    Boolean  @default(true) @map("is_public")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
-
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trip        Trip              @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  ratings     CommunityRating[]
-  likes       CommunityLike[]
-  comments    CommunityComment[]
-  photos      CommunityPhoto[]
-
-  @@index([userId], name: "idx_community_trips_user_id")
-  @@index([isPublic], name: "idx_community_trips_is_public")
-  @@map("community_trips")
-}
-
-model CommunityRating {
-  id              String   @id @default(cuid())
-  communityTripId String   @map("community_trip_id") @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
-  rating          Int
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  communityTrip   CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([communityTripId, userId], name: "uniq_community_rating_trip_user")
-  @@map("community_ratings")
-}
-
-model CommunityLike {
-  id              String   @id @default(cuid())
-  communityTripId String   @map("community_trip_id") @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  communityTrip   CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([communityTripId, userId], name: "uniq_community_like_trip_user")
-  @@map("community_likes")
-}
-
-model CommunityComment {
-  id              String   @id @default(cuid())
-  communityTripId String   @map("community_trip_id") @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
-  text            String   @db.Text
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz
-
-  communityTrip   CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes           CommentLike[]
-
-  @@map("community_comments")
-}
-
-model CommentLike {
-  id        String   @id @default(cuid())
-  commentId String   @map("comment_id") @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  comment   CommunityComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([commentId, userId], name: "uniq_comment_like_comment_user")
-  @@map("comment_likes")
-}
-
-model CommunityPhoto {
-  id              String   @id @default(cuid())
+  id              String   @id @default(uuid()) @db.Uuid
   communityTripId String   @map("community_trip_id") @db.Uuid
   userId          String   @map("user_id") @db.Uuid
   url             String
