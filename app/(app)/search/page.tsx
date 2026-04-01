@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
@@ -200,55 +200,122 @@ function StationInput({
 // ─── RouteStrip ───────────────────────────────────────────────────────────────
 
 function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?: (trainNumber: string, departure?: string, operator?: string | null) => void }) {
+  if (!legs.length) return null
+
+  const abbr = (name: string) => name.replace(/\s*(Hauptbahnhof|Hbf)\s*/gi, ' Hbf').trim()
+
+  // Station node — endpoint (origin/dest) or transfer
+  const StationNode = ({
+    name, time, delay = 0, platform, endpoint,
+  }: {
+    name: string; time: string; delay?: number; platform?: string | null; endpoint: boolean
+  }) => (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      gap: 2, flexShrink: 0, maxWidth: 72,
+    }}>
+      <div style={{
+        width: endpoint ? 10 : 8, height: endpoint ? 10 : 8,
+        borderRadius: '50%', flexShrink: 0,
+        background: endpoint ? 'hsl(var(--foreground))' : 'hsl(var(--background))',
+        border: `2px solid ${endpoint ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'}`,
+      }} />
+      <div style={{
+        fontSize: 9, textAlign: 'center', lineHeight: 1.3, whiteSpace: 'nowrap',
+        color: endpoint ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+        fontWeight: endpoint ? 500 : 400,
+      }}>
+        {abbr(name)}
+      </div>
+      {platform && (
+        <div style={{ fontSize: 7, color: 'hsl(var(--muted-foreground))', opacity: 0.7 }}>
+          Gl. {platform}
+        </div>
+      )}
+      <div style={{ fontSize: 8, color: delay > 0 ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))' }}>
+        {time}{delay > 0 ? ` +${delay}` : ''}
+      </div>
+    </div>
+  )
+
+  // Transfer node — shows arr time, wait badge, dep time
+  const TransferNode = ({
+    name, arrTime, depTime, xfer, tight,
+  }: {
+    name: string; arrTime: string; depTime: string; xfer: number; tight: boolean
+  }) => (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      gap: 2, flexShrink: 0, maxWidth: 72,
+    }}>
+      {/* dot */}
+      <div style={{
+        width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+        background: tight ? '#FAEEDA' : 'hsl(var(--background))',
+        border: `2px solid ${tight ? '#EF9F27' : 'hsl(var(--muted-foreground))'}`,
+      }} />
+      {/* station name */}
+      <div style={{
+        fontSize: 9, textAlign: 'center', lineHeight: 1.3, whiteSpace: 'nowrap',
+        color: 'hsl(var(--muted-foreground))',
+      }}>
+        {abbr(name)}
+      </div>
+      {/* arrival time */}
+      <div style={{ fontSize: 8, color: 'hsl(var(--muted-foreground))' }}>{arrTime}</div>
+      {/* transfer badge */}
+      <div style={{
+        fontSize: 7, padding: '1px 5px', borderRadius: 3,
+        background: tight ? '#FAEEDA' : 'hsl(var(--secondary))',
+        border: `0.5px solid ${tight ? '#EF9F27' : 'hsl(var(--border))'}`,
+        color: tight ? '#633806' : 'hsl(var(--muted-foreground))',
+        whiteSpace: 'nowrap', marginTop: 1,
+      }}>
+        {tight ? '⚠' : '⏱'} {xfer}m
+      </div>
+      {/* departure time */}
+      <div style={{ fontSize: 8, color: 'hsl(var(--muted-foreground))' }}>{depTime}</div>
+    </div>
+  )
+
   return (
     <div style={{
       overflowX: 'auto', paddingBottom: 4,
       scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent',
     }}>
       <div style={{
-        display: 'flex', alignItems: 'flex-start',
-        width: 'max-content', padding: '0 0 8px 0',
+        display: 'flex', alignItems: 'center',
+        width: 'max-content', padding: '4px 0 10px',
       }}>
         {legs.map((leg, i) => {
           const op = resolveOperator(leg)
           const colors = getOperatorColor(op)
-          const isFirst = i === 0
           const isLast = i === legs.length - 1
-          const delay = leg.delayMinutes ?? 0
+          const nextLeg = legs[i + 1]
+          const xfer = nextLeg
+            ? Math.max(0, Math.round(
+                (new Date(nextLeg.departure).getTime() - new Date(leg.arrival).getTime()) / 60000
+              ))
+            : 0
+          const tight = xfer > 0 && xfer < 8
+
           return (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start' }}>
-              {/* Station */}
-              <div style={{
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', gap: 3, flexShrink: 0,
-              }}>
-                <div style={{
-                  width: isFirst || isLast ? 10 : 8,
-                  height: isFirst || isLast ? 10 : 8,
-                  borderRadius: '50%',
-                  background: isLast ? 'hsl(var(--muted-foreground))' : isFirst ? 'hsl(var(--foreground))' : 'hsl(var(--background))',
-                  border: `2px solid ${isLast ? 'hsl(var(--muted-foreground))' : isFirst ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))'}`,
-                }} />
-                <div style={{
-                  fontSize: 9, color: isFirst || isLast ? 'hsl(var(--secondary-foreground))' : 'hsl(var(--muted-foreground))',
-                  textAlign: 'center', maxWidth: 65, lineHeight: 1.3, whiteSpace: 'nowrap',
-                }}>
-                  {leg.origin.replace(/\s*(Hauptbahnhof|Hbf)\s*/gi, ' Hbf').trim()}
-                </div>
-                {leg.platform && (
-                  <div style={{ fontSize: 8, color: 'hsl(var(--muted-foreground) / 0.6)' }}>Gl. {leg.platform}</div>
-                )}
-                <div style={{ fontSize: 8, color: delay > 0 ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))' }}>
-                  {formatTime(leg.departure)}
-                  {delay > 0 && ` +${delay}`}
-                </div>
-              </div>
+            <React.Fragment key={i}>
+              {/* Origin station — first leg only */}
+              {i === 0 && (
+                <StationNode
+                  name={leg.origin}
+                  time={formatTime(leg.departure)}
+                  delay={leg.delayMinutes ?? 0}
+                  platform={leg.platform}
+                  endpoint
+                />
+              )}
 
               {/* Leg line */}
               <div style={{
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', flexShrink: 0,
-                minWidth: 80, paddingBottom: 20, paddingTop: 3,
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                flexShrink: 0, minWidth: 70, paddingBottom: 28,
               }}>
                 <div style={{ height: 2, width: '100%', background: colors.line, borderRadius: 1 }} />
                 <div
@@ -256,8 +323,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                   style={{
                     fontSize: 9, fontWeight: 500, padding: '2px 6px',
                     borderRadius: 3, whiteSpace: 'nowrap', marginTop: 4,
-                    background: colors.badge, color: colors.text,
-                    cursor: 'pointer',
+                    background: colors.badge, color: colors.text, cursor: 'pointer',
                   }}
                 >
                   {leg.trainNumber ?? '?'}
@@ -271,10 +337,7 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                   })
                   return url ? (
                     <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Wagenreihung"
+                      href={url} target="_blank" rel="noopener noreferrer" title="Wagenreihung"
                       style={{ display: 'flex', alignItems: 'center', marginTop: 3, color: 'hsl(var(--muted-foreground))' }}
                       onClick={e => e.stopPropagation()}
                     >
@@ -289,28 +352,23 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
                 })()}
               </div>
 
-              {/* Last station */}
-              {isLast && (
-                <div style={{
-                  display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', gap: 3, flexShrink: 0,
-                }}>
-                  <div style={{
-                    width: 10, height: 10, borderRadius: '50%',
-                    background: 'hsl(var(--muted-foreground))', border: '2px solid hsl(var(--muted-foreground))',
-                  }} />
-                  <div style={{
-                    fontSize: 9, color: 'hsl(var(--secondary-foreground))', textAlign: 'center',
-                    maxWidth: 65, lineHeight: 1.3, whiteSpace: 'nowrap',
-                  }}>
-                    {leg.destination.replace(/\s*(Hauptbahnhof|Hbf)\s*/gi, ' Hbf').trim()}
-                  </div>
-                  <div style={{ fontSize: 8, color: 'hsl(var(--muted-foreground))' }}>
-                    {formatTime(leg.arrival)}
-                  </div>
-                </div>
+              {/* After the line: transfer node or final destination */}
+              {isLast ? (
+                <StationNode
+                  name={leg.destination}
+                  time={formatTime(leg.arrival)}
+                  endpoint
+                />
+              ) : (
+                <TransferNode
+                  name={leg.destination}
+                  arrTime={formatTime(leg.arrival)}
+                  depTime={formatTime(nextLeg.departure)}
+                  xfer={xfer}
+                  tight={tight}
+                />
               )}
-            </div>
+            </React.Fragment>
           )
         })}
       </div>
