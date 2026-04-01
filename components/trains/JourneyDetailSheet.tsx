@@ -454,21 +454,31 @@ export function JourneyDetailSheet({ journey, onClose, onAddToTrip }: Props) {
                   <>
                     {/* Arrival at transfer station */}
                     <Row top="teal" dot="xfer" bottom={xferT as any}>
-                      <div>
-                        <StopLine
-                          time={fmt(leg.arr)}
-                          delay={leg.arrDelay}
-                          name={leg.destName}
-                          platform={leg.arrPlat}
-                          muted
-                        />
+                      <StopLine
+                        time={fmt(leg.arr)}
+                        delay={leg.arrDelay}
+                        name={leg.destName}
+                        platform={leg.arrPlat}
+                        muted
+                      />
+                    </Row>
+
+                    {/* Transfer badge — line passthrough, no dot */}
+                    <div style={{ display: 'flex', alignItems: 'stretch' }}>
+                      <div style={{
+                        width: 20, display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', flexShrink: 0, marginRight: 16,
+                      }}>
+                        <Line type={xferT as any} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0, padding: '0 0 4px' }}>
                         <XferBadge
                           min={xfer}
                           tight={tight}
                           platform={nextLeg.depPlat}
                         />
                       </div>
-                    </Row>
+                    </div>
 
                     {/* Departure from transfer station */}
                     <Row
