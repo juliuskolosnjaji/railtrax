@@ -1113,7 +1113,7 @@ export default function SearchPage() {
 
     {detailJourney && (
       <JourneyDetailSheet
-        journey={convertToDetailJourney(detailJourney)}
+        journey={detailJourney}
         onClose={() => setDetailJourney(null)}
         onAddToTrip={() => {
           setDetailJourney(null)
