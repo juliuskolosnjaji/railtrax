@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Train, Bell, Shield } from 'lucide-react'
+import { Train, Bell, Shield, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const SETTINGS_TABS = [
-  { name: 'Verbindungen',      href: '/settings/connections',   icon: Train },
-  { name: 'Benachrichtigungen', href: '/settings/notifications', icon: Bell },
-  { name: 'Daten & Privatsphäre', href: '/settings/privacy',   icon: Shield },
+  { name: 'Profil',              href: '/settings/profile',       icon: User },
+  { name: 'Verbindungen',        href: '/settings/connections',   icon: Train },
+  { name: 'Benachrichtigungen',  href: '/settings/notifications', icon: Bell },
+  { name: 'Daten & Privatsphäre', href: '/settings/privacy',      icon: Shield },
 ]
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

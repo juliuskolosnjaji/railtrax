@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { X } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
 
 interface PublishTripModalProps {
   onClose: () => void
@@ -231,33 +232,11 @@ export function PublishTripModal({ onClose, tripId }: PublishTripModalProps) {
                 Jeder kann diese Reise sehen
               </div>
             </div>
-            <button
-              onClick={() => setIsPublic(!isPublic)}
-              style={{
-                width: 44,
-                height: 24,
-                borderRadius: 12,
-                border: 'none',
-                background: isPublic ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
-                cursor: 'pointer',
-                position: 'relative',
-                transition: 'background 0.2s',
-                flexShrink: 0,
-              }}
-            >
-              <div
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: '50%',
-                  background: '#fff',
-                  position: 'absolute',
-                  top: 3,
-                  left: isPublic ? 23 : 3,
-                  transition: 'left 0.2s',
-                }}
-              />
-            </button>
+            <Switch
+              id="public-publish"
+              checked={isPublic}
+              onCheckedChange={(checked) => setIsPublic(!!checked)}
+            />
           </div>
         </div>
 
