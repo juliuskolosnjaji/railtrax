@@ -22,6 +22,8 @@ export const createLegSchema = z.object({
   trainType: z.string().max(50).optional(),
   lineName: z.string().max(100).optional(),
   tripIdVendo: z.string().optional(),
+  platformPlanned: z.string().max(20).optional(),
+  platformActual: z.string().max(20).optional(),
   seat: z.string().max(100).optional(),
   notes: z.string().max(2000).optional(),
 })

@@ -138,6 +138,9 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
       defaultValues: { tripId },
     })
 
+  // ── Platform state for smart submit ────────────────────────────────────────
+  const [smartPlatform, setSmartPlatform] = useState('')
+
   // ── Reset when closing ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) {
@@ -149,6 +152,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
       setAlightIdx(0)
       setSmartSeat('')
       setSmartNotes('')
+      setSmartPlatform('')
       setApiError(null)
       setShowSuggestions(false)
       setTab(isEditing ? 'manual' : 'departures')
@@ -167,6 +171,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
       setValue('operator', (leg.operator as typeof OPERATORS[number]) ?? undefined)
       setValue('trainNumber', leg.trainNumber ?? '')
       setValue('lineName', leg.lineName ?? '')
+      setValue('platformPlanned', leg.platformPlanned ?? '')
       setValue('seat', leg.seat ?? '')
       setValue('notes', leg.notes ?? '')
     } else {
@@ -294,6 +299,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
         operator: op,
         trainNumber: activeJourney.lineName,
         tripIdVendo: activeJourney.tripId || undefined,
+        platformPlanned: board.platform || smartPlatform || undefined,
         seat: smartSeat || undefined,
         notes: smartNotes || undefined,
       })
@@ -627,14 +633,25 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
 
               {/* Seat + Notes */}
               <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label className="text-secondary-foreground">Seat</Label>
-                  <Input
-                    placeholder="Wagen 5, Platz 42"
-                    value={smartSeat}
-                    onChange={(e) => setSmartSeat(e.target.value)}
-                    className="bg-card border-border text-foreground placeholder:text-muted-foreground"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-secondary-foreground">Gleis</Label>
+                    <Input
+                      placeholder="1"
+                      value={smartPlatform}
+                      onChange={(e) => setSmartPlatform(e.target.value)}
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-secondary-foreground">Seat</Label>
+                    <Input
+                      placeholder="Wagen 5, Platz 42"
+                      value={smartSeat}
+                      onChange={(e) => setSmartSeat(e.target.value)}
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-secondary-foreground">Notes</Label>
@@ -772,6 +789,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                       </SelectContent>
                     </Select>
                   </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="trainNumber" className="text-secondary-foreground">Train number</Label>
                     <Input
@@ -781,6 +799,16 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                       {...register('trainNumber')}
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="platformPlanned" className="text-secondary-foreground">Gleis</Label>
+                    <Input
+                      id="platformPlanned"
+                      placeholder="1"
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
+                      {...register('platformPlanned')}
+                    />
+                  </div>
+                </div>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="seat" className="text-secondary-foreground">Seat</Label>

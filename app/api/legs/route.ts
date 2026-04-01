@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
         trainType: parsed.data.trainType,
         lineName: parsed.data.lineName,
         tripIdVendo: parsed.data.tripIdVendo,
+        platformPlanned: parsed.data.platformPlanned,
+        platformActual: parsed.data.platformActual,
         seat: parsed.data.seat,
         notes: parsed.data.notes,
         status: 'planned',
