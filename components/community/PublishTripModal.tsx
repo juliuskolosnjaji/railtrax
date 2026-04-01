@@ -242,6 +242,7 @@ export function PublishTripModal({ onClose, tripId }: PublishTripModalProps) {
                 cursor: 'pointer',
                 position: 'relative',
                 transition: 'background 0.2s',
+                flexShrink: 0,
               }}
             >
               <div

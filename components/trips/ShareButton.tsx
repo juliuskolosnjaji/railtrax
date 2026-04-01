@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Share2, X, Link2, Copy, Check, Mail } from 'lucide-react'
+import { Share2, X, Link2, Copy, Check, Mail, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Trip {
@@ -14,9 +14,10 @@ interface ShareButtonProps {
   trip: Trip
   onShare?: () => Promise<void>
   onUnshare?: () => Promise<void>
+  onPublish?: () => void
 }
 
-export function ShareButton({ trip, onShare, onUnshare }: ShareButtonProps) {
+export function ShareButton({ trip, onShare, onUnshare, onPublish }: ShareButtonProps) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [sharing, setSharing] = useState(false)
@@ -232,6 +233,23 @@ export function ShareButton({ trip, onShare, onUnshare }: ShareButtonProps) {
                        ) : null
                      ))}
                    </div>
+
+                  {/* Community publish */}
+                  <button
+                    onClick={() => {
+                      setOpen(false)
+                      onPublish?.()
+                    }}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
+                      background: 'none', border: '1px solid hsl(var(--border))',
+                      fontSize: 12, color: 'hsl(var(--foreground))',
+                    }}
+                  >
+                    <span>In Community teilen</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
 
                   {/* Disable sharing */}
                   <button
