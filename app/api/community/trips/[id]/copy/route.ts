@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
-import { searchJourneys } from '@/lib/vendo'
+import { searchJourneys, searchStations } from '@/lib/vendo'
+
+async function resolveIbnr(name: string): Promise<string | null> {
+  if (!name || name.length < 2) return null
+  try {
+    const stations = await searchStations(name)
+    if (stations?.length > 0) return stations[0].id
+  } catch {
+    // ignore
+  }
+  return null
+}
 
 export async function POST(
   req: NextRequest,
@@ -35,12 +46,21 @@ export async function POST(
     if (templateLegs.length === 0)
       return NextResponse.json({ error: 'no_legs' }, { status: 400 })
 
-    const originIbnr = templateLegs[0].originIbnr
-    const destIbnr = templateLegs[templateLegs.length - 1].destIbnr
+    let originIbnr = templateLegs[0].originIbnr
+    let destIbnr = templateLegs[templateLegs.length - 1].destIbnr
+
+    if (!originIbnr) {
+      const name = templateLegs[0].originName
+      originIbnr = await resolveIbnr(name)
+    }
+    if (!destIbnr) {
+      const name = templateLegs[templateLegs.length - 1].destName
+      destIbnr = await resolveIbnr(name)
+    }
 
     if (!originIbnr || !destIbnr)
       return NextResponse.json(
-        { error: `Fehlende Stations-IDs (origin: ${originIbnr}, dest: ${destIbnr})` },
+        { error: `Station nicht gefunden (origin: ${templateLegs[0].originName}, dest: ${templateLegs[templateLegs.length - 1].destName})` },
         { status: 400 },
       )
 

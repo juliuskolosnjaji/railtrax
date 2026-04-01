@@ -31,7 +31,12 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(ls \"c:\\\\Users\\\\juliu\\\\Documents\\\\railtrax\\\\app\\\\\\(app\\)\\\\trips\\\\[id]\")",
       "Bash(node_modules/.bin/tsc --noEmit)",
-      "Bash(ls -la \"c:/Users/juliu/Documents/railtrax/app/\\(app\\)/trips/\")"
+      "Bash(ls -la \"c:/Users/juliu/Documents/railtrax/app/\\(app\\)/trips/\")",
+      "Bash(~/.npm-global/bin/pm2 restart:*)",
+      "Bash(\\()",
+      "Bash(app)",
+      "Bash(\\))",
+      "Bash(/search/page.tsx components/trains/JourneyDetailSheet.tsx)"
     ]
   }
 }

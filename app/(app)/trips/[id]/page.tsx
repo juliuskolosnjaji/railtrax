@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Pencil } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, BookOpen, X, FileText, Image as ImageIcon, Pencil, Share2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LegCard } from '@/components/trips/LegCard'
 import { LegEditorSheet } from '@/components/trips/LegEditorSheet'
@@ -16,6 +16,7 @@ const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor')
 import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip } from '@/hooks/useTrips'
 import { useJournalEntries, type JournalEntry } from '@/hooks/useJournal'
 import { TripRouteCard } from '@/components/trips/TripRouteCard'
+import { PublishTripModal } from '@/components/community/PublishTripModal'
 
 
 const STATUS_BADGE_CLASS: Record<string, string> = {
@@ -53,6 +54,7 @@ export default function TripDetailPage() {
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null)
   const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
   const [expandedLeg, setExpandedLeg] = useState<string | null>(null)
+  const [publishOpen, setPublishOpen] = useState(false)
 
   const toggleLeg = (legId: string) =>
     setExpandedLeg(prev => prev === legId ? null : legId)
@@ -169,6 +171,14 @@ export default function TripDetailPage() {
                 Bild
               </button>
               <ShareButton trip={trip} onShare={handleShareTrip} onUnshare={handleUnshareTrip} />
+              <button
+                onClick={() => setPublishOpen(true)}
+                className="tap-small h-8 px-3 rounded-lg border flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+                style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                Teilen
+              </button>
               <button
                 onClick={handleDeleteTrip}
                 disabled={deleteTrip.isPending}
@@ -325,6 +335,18 @@ export default function TripDetailPage() {
           trainNumber={detailTrain.trainNumber}
           date={detailTrain.departure}
           onClose={() => setDetailTrain(null)}
+        />
+      )}
+      {publishOpen && (
+        <PublishTripModal
+          tripId={id}
+          onClose={() => setPublishOpen(false)}
+        />
+      )}
+      {publishOpen && (
+        <PublishTripModal
+          tripId={id}
+          onClose={() => setPublishOpen(false)}
         />
       )}
     </div>

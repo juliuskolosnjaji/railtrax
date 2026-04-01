@@ -7,11 +7,12 @@ import { X } from 'lucide-react'
 
 interface PublishTripModalProps {
   onClose: () => void
+  tripId?: string
 }
 
-export function PublishTripModal({ onClose }: PublishTripModalProps) {
+export function PublishTripModal({ onClose, tripId }: PublishTripModalProps) {
   const router = useRouter()
-  const [selectedTripId, setSelectedTripId] = useState('')
+  const [selectedTripId, setSelectedTripId] = useState(tripId ?? '')
   const [description, setDescription] = useState('')
   const [isPublic, setIsPublic] = useState(true)
   const [publishing, setPublishing] = useState(false)
