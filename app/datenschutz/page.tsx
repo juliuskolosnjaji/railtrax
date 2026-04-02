@@ -1,6 +1,6 @@
 export const metadata = { title: 'Datenschutzerklärung — Railtrax' }
 
-const LAST_UPDATED = '2026-03-18'
+const LAST_UPDATED = '2026-04-02'
 
 const S = {
   page: {
@@ -200,19 +200,7 @@ export default function DatenschutzPage() {
           </a>
         </p>
 
-        <h3 style={S.h3}>5.6 Lemon Squeezy (Zahlungsabwicklung, nur bei Abonnement)</h3>
-        <p style={S.p}>
-          Anbieter: Lemon Squeezy LLC. Zweck: Zahlungsabwicklung und Abonnementverwaltung.
-          Verarbeitete Daten: E-Mail-Adresse und Zahlungsdaten. Kreditkartendaten werden
-          ausschließlich von Lemon Squeezy verarbeitet und gelangen nicht in unsere Systeme.
-          Lemon Squeezy ist Merchant of Record und übernimmt die EU-Umsatzsteuerabführung.<br />
-          <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO.<br />
-          <a href="https://www.lemonsqueezy.com/privacy" target="_blank" rel="noopener noreferrer" style={S.a}>
-            https://www.lemonsqueezy.com/privacy
-          </a>
-        </p>
-
-        <h3 style={S.h3}>5.7 Resend (E-Mail-Versand)</h3>
+        <h3 style={S.h3}>5.6 Resend (E-Mail-Versand)</h3>
         <p style={S.p}>
           Anbieter: Resend Inc. Zweck: Versand von Transaktionsmails (Anmeldebestätigung,
           Passwort-Reset). Ihre E-Mail-Adresse wird für den Versand an Resend übermittelt.<br />

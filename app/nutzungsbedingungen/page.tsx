@@ -36,7 +36,7 @@ export default function NutzungsbedingungenPage() {
     <div style={S.page}>
       <div style={S.inner}>
         <h1 style={S.h1}>Nutzungsbedingungen (AGB)</h1>
-        <p style={S.meta}>Stand: März 2026</p>
+        <p style={S.meta}>Stand: April 2026</p>
 
         <h2 style={S.h2}>§ 1 Geltungsbereich</h2>
         <p style={S.p}>
@@ -51,17 +51,11 @@ export default function NutzungsbedingungenPage() {
 
         <h2 style={S.h2}>§ 2 Leistungsbeschreibung</h2>
         <p style={S.p}>
-          Railtrax bietet folgende Leistungen an:
+          Railtrax bietet folgende Funktionen: Planung und Dokumentation von Zugreisen,
+          Verbindungssuche, interaktive Kartenvisualisierung, Träwelling Check-in sowie
+          Baureihen-Info für ICE, TGV, Railjet und weitere. Der Dienst ist aktuell vollständig
+          kostenlos nutzbar.
         </p>
-        <ul style={S.ul}>
-          <li>
-            <strong>Free-Tarif:</strong> Bis zu 3 Reisen, Verbindungssuche, grundlegende
-            Kartenfunktionen.
-          </li>
-          <li>
-            <strong>Plus/Pro:</strong> Erweiterte Funktionen gemäß der aktuellen Preisseite.
-          </li>
-        </ul>
         <p style={S.p}>
           Verbindungsdaten (Abfahrtszeiten, Verspätungen, Gleisangaben) werden von der DB
           Navigator API und weiteren Quellen bezogen. Für die Richtigkeit dieser Daten übernehmen
@@ -80,59 +74,30 @@ export default function NutzungsbedingungenPage() {
             der Betreiber unverzüglich unter{' '}
             <a href={`mailto:${email}`} style={S.a}>{email}</a> zu informieren.
           </li>
-        </ul>
-
-        <div style={S.divider} />
-
-        <h2 style={S.h2}>§ 4 Abonnements und Zahlung</h2>
-        <ul style={S.ul}>
           <li>
-            Abonnements verlängern sich automatisch zum Ende der jeweiligen Abrechnungsperiode,
-            sofern Sie nicht zuvor kündigen.
-          </li>
-          <li>
-            Eine Kündigung ist jederzeit möglich und wirksam zum Ende der laufenden
-            Abrechnungsperiode. Die Kündigung erfolgt über die Einstellungen der App oder per
-            E-Mail.
-          </li>
-          <li>
-            Bereits gezahlte Beträge werden grundsätzlich nicht erstattet, sofern kein
-            gesetzlicher Widerrufsanspruch besteht (vgl. § 5).
-          </li>
-          <li>
-            Preisänderungen werden mindestens 30 Tage vor Wirksamwerden per E-Mail angekündigt.
+            Das Konto kann jederzeit über die Einstellungen oder per E-Mail an{' '}
+            <a href={`mailto:${email}`} style={S.a}>{email}</a> gelöscht werden.
           </li>
         </ul>
 
         <div style={S.divider} />
 
-        <h2 style={S.h2}>§ 5 Widerrufsrecht</h2>
+        <h2 style={S.h2}>§ 4 Widerruf und Kündigung</h2>
         <p style={S.p}>
-          Sie haben das Recht, binnen 14 Tagen ohne Angabe von Gründen einen Vertrag über den
-          Erwerb eines Abonnements zu widerrufen (§ 355 BGB). Die Widerrufsfrist beginnt mit dem
-          Tag des Vertragsschlusses.
-        </p>
-        <p style={S.p}>
-          Um das Widerrufsrecht auszuüben, teilen Sie uns Ihre Entscheidung, diesen Vertrag zu
-          widerrufen, durch eine eindeutige Erklärung per E-Mail an{' '}
-          <a href={`mailto:${email}`} style={S.a}>{email}</a> mit.
-        </p>
-        <p style={S.p}>
-          <strong>Erlöschen des Widerrufsrechts:</strong> Wenn Sie ausdrücklich zustimmen, dass
-          mit der Ausführung des Dienstes vor Ablauf der Widerrufsfrist begonnen wird, und Sie
-          zur Kenntnis nehmen, dass Ihr Widerrufsrecht mit vollständiger Vertragserfüllung
-          erlischt (§ 356 Abs. 5 BGB), entfällt das Widerrufsrecht nach vollständiger Erbringung
-          der Leistung.
+          Sie können Ihr Konto und somit sämtliche damit verbundenen Daten jederzeit über die
+          Einstellungen oder per E-Mail an{' '}
+          <a href={`mailto:${email}`} style={S.a}>{email}</a> löschen lassen. Nach Löschung
+          werden alle personenbezogenen Daten innerhalb von 30 Tagen vollständig entfernt.
         </p>
 
         <div style={S.divider} />
 
-        <h2 style={S.h2}>§ 6 Verbotene Nutzung</h2>
+        <h2 style={S.h2}>§ 5 Verbotene Nutzung</h2>
         <p style={S.p}>Folgende Nutzungen sind untersagt:</p>
         <ul style={S.ul}>
           <li>
             Automatisiertes Abfragen der DB Navigator API oder anderer Datenquellen über unsere
-            Plattform (außer mit explizit freigegebenem API-Key im Pro-Tarif).
+            Plattform.
           </li>
           <li>
             Verbreitung rechtswidriger, beleidigender oder die Rechte Dritter verletzender Inhalte
@@ -142,15 +107,11 @@ export default function NutzungsbedingungenPage() {
             Reverse Engineering, Dekompilierung oder sonstige Manipulation der App oder ihrer
             Bestandteile.
           </li>
-          <li>
-            Umgehung von Nutzungsbeschränkungen (z. B. Erstellung mehrerer Accounts zur Umgehung
-            des Free-Tarif-Limits).
-          </li>
         </ul>
 
         <div style={S.divider} />
 
-        <h2 style={S.h2}>§ 7 Haftungsbeschränkung</h2>
+        <h2 style={S.h2}>§ 6 Haftungsbeschränkung</h2>
         <p style={S.p}>
           Wir haften nicht für:
         </p>
@@ -168,26 +129,24 @@ export default function NutzungsbedingungenPage() {
           </li>
         </ul>
         <p style={S.p}>
-          Für kostenlose Leistungen ist die Haftung auf Vorsatz und grobe Fahrlässigkeit
-          beschränkt (§ 521 BGB analog). Für entgeltliche Leistungen gilt die gesetzliche Haftung,
-          begrenzt auf den vorhersehbaren vertragstypischen Schaden.
+          Die Haftung ist auf Vorsatz und grobe Fahrlässigkeit beschränkt (§ 521 BGB analog).
         </p>
 
         <div style={S.divider} />
 
-        <h2 style={S.h2}>§ 8 Änderungen der AGB</h2>
+        <h2 style={S.h2}>§ 7 Änderungen der AGB</h2>
         <p style={S.p}>
           Wesentliche Änderungen dieser Nutzungsbedingungen werden mindestens 30 Tage vor
-          Wirksamwerden per E-Mail angekündigt. Bei Widerspruch haben Sie das Recht zur
-          kostenlosen Kündigung Ihres Abonnements zum Zeitpunkt des Wirksamwerdens der Änderungen.
+          Wirksamwerden per E-Mail angekündigt. Bei Widerspruch haben Sie das Recht, der Geltung
+          der neuen Bedingungen zu widersprechen.
         </p>
 
         <div style={S.divider} />
 
-        <h2 style={S.h2}>§ 9 Anwendbares Recht und Gerichtsstand</h2>
+        <h2 style={S.h2}>§ 8 Anwendbares Recht und Gerichtsstand</h2>
         <p style={S.p}>
           Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
-          UN-Kaufrechts (CISG). Gerichtsstand für Streitigkeiten mit Unternehmern ist{' '}
+          UN-Kaufrechts (CISG). Gerichtsstelle für Streitigkeiten mit Unternehmern ist{' '}
           {city?.split(' ').slice(1).join(' ') || city}, soweit gesetzlich zulässig. Für
           Verbraucher gelten die gesetzlichen Gerichtsstände.
         </p>
