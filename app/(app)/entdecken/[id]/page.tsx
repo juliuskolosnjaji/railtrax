@@ -72,17 +72,10 @@ export default function CommunityTripDetailPage() {
     },
     onMutate: async (rating) => {
       await qc.cancelQueries({ queryKey: ['community-trip', id] })
-      const previous = qc.getQueryData(['community-trip', id]) as any
       qc.setQueryData(['community-trip', id], (old: any) => {
         if (!old) return old
         return { ...old, userRating: rating }
       })
-      return { previous }
-    },
-    onError: (_err, _vars, context: any) => {
-      if (context?.previous) {
-        qc.setQueryData(['community-trip', id], context.previous)
-      }
     },
   })
 
@@ -97,7 +90,6 @@ export default function CommunityTripDetailPage() {
     },
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: ['community-trip', id] })
-      const previous = qc.getQueryData(['community-trip', id]) as any
       qc.setQueryData(['community-trip', id], (old: any) => {
         if (!old) return old
         const wasLiked = old.userLiked ?? false
@@ -112,12 +104,6 @@ export default function CommunityTripDetailPage() {
           },
         }
       })
-      return { previous }
-    },
-    onError: (_err, _vars, context: any) => {
-      if (context?.previous) {
-        qc.setQueryData(['community-trip', id], context.previous)
-      }
     },
   })
 

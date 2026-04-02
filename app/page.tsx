@@ -49,7 +49,6 @@ export default function HomePage() {
           <nav className="hidden md:flex items-center gap-8 text-[14px] font-medium text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">Features</a>
             <a href="#züge" className="hover:text-foreground transition-colors">Züge</a>
-            <a href="#preise" className="hover:text-foreground transition-colors">Preise</a>
           </nav>
           <Link
             href="/signup"
@@ -64,17 +63,17 @@ export default function HomePage() {
       {/* ── Hero ── */}
       <section className="text-center px-5 py-24 md:py-[100px]">
         <div className="max-w-[680px] mx-auto hero-content">
-          <p className="text-primary text-[11px] font-semibold tracking-[0.15em] uppercase mb-6">
+          <p className="text-primary text-[11px] font-semibold tracking-[0.15em] uppercase mb-6 animate-fade-in">
             European Rail Planner
           </p>
-          <h1 className="text-4xl md:text-[56px] font-bold leading-[1.15] tracking-tight mb-4 md:mb-6">
+          <h1 className="text-4xl md:text-[56px] font-bold leading-[1.15] tracking-tight mb-4 md:mb-6 animate-fade-in-up">
             Deine Reise.<br />
             <span className="text-primary">Quer durch Europa.</span>
           </h1>
-          <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 md:mb-10 max-w-[500px] mx-auto">
+          <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 md:mb-10 max-w-[500px] mx-auto animate-fade-in-delay">
             Plane Zugreisen über alle Landesgrenzen hinweg. Visualisiere deine Route, dokumentiere Erlebnisse und check dich automatisch ein.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center animate-fade-in-delay">
             <Link
               href="/search"
               className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-md px-7 h-11 inline-flex items-center gap-2 transition-colors text-sm"
@@ -196,7 +195,7 @@ export default function HomePage() {
       </section>
 
       {/* ── CTA banner ── */}
-      <section id="preise" className="py-20 md:py-[80px] px-5">
+      <section className="py-20 md:py-[80px] px-5">
         <div className="max-w-[580px] mx-auto card rounded-xl p-8 md:p-12 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-3 tracking-tight">
             Bereit für deine nächste Reise?
@@ -230,6 +229,9 @@ export default function HomePage() {
             <Link href="/nutzungsbedingungen" className="text-muted-foreground text-sm hover:text-foreground transition-colors">
               AGB
             </Link>
+            <a href="mailto:legal@railtrax.eu" className="text-muted-foreground text-sm hover:text-foreground transition-colors">
+              Kontakt
+            </a>
           </div>
           <p className="text-muted-foreground text-sm m-0">
             © {new Date().getFullYear()} Railtrax

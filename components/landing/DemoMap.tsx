@@ -48,8 +48,8 @@ export default function DemoMap() {
             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
             paint={{
               'line-color': '#34d4b0',
-              'line-width': 10,
-              'line-opacity': 0.15,
+              'line-width': 12,
+              'line-opacity': 0.12,
             }}
           />
           {/* Main line */}

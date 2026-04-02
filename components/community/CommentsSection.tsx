@@ -62,7 +62,6 @@ export function CommentsSection({
       return res.json()
     },
     onMutate: async (commentId) => {
-      const previous = [...comments]
       setComments((prev) =>
         prev.map((c) => {
           if (c.id !== commentId) return c
@@ -80,12 +79,6 @@ export function CommentsSection({
           }
         }),
       )
-      return { previous }
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        setComments(context.previous)
-      }
     },
   })
 
