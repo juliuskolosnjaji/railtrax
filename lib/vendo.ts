@@ -117,35 +117,135 @@ export interface Journey {
   legs: JourneyLeg[]
 }
 
+interface VendoLocation {
+  id?: string
+  name?: string
+  type?: string
+  location?: {
+    latitude?: number
+    longitude?: number
+  }
+}
+
+interface VendoOperator {
+  name?: string
+}
+
+interface VendoLine {
+  name?: string
+  fahrtNr?: string
+  operator?: VendoOperator
+}
+
+interface VendoDepartureRecord {
+  tripId?: string
+  line?: VendoLine
+  direction?: string
+  plannedWhen?: string
+  when?: string
+  delay?: number
+  plannedPlatform?: string
+  platform?: string
+  cancelled?: boolean
+}
+
+interface VendoStopoverRecord {
+  stop?: VendoLocation
+  plannedArrival?: string
+  arrival?: string
+  actualArrival?: string
+  plannedDeparture?: string
+  departure?: string
+  actualDeparture?: string
+  departureDelay?: number
+  arrivalDelay?: number
+  platform?: string
+  plannedPlatform?: string
+  cancelled?: boolean
+}
+
+interface VendoTripRecord {
+  id?: string
+  line?: VendoLine
+  origin?: VendoLocation
+  stopovers?: VendoStopoverRecord[]
+  polyline?: {
+    features?: Array<{
+      geometry?: {
+        type?: string
+        coordinates?: [number, number]
+      }
+    }>
+  }
+}
+
+interface VendoJourneyLegRecord {
+  walking?: boolean
+  line?: VendoLine
+  origin?: VendoLocation
+  destination?: VendoLocation
+  plannedDeparture?: string
+  departure?: string
+  plannedArrival?: string
+  arrival?: string
+  departureDelay?: number
+  plannedDeparturePlatform?: string
+  departurePlatform?: string
+  tripId?: string
+  stopovers?: VendoStopoverRecord[]
+}
+
+interface VendoJourneyRecord {
+  legs?: VendoJourneyLegRecord[]
+}
+
+interface VendoClient {
+  locations: (query: string, options: Record<string, unknown>) => Promise<unknown>
+  departures: (ibnr: string, options: Record<string, unknown>) => Promise<{ departures?: VendoDepartureRecord[] }>
+  trip: (tripId: string, options: Record<string, unknown>) => Promise<{ trip?: VendoTripRecord | null }>
+  journeys: (
+    fromIbnr: string,
+    toIbnr: string,
+    options: Record<string, unknown>
+  ) => Promise<{ journeys?: VendoJourneyRecord[] }>
+}
+
+function hasTripId(record: VendoDepartureRecord): record is VendoDepartureRecord & { tripId: string } {
+  return typeof record.tripId === 'string' && record.tripId.length > 0
+}
+
+function toCoordinates(
+  feature: { geometry?: { type?: string; coordinates?: [number, number] } }
+): [number, number] | null {
+  if (feature.geometry?.type !== 'Point' || !feature.geometry.coordinates) return null
+  return feature.geometry.coordinates
+}
+
 // ─── Client singletons ────────────────────────────────────────────────────────
 // db-vendo-client is ESM-only — must be loaded via dynamic import so Next.js
 // doesn't try to bundle it through webpack (configured in serverExternalPackages).
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _client: any = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _scanClient: any = null
+let _client: VendoClient | null = null
+let _scanClient: VendoClient | null = null
 
 // Main client with withRetrying — used for all single-call operations.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getClient(): Promise<any> {
+async function getClient(): Promise<VendoClient> {
   if (!_client) {
     const { createClient } = await import('db-vendo-client')
     const { withRetrying } = await import('db-vendo-client/retry.js')
     const { profile: dbnavProfile } = await import('db-vendo-client/p/dbnav/index.js')
-    _client = createClient(withRetrying(dbnavProfile), 'railtrax/1.0 (contact@railtrax.eu)')
+    _client = createClient(withRetrying(dbnavProfile), 'railtrax/1.0 (contact@railtrax.eu)') as VendoClient
   }
   return _client
 }
 
 // Scan client without retrying — used for hub-scanning in getJourneyByTrainNumber.
 // The retry wrapper stalls 5 s on every error; for board scans we prefer fast fail.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getScanClient(): Promise<any> {
+async function getScanClient(): Promise<VendoClient> {
   if (!_scanClient) {
     const { createClient } = await import('db-vendo-client')
     const { profile: dbnavProfile } = await import('db-vendo-client/p/dbnav/index.js')
-    _scanClient = createClient(dbnavProfile, 'railtrax/1.0 (contact@railtrax.eu)')
+    _scanClient = createClient(dbnavProfile, 'railtrax/1.0 (contact@railtrax.eu)') as VendoClient
   }
   return _scanClient
 }
@@ -194,14 +294,11 @@ export async function searchStations(query: string): Promise<Station[]> {
       addresses: false,
       poi: false,
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (locations as any[])
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter((l: any) => l.type === 'stop' || l.type === 'station')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((l: any): Station => ({
-        id: l.id,
-        name: l.name,
+    return (locations as VendoLocation[])
+      .filter((l) => l.type === 'stop' || l.type === 'station')
+      .map((l): Station => ({
+        id: l.id ?? '',
+        name: l.name ?? '',
         lat: l.location?.latitude ?? null,
         lon: l.location?.longitude ?? null,
       }))
@@ -230,12 +327,9 @@ export async function getDepartures(
       results: 50,
       products: TRAIN_PRODUCTS,
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (departures as any[])
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter((d: any) => d.tripId)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((d: any): Departure => ({
+    return (departures ?? [])
+      .filter(hasTripId)
+      .map((d): Departure => ({
         tripId: d.tripId,
         trainNumber: d.line?.name ?? '',
         lineName: d.line?.name ?? '',
@@ -266,12 +360,9 @@ export async function getDeparturesFresh(
     results: 60,
     products: TRAIN_PRODUCTS,
   })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (departures as any[])
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .filter((d: any) => d.tripId)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((d: any): Departure => ({
+  return (departures ?? [])
+    .filter(hasTripId)
+    .map((d): Departure => ({
       tripId: d.tripId,
       trainNumber: d.line?.name ?? '',
       lineName: d.line?.name ?? '',
@@ -298,8 +389,7 @@ export async function getTripById(tripId: string): Promise<VendoTrip | null> {
     const { trip } = await client.trip(tripId, { stopovers: true, polyline: true })
     if (!trip) return null
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const stops: VendoStop[] = (trip.stopovers as any[] ?? []).map((s: any): VendoStop => ({
+    const stops: VendoStop[] = (trip.stopovers ?? []).map((s): VendoStop => ({
       name: s.stop?.name ?? '',
       ibnr: s.stop?.id ?? '',
       plannedArr: s.plannedArrival ?? null,
@@ -310,18 +400,17 @@ export async function getTripById(tripId: string): Promise<VendoTrip | null> {
       platform: s.platform ?? s.plannedPlatform ?? null,
     }))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const features: any[] = trip?.polyline?.features ?? []
+    const features = trip?.polyline?.features ?? []
     let polyline: VendoTrip['polyline'] = null
     if (features.length) {
       const coords: [number, number][] = features
-        .filter((f: { geometry?: { type?: string } }) => f.geometry?.type === 'Point')
-        .map((f: { geometry: { coordinates: [number, number] } }) => f.geometry.coordinates)
+        .map(toCoordinates)
+        .filter((coords): coords is [number, number] => coords !== null)
       if (coords.length >= 2) polyline = { type: 'LineString', coordinates: coords }
     }
 
     return {
-      tripId: trip.id,
+      tripId: trip.id ?? tripId,
       lineName: trip.line?.name ?? '',
       operator: trip.line?.operator?.name ?? deriveOperatorFromIbnr(trip.origin?.id ?? null),
       stops,
@@ -368,23 +457,17 @@ export async function searchJourneys(
       ...(maxTransfers !== undefined && { transfers: maxTransfers }),
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let journeys = (result.journeys as any[])
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter((j: any) => !j.legs?.every((l: any) => l.walking))
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((j: any): Journey => ({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        legs: (j.legs as any[])
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .filter((l: any) => l.line) // skip walking legs
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .map((l: any): JourneyLeg => {
+    let journeys = (result.journeys ?? [])
+      .filter((j) => !j.legs?.every((l) => l.walking))
+      .map((j): Journey => ({
+        legs: (j.legs ?? [])
+          .filter((l) => l.line) // skip walking legs
+          .map((l): JourneyLeg => {
             const originId = l.origin?.id
             const destId = l.destination?.id
-            const midStops: Stop[] = (l.stopovers as any[] ?? [])
-              .filter((s: any) => s.stop?.id !== originId && s.stop?.id !== destId)
-              .map((s: any): Stop => ({
+            const midStops: Stop[] = (l.stopovers ?? [])
+              .filter((s) => s.stop?.id !== originId && s.stop?.id !== destId)
+              .map((s): Stop => ({
                 name: s.stop?.name ?? '',
                 ibnr: s.stop?.id ?? '',
                 plannedArrival: s.plannedArrival ?? null,
@@ -448,8 +531,7 @@ export async function fetchPolyline(
       products: TRAIN_PRODUCTS,
     })
     const normalised = trainNumber.replace(/\s+/g, '').toLowerCase()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const match = (departures as any[]).find((dep: any) => {
+    const match = (departures ?? []).find((dep) => {
       if (!dep.tripId || dep.cancelled) return false
       const lineName = (dep.line?.name ?? '').replace(/\s+/g, '').toLowerCase()
       const fahrtNr = (dep.line?.fahrtNr ?? '').replace(/\s+/g, '').toLowerCase()
@@ -496,8 +578,7 @@ export async function getJourneyByTrainNumber(
           results: 50,
           products: LONG_DISTANCE_PRODUCTS,
         })
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const match = (departures as any[]).find((dep: any) => {
+        const match = (departures ?? []).find((dep) => {
           if (!dep.tripId || dep.cancelled) return false
           return (dep.line?.name ?? '').replace(/\s+/g, '').toLowerCase() === normalised
         })

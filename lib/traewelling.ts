@@ -1,5 +1,79 @@
 import type { Leg } from '@prisma/client'
 
+interface TraewellingIdentifier {
+  type?: string
+  identifier?: string
+}
+
+interface TraewellingStation {
+  id?: number | string
+  name?: string
+  ibnr?: string
+  identifiers?: TraewellingIdentifier[]
+}
+
+interface TraewellingLine {
+  name?: string
+  fahrtNr?: string
+}
+
+interface TraewellingDeparture {
+  tripId?: string
+  line?: TraewellingLine
+}
+
+interface TraewellingStopover {
+  id?: number | string
+  name?: string
+  departurePlanned?: string
+  departure?: string
+  arrivalPlanned?: string
+  arrival?: string
+}
+
+interface TraewellingTripDetail {
+  stopovers?: TraewellingStopover[]
+  stops?: TraewellingStopover[]
+}
+
+interface TraewellingCheckinSuccessData {
+  id?: string | number
+  status?: {
+    id?: string | number
+  }
+}
+
+interface TraewellingCheckinResponse {
+  data?: {
+    id?: string | number
+    status?: {
+      id?: string | number
+    }
+  } | TraewellingTripDetail[] | TraewellingStation[] | TraewellingDeparture[] | TraewellingStation | TraewellingTripDetail | TraewellingCheckinSuccessData
+  id?: string | number
+  message?: string
+  error?: string
+  errors?: unknown
+}
+
+function toPositiveInteger(value: number | string | undefined): number | null {
+  if (typeof value === 'number') return Number.isInteger(value) && value > 0 ? value : null
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10)
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+  }
+  return null
+}
+
+function asDataArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[]
+  if (value && typeof value === 'object' && 'data' in value) {
+    const data = (value as { data?: unknown }).data
+    if (Array.isArray(data)) return data as T[]
+  }
+  return []
+}
+
 export class TraewellingError extends Error {
   constructor(
     public code: 'train_not_found' | 'already_checked_in' | 'auth_failed' | 'api_error',
@@ -52,22 +126,22 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
         { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
       )
       if (autoRes.ok) {
-        const autoData = await autoRes.json()
-        const stations: any[] = autoData.data ?? autoData ?? []
+        const autoData: unknown = await autoRes.json()
+        const stations = asDataArray<TraewellingStation>(autoData)
         console.log('Autocomplete results:',
-          stations.map((s: any) => `${s.name} (${s.id})`))
-        const match = stations.find((s: any) =>
-          s.identifiers?.some((id: any) =>
+          stations.map((s) => `${s.name} (${s.id})`))
+        const match = stations.find((s) =>
+          s.identifiers?.some((id) =>
             id.type === 'de_db_ibnr' && id.identifier === leg.originIbnr
           )
         )
         if (match) {
-          stationId = match.id
-          stationName = match.name
+          stationId = toPositiveInteger(match.id)
+          stationName = match.name ?? stationName
           console.log('Autocomplete IBNR match:', match.name, match.id)
         } else if (stations.length > 0) {
-          stationId = stations[0].id
-          stationName = stations[0].name
+          stationId = toPositiveInteger(stations[0].id)
+          stationName = stations[0].name ?? stationName
           console.log('Autocomplete first result:', stations[0].name)
         }
       }
@@ -86,22 +160,22 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
       console.error('Station search failed:', nameRes.status, txt)
       throw new TraewellingError('api_error', `Bahnhofssuche fehlgeschlagen: ${nameRes.status}`)
     }
-    const nameData = await nameRes.json()
-    const stations: any[] = nameData.data ?? []
+    const nameData: unknown = await nameRes.json()
+    const stations = asDataArray<TraewellingStation>(nameData)
     console.log('Name search results:',
-      stations.map((s: any) => `${s.name} (id:${s.id} ibnr:${s.ibnr})`).slice(0, 5))
+      stations.map((s) => `${s.name} (id:${s.id} ibnr:${s.ibnr})`).slice(0, 5))
     if (stations.length === 0) {
       throw new TraewellingError(
         'train_not_found',
         `Bahnhof "${leg.originName}" nicht in Träwelling gefunden.`
       )
     }
-    const exact = stations.find((s: any) =>
-      s.name.toLowerCase() === leg.originName.toLowerCase()
+    const exact = stations.find((s) =>
+      s.name?.toLowerCase() === leg.originName.toLowerCase()
     )
     const station = exact ?? stations[0]
-    stationId = station.id
-    stationName = station.name
+    stationId = toPositiveInteger(station.id)
+    stationName = station.name ?? stationName
     console.log('Using station from name search:', stationName, stationId)
   }
 
@@ -136,11 +210,11 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
     )
   }
 
-  const depData = await depRes.json()
-  const departures: any[] = depData.data ?? []
+  const depData: unknown = await depRes.json()
+  const departures = asDataArray<TraewellingDeparture>(depData)
   console.log('Got', departures.length, 'departures')
   console.log('Departure trains:',
-    departures.map((d: any) =>
+    departures.map((d) =>
       `${d.line?.name} fahrtNr:${d.line?.fahrtNr} tripId:${d.tripId}`
     ).slice(0, 10)
   )
@@ -152,7 +226,7 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
 
   console.log('Looking for train:', { trainNumber: leg.trainNumber, lineName: leg.lineName })
 
-  const matchingDep = departures.find((dep: any) => {
+  const matchingDep = departures.find((dep) => {
     const depName    = (dep.line?.name ?? '').trim()
     const depFahrtNr = (dep.line?.fahrtNr ?? '').trim()
     const depNorm    = normalize(depName)
@@ -198,42 +272,53 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
 
   if (!matchingDep) {
     console.error('No matching train found. Available:',
-      departures.map((d: any) => `${d.line?.name} (${d.line?.fahrtNr})`).slice(0, 15)
+      departures.map((d) => `${d.line?.name} (${d.line?.fahrtNr})`).slice(0, 15)
     )
     throw new TraewellingError(
       'train_not_found',
       `Zug "${leg.trainNumber ?? leg.lineName}" nicht im Träwelling-Abfahrtsboard gefunden. ` +
-      `Verfügbare Züge: ${departures.slice(0, 5).map((d: any) => d.line?.name).join(', ')}`
+      `Verfügbare Züge: ${departures.slice(0, 5).map((d) => d.line?.name).join(', ')}`
+    )
+  }
+
+  const tripIdForCheckin = matchingDep.tripId
+  const matchingLineName = matchingDep.line?.name ?? leg.lineName ?? leg.trainNumber ?? ''
+  if (!tripIdForCheckin || !matchingLineName) {
+    throw new TraewellingError(
+      'train_not_found',
+      'Zugdaten unvollständig. Träwelling-Check-in konnte nicht vorbereitet werden.'
     )
   }
 
   // ── STEP 4 + 5: Fetch trip stopovers to get correct station IDs ─
 
-  let tripIdForCheckin: string = matchingDep.tripId
   let correctStartId: number = stationId ?? 0
   let correctDestId: number | null = null
 
   try {
-    const tripDetailRes = await fetch(
+      const tripDetailRes = await fetch(
       `https://traewelling.de/api/v1/trains/trip?` +
-      `hafasTripId=${encodeURIComponent(matchingDep.tripId)}` +
-      `&lineName=${encodeURIComponent(matchingDep.line.name)}` +
+      `hafasTripId=${encodeURIComponent(tripIdForCheckin)}` +
+      `&lineName=${encodeURIComponent(matchingLineName)}` +
       `&start=${stationId}`,
       { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
     )
 
     if (tripDetailRes.ok) {
-      const tripDetail = await tripDetailRes.json()
-      const trip = Array.isArray(tripDetail.data) ? tripDetail.data[0] : tripDetail.data
+      const tripDetail: TraewellingCheckinResponse = await tripDetailRes.json()
+      const tripData = tripDetail.data
+      const trip = Array.isArray(tripData) ? tripData[0] : tripData
 
       console.log('Full trip response keys:', Object.keys(tripDetail?.data ?? tripDetail ?? {}))
       // tripIdForCheckin stays as matchingDep.tripId (HAFAS trip ID or MOTIS UUID) —
       // trip.dataSource is the MotisSourceLicense attribution, not the trip identifier.
       console.log('Using tripId from departures board:', tripIdForCheckin)
 
-      const stopovers: any[] = trip?.stopovers ?? trip?.stops ?? []
+      const stopovers = (trip as TraewellingTripDetail | undefined)?.stopovers
+        ?? (trip as TraewellingTripDetail | undefined)?.stops
+        ?? []
       console.log('Trip stopovers count:', stopovers.length)
-      console.log('Stopovers:', stopovers.map((s: any) =>
+      console.log('Stopovers:', stopovers.map((s) =>
         `${s.name} (id:${s.id}) dep:${s.departurePlanned}`
       ).slice(0, 15))
 
@@ -242,49 +327,49 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
         const legArrTime = new Date(leg.plannedArrival).getTime()
 
         // Find start stopover by departure time (within 5 min)
-        const startStopover = stopovers.find((s: any) => {
+        const startStopover = stopovers.find((s) => {
           const dep = s.departurePlanned ?? s.departure
           if (!dep) return false
           return Math.abs(new Date(dep).getTime() - legDepTime) < 5 * 60 * 1000
         })
-        if (startStopover?.id) {
-          correctStartId = typeof startStopover.id === 'string'
-            ? parseInt(startStopover.id) : startStopover.id
-          console.log('Start from stopovers:', startStopover.name, correctStartId)
+        const parsedStartId = toPositiveInteger(startStopover?.id)
+        if (parsedStartId) {
+          correctStartId = parsedStartId
+          console.log('Start from stopovers:', startStopover?.name, correctStartId)
         }
 
         // Find destination stopover by arrival time (within 5 min)
-        const destStopover = stopovers.find((s: any) => {
+        const destStopover = stopovers.find((s) => {
           const arr = s.arrivalPlanned ?? s.arrival
           if (!arr) return false
           return Math.abs(new Date(arr).getTime() - legArrTime) < 5 * 60 * 1000
         })
-        if (destStopover?.id) {
-          correctDestId = typeof destStopover.id === 'string'
-            ? parseInt(destStopover.id) : destStopover.id
-          console.log('Dest from stopovers:', destStopover.name, correctDestId)
+        const parsedDestStopId = toPositiveInteger(destStopover?.id)
+        if (parsedDestStopId) {
+          correctDestId = parsedDestStopId
+          console.log('Dest from stopovers:', destStopover?.name, correctDestId)
         }
 
         // Fallback: match destination by name
         if (!correctDestId) {
-          const destByName = stopovers.find((s: any) =>
+          const destByName = stopovers.find((s) =>
             (s.name ?? '').toLowerCase().includes(
               leg.destName.toLowerCase().slice(0, 5)
             )
           )
-          if (destByName?.id) {
-            correctDestId = typeof destByName.id === 'string'
-              ? parseInt(destByName.id) : destByName.id
-            console.log('Dest by name fallback:', destByName.name, correctDestId)
+          const parsedDestNameId = toPositiveInteger(destByName?.id)
+          if (parsedDestNameId) {
+            correctDestId = parsedDestNameId
+            console.log('Dest by name fallback:', destByName?.name, correctDestId)
           }
         }
 
         // Hard fallback: use last stopover
         if (correctDestId === null) {
           const last = stopovers[stopovers.length - 1]
-          if (last?.id) {
-            correctDestId = typeof last.id === 'string'
-              ? parseInt(last.id) : last.id
+          const parsedLastId = toPositiveInteger(last?.id)
+          if (parsedLastId) {
+            correctDestId = parsedLastId
             console.log('Dest fallback to last stopover:', last.name, correctDestId)
           }
         }
@@ -317,7 +402,7 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
 
   const payload: Record<string, unknown> = {
     tripId:      String(tripIdForCheckin),
-    lineName:    matchingDep.line.name,
+    lineName:    matchingLineName,
     start:       correctStartId,
     destination: correctDestId,
     departure:   new Date(leg.plannedDeparture).toISOString(),
@@ -342,9 +427,9 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
   const rawText = await checkinRes.text()
   console.log(`Träwelling checkin response (${checkinRes.status}):`, rawText)
 
-  let checkinData: any
+  let checkinData: TraewellingCheckinResponse
   try {
-    checkinData = JSON.parse(rawText)
+    checkinData = JSON.parse(rawText) as TraewellingCheckinResponse
   } catch {
     throw new TraewellingError(
       'api_error',
@@ -398,8 +483,8 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
   }
 
   const statusId =
-    checkinData?.data?.status?.id ??
-    checkinData?.data?.id ??
+    (!Array.isArray(checkinData.data) && typeof checkinData.data === 'object' ? (checkinData.data as TraewellingCheckinSuccessData).status?.id : undefined) ??
+    (!Array.isArray(checkinData.data) && typeof checkinData.data === 'object' ? (checkinData.data as TraewellingCheckinSuccessData).id : undefined) ??
     checkinData?.id
   if (!statusId) {
     console.error('No statusId in response:', checkinData)

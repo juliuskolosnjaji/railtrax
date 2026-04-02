@@ -4,22 +4,44 @@ import { prisma } from '@/lib/prisma'
 import { updateLegSchema } from '@/lib/validators/leg'
 
 type Params = { params: Promise<{ id: string }> }
+type RouteUser = { id: string }
+
+type LegDelegate = {
+  findFirst: (args: Record<string, unknown>) => Promise<unknown>
+  update: (args: Record<string, unknown>) => Promise<unknown>
+  delete: (args: Record<string, unknown>) => Promise<unknown>
+}
+
+export interface LegRouteDeps {
+  getUser: () => Promise<RouteUser | null>
+  leg: LegDelegate
+}
+
+function createRouteDeps(): LegRouteDeps {
+  return {
+    async getUser() {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      return user ? { id: user.id } : null
+    },
+    leg: prisma().leg as unknown as LegDelegate,
+  }
+}
 
 // Verify the leg belongs to the authenticated user via its trip
-async function getLegForUser(legId: string, userId: string) {
-  return prisma().leg.findFirst({
+async function getLegForUser(legId: string, userId: string, deps: LegRouteDeps) {
+  return deps.leg.findFirst({
     where: { id: legId, trip: { userId } },
   })
 }
 
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function handleGetLeg(_req: NextRequest, { params }: Params, deps: LegRouteDeps = createRouteDeps()) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await deps.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const leg = await getLegForUser(id, user.id)
+    const leg = await getLegForUser(id, user.id, deps)
     if (!leg) return NextResponse.json({ error: 'not_found' }, { status: 404 })
     return NextResponse.json({ data: leg })
   } catch {
@@ -27,10 +49,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
   }
 }
 
-export async function PUT(req: NextRequest, { params }: Params) {
+export async function handleUpdateLeg(req: NextRequest, { params }: Params, deps: LegRouteDeps = createRouteDeps()) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await deps.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   const body = await req.json()
@@ -43,19 +64,19 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   try {
-    const existing = await getLegForUser(id, user.id)
+    const existing = await getLegForUser(id, user.id, deps)
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
     // If only updating status, do a minimal update
     if (Object.keys(parsed.data).length === 1 && parsed.data.status !== undefined) {
-      const leg = await prisma().leg.update({
+      const leg = await deps.leg.update({
         where: { id },
         data: { status: parsed.data.status },
       })
       return NextResponse.json({ data: leg })
     }
 
-    const leg = await prisma().leg.update({
+    const leg = await deps.leg.update({
       where: { id },
       data: {
         ...(parsed.data.originName !== undefined && { originName: parsed.data.originName }),
@@ -82,19 +103,30 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function handleDeleteLeg(_req: NextRequest, { params }: Params, deps: LegRouteDeps = createRouteDeps()) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await deps.getUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
-    const existing = await getLegForUser(id, user.id)
+    const existing = await getLegForUser(id, user.id, deps)
     if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
-    await prisma().leg.delete({ where: { id } })
+    await deps.leg.delete({ where: { id } })
     return NextResponse.json({ data: { id } })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
+}
+
+export async function GET(req: NextRequest, ctx: Params) {
+  return handleGetLeg(req, ctx)
+}
+
+export async function PUT(req: NextRequest, ctx: Params) {
+  return handleUpdateLeg(req, ctx)
+}
+
+export async function DELETE(req: NextRequest, ctx: Params) {
+  return handleDeleteLeg(req, ctx)
 }

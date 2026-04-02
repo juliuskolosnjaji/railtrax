@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { Search, ArrowLeftRight, Calendar, Clock, ChevronDown } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { getWagenreihungUrl } from '@/lib/wagenreihung'
 import { JourneyDetailSheet } from '@/components/trains/JourneyDetailSheet'
 import { TrainDetailSheet } from '@/components/trains/TrainDetailSheet'
+import { AddToTripSheet } from '@/components/search/AddToTripSheet'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,30 +42,6 @@ interface Journey {
   totalDuration: number   // computed client-side (minutes)
   changes: number         // computed client-side
   isBest?: boolean
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function convertToDetailJourney(journey: Journey): any {
-  return {
-    legs: journey.legs.map(leg => ({
-      origin: { name: leg.origin },
-      destination: { name: leg.destination },
-      line: {
-        name: leg.trainNumber,
-        operator: leg.operator ? { name: leg.operator } : undefined
-      },
-      plannedDeparture: leg.departure,
-      plannedArrival: leg.arrival,
-      plannedDeparturePlatform: leg.platform,
-      plannedArrivalPlatform: leg.platform,
-      departurePlatform: leg.platform,
-      arrivalPlatform: leg.platform,
-      stopovers: (leg as any).stopovers ?? [],
-    })),
-    totalDuration: journey.totalDuration,
-    changes: journey.changes
-  }
 }
 
 function formatTime(iso: string | null | undefined): string {
@@ -101,12 +78,6 @@ function resolveOperator(leg: JourneyLeg): string {
   if (line.startsWith('TGV') || line.startsWith('OUIGO')) return 'SNCF'
   if (line.startsWith('FR') || line.startsWith('FA')) return 'Trenitalia'
   return ''
-}
-
-const VALID_OPERATORS = new Set(['DB', 'SBB', 'ÖBB', 'SNCF', 'Eurostar', 'NS', 'Renfe'])
-function toOperatorEnum(op: string): string {
-  if (VALID_OPERATORS.has(op)) return op
-  return 'other'
 }
 
 // ─── StationInput ─────────────────────────────────────────────────────────────
@@ -376,79 +347,6 @@ function RouteStrip({ legs, onTrainClick }: { legs: JourneyLeg[]; onTrainClick?:
   )
 }
 
-// ─── TripPickerModal ──────────────────────────────────────────────────────────
-
-function TripPickerModal({
-  onSelect, onClose,
-}: {
-  onSelect: (tripId: string) => void
-  onClose: () => void
-}) {
-  const router = useRouter()
-  const { data: trips } = useQuery({
-    queryKey: ['trips'],
-    queryFn: () => fetch('/api/trips').then(r => r.json()).then(d => d.data),
-  })
-
-  return (
-    <div
-      onClick={e => { e.stopPropagation(); onClose() }}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))',
-          borderRadius: 12, padding: 20, width: 320,
-          maxHeight: '80vh', overflowY: 'auto',
-        }}
-      >
-        <div style={{ fontSize: 15, fontWeight: 500, color: 'hsl(var(--foreground))', marginBottom: 16 }}>
-          Zu welcher Reise hinzufügen?
-        </div>
-
-        <button
-          onClick={() => { router.push('/dashboard?new=1'); onClose() }}
-          style={{
-            width: '100%', padding: '10px 14px', marginBottom: 8,
-            background: 'hsl(var(--secondary))', border: '1px dashed hsl(var(--border))',
-            borderRadius: 8, color: 'hsl(var(--muted-foreground))', fontSize: 13,
-            cursor: 'pointer', textAlign: 'left',
-          }}
-        >
-          + Neue Reise erstellen
-        </button>
-
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {trips?.map((trip: any) => (
-          <button
-            key={trip.id}
-            onClick={() => onSelect(trip.id)}
-            style={{
-              width: '100%', padding: '10px 14px', marginBottom: 6,
-              background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))',
-              borderRadius: 8, color: 'hsl(var(--foreground))', fontSize: 13,
-              cursor: 'pointer', textAlign: 'left',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.borderColor = 'hsl(var(--muted-foreground))')}
-            onMouseLeave={e => (e.currentTarget.style.borderColor = 'hsl(var(--border))')}
-          >
-            <span>{trip.title}</span>
-            <span style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))' }}>
-              {trip._count?.legs ?? trip.legs?.length ?? 0} Abschnitte
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ─── JourneyCard ──────────────────────────────────────────────────────────────
 
 function JourneyCard({
@@ -600,42 +498,6 @@ export default function SearchPage() {
   }, [])
   const [detailJourney, setDetailJourney] = useState<Journey | null>(null)
   const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
-
-  const addLegsMutation = useMutation({
-    mutationFn: async ({ journey, tripId }: { journey: Journey; tripId: string }) => {
-      for (const leg of journey.legs) {
-        const op = resolveOperator(leg)
-        const res = await fetch('/api/legs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tripId,
-            originName: leg.origin,
-            originIbnr: leg.originIbnr ?? undefined,
-            originLat: leg.originLat ?? undefined,
-            originLon: leg.originLon ?? undefined,
-            plannedDeparture: leg.departure,
-            destName: leg.destination,
-            destIbnr: leg.destinationIbnr ?? undefined,
-            destLat: leg.destinationLat ?? undefined,
-            destLon: leg.destinationLon ?? undefined,
-            plannedArrival: leg.arrival,
-            operator: op ? toOperatorEnum(op) : undefined,
-            trainNumber: leg.trainNumber || undefined,
-            lineName: leg.trainNumber || undefined,
-          }),
-        })
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}))
-          throw new Error(err?.error ?? `Failed to add leg (${res.status})`)
-        }
-      }
-    },
-    onSuccess: (_, { tripId }) => {
-      setPickerJourney(null)
-      router.push(`/trips/${tripId}`)
-    },
-  })
 
   const [from, setFrom] = useState<Station | null>(null)
   const [to, setTo] = useState<Station | null>(null)
@@ -1163,8 +1025,8 @@ export default function SearchPage() {
     </div>
 
     {pickerJourney && (
-      <TripPickerModal
-        onSelect={tripId => addLegsMutation.mutate({ journey: pickerJourney, tripId })}
+      <AddToTripSheet
+        journey={pickerJourney}
         onClose={() => setPickerJourney(null)}
       />
     )}
