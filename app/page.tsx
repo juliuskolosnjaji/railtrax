@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Clock, Map, CheckCircle, Train, Search, CalendarDays, Navigation } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import DemoMap from '@/components/landing/DemoMap'
+import { MobileNav } from '@/components/landing/MobileNav'
 import { prisma } from '@/lib/prisma'
 
 export const revalidate = 3600 // rebuild stats at most once per hour
@@ -97,7 +98,7 @@ export default async function HomePage() {
     <div className="min-h-screen bg-background text-foreground">
 
       {/* ── Nav ── */}
-      <header className="border-b border-border">
+      <header className="border-b border-border relative">
         <div className="max-w-[1100px] mx-auto px-5 h-16 flex items-center justify-between">
           <Logo size="md" />
           <nav className="hidden md:flex items-center gap-8 text-[14px] font-medium text-muted-foreground">
@@ -114,11 +115,11 @@ export default async function HomePage() {
             </Link>
             <Link
               href="/signup"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium rounded-md px-5 h-10 inline-flex items-center transition-colors"
+              className="hidden md:inline-flex bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium rounded-md px-5 h-10 items-center transition-colors"
             >
-              <span className="hidden sm:inline">Kostenlos starten</span>
-              <span className="sm:hidden">Starten</span>
+              Kostenlos starten
             </Link>
+            <MobileNav />
           </div>
         </div>
       </header>
