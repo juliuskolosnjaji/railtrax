@@ -15,15 +15,27 @@ const TripMapCard = dynamic(
   { ssr: false, loading: () => <div style={{ height: 340, background: 'hsl(var(--secondary))' }} /> },
 )
 
-function ShareButton() {
+function ShareButton({ title, text }: { title?: string; text?: string }) {
   const [copied, setCopied] = useState(false)
+
+  async function handleShare() {
+    const url = window.location.href
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: title ?? 'Reise auf Railtrax', text, url })
+        return
+      } catch {
+        // user cancelled or API unsupported — fall through to clipboard
+      }
+    }
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <button
-      onClick={() => {
-        navigator.clipboard.writeText(window.location.href)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      }}
+      onClick={handleShare}
       style={{
         height: 40,
         padding: '0 16px',
@@ -33,9 +45,22 @@ function ShareButton() {
         fontSize: 13,
         color: copied ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
         cursor: 'pointer',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
       }}
     >
-      {copied ? '✓ Kopiert' : 'Teilen'}
+      {copied ? (
+        '✓ Kopiert'
+      ) : (
+        <>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Teilen
+        </>
+      )}
     </button>
   )
 }
@@ -417,7 +442,10 @@ export default function CommunityTripDetailPage() {
         </button>
 
         {/* Share */}
-        <ShareButton />
+        <ShareButton
+          title={firstLeg && lastLeg ? `${firstLeg.originName} → ${lastLeg.destName}` : undefined}
+          text={`Schau dir diese Reise auf Railtrax an!`}
+        />
 
         {/* Star rating */}
         <div
