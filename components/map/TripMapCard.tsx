@@ -233,8 +233,14 @@ export function TripMapCard({ legs, height = 280, containerId }: { legs: Leg[]; 
   const mapRef = useRef<maplibregl.Map | null>(null)
   const isLoadedRef = useRef(false)
 
+  const setMapReady = (ready: boolean) => {
+    if (!containerRef.current) return
+    containerRef.current.dataset.mapReady = ready ? 'true' : 'false'
+  }
+
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
+    setMapReady(false)
 
     const map = new maplibregl.Map({
       container: containerRef.current,
@@ -253,11 +259,14 @@ export function TripMapCard({ legs, height = 280, containerId }: { legs: Leg[]; 
     map.on('load', () => {
       isLoadedRef.current = true
       ensureMapAssets(map)
+      setMapReady(false)
       syncMapData(map, legs)
+      map.once('idle', () => setMapReady(true))
     })
 
     return () => {
       isLoadedRef.current = false
+      setMapReady(false)
       map.remove()
       mapRef.current = null
     }
@@ -267,7 +276,9 @@ export function TripMapCard({ legs, height = 280, containerId }: { legs: Leg[]; 
     const map = mapRef.current
     if (!map || !isLoadedRef.current) return
 
+    setMapReady(false)
     syncMapData(map, legs)
+    map.once('idle', () => setMapReady(true))
   }, [legs])
 
   return (

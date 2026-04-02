@@ -25,8 +25,27 @@ function getMapCanvas(mapContainer: HTMLElement): HTMLCanvasElement | null {
   return mapContainer.querySelector('canvas')
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function waitForMapReady(mapContainer: HTMLElement, timeoutMs: number = 5000): Promise<HTMLCanvasElement | null> {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    const mapCanvas = getMapCanvas(mapContainer)
+    const hasCanvas = !!mapCanvas && mapCanvas.width > 0 && mapCanvas.height > 0
+    const isReady = mapContainer.dataset.mapReady === 'true'
+    if (hasCanvas && isReady) return mapCanvas
+
+    await sleep(120)
+  }
+
+  return getMapCanvas(mapContainer)
+}
+
 async function getRenderedMapImage(mapContainer: HTMLElement | null): Promise<string | null> {
-  const mapCanvas = mapContainer ? getMapCanvas(mapContainer) : null
+  if (!mapContainer) return null
+  const mapCanvas = await waitForMapReady(mapContainer)
   if (!mapCanvas || mapCanvas.width <= 0 || mapCanvas.height <= 0) return null
 
   await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
@@ -36,6 +55,29 @@ async function getRenderedMapImage(mapContainer: HTMLElement | null): Promise<st
   } catch {
     return null
   }
+}
+
+async function resolveMapImageSource(
+  trip: TripDetail,
+  mapContainer: HTMLElement | null,
+  options: { width: number; height: number; theme: 'dark' | 'light' },
+): Promise<string | null> {
+  const liveMapSrc = await getRenderedMapImage(mapContainer)
+  if (liveMapSrc) return liveMapSrc
+
+  const { generateFallbackMapSVG } = await import('./fallbackMap')
+  return generateFallbackMapSVG(
+    trip.legs.map((leg) => ({
+      origin_lat: leg.originLat,
+      origin_lon: leg.originLon,
+      destination_lat: leg.destLat,
+      destination_lon: leg.destLon,
+      operator: leg.operator,
+    })),
+    options.width,
+    options.height,
+    { theme: options.theme },
+  )
 }
 
 function getOperatorColor(operator: string | null): string {
@@ -159,23 +201,11 @@ export async function exportTripAsImage(
 
   // Step 1: get map image.
   // Priority: live MapLibre canvas → SVG from coordinates → dark placeholder
-  let mapImageSrc: string | null = await getRenderedMapImage(mapContainer)
-
-  if (!mapImageSrc) {
-    const { generateFallbackMapSVG } = await import('./fallbackMap')
-    mapImageSrc = generateFallbackMapSVG(
-      legs.map(l => ({
-        origin_lat: l.originLat,
-        origin_lon: l.originLon,
-        destination_lat: l.destLat,
-        destination_lon: l.destLon,
-        operator: l.operator,
-      })),
-      660 * EXPORT_SCALE,
-      630 * EXPORT_SCALE,
-      { theme: 'dark' },
-    )
-  }
+  const mapImageSrc = await resolveMapImageSource(trip, mapContainer, {
+    width: 660 * EXPORT_SCALE,
+    height: 630 * EXPORT_SCALE,
+    theme: 'dark',
+  })
 
   const canvas = document.createElement('canvas')
   canvas.width = EXPORT_W * EXPORT_SCALE
@@ -397,7 +427,11 @@ export async function exportTripAsPdf(
   const PH = 297
   const M = 14
   const CONTENT_W = PW - M * 2
-  const mapImage = await getRenderedMapImage(mapContainer)
+  const mapImage = await resolveMapImageSource(trip, mapContainer, {
+    width: 1600,
+    height: 900,
+    theme: 'light',
+  })
 
   pdf.setFillColor(255, 255, 255)
   pdf.rect(0, 0, PW, PH, 'F')
