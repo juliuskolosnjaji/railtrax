@@ -1,9 +1,19 @@
 import type { MetadataRoute } from 'next'
+import { prisma } from '@/lib/prisma'
 
 const BASE_URL = 'https://railtrax.app'
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  return [
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const rollingStockIds = await (async () => {
+    try {
+      const rows = await prisma().rollingStock.findMany({ select: { id: true } })
+      return rows.map(r => r.id)
+    } catch {
+      return []
+    }
+  })()
+
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
       lastModified: new Date(),
@@ -26,7 +36,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${BASE_URL}/rolling-stock`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 0.6,
+      priority: 0.7,
     },
     {
       url: `${BASE_URL}/impressum`,
@@ -47,4 +57,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.2,
     },
   ]
+
+  const rollingStockRoutes: MetadataRoute.Sitemap = rollingStockIds.map(id => ({
+    url: `${BASE_URL}/rolling-stock/${id}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }))
+
+  return [...staticRoutes, ...rollingStockRoutes]
 }

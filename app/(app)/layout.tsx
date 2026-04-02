@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SignOutButton } from '@/components/shared/SignOutButton'
 import { Logo } from '@/components/ui/Logo'
-import { MobileBottomNav } from '@/components/shared/MobileBottomNav'
 import { MobileHeader } from '@/components/shared/MobileHeader'
 import { SidebarNav } from '@/components/shared/SidebarNav'
 import { PageTransition } from '@/components/shared/PageTransition'
@@ -110,8 +109,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <LegalFooter />
       </main>
 
-      {/* Mobile bottom nav */}
-      <MobileBottomNav />
     </div>
   )
 }

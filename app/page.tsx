@@ -11,6 +11,9 @@ export const revalidate = 3600 // rebuild stats at most once per hour
 export const metadata: Metadata = {
   title: 'Railtrax — European Rail Planner',
   description: 'Plane Zugreisen quer durch Europa. Verbindungen suchen, Routen visualisieren, Erlebnisse dokumentieren und automatisch auf Träwelling einchecken.',
+  alternates: {
+    canonical: 'https://railtrax.app',
+  },
 }
 
 const FEATURES = [
@@ -124,6 +127,7 @@ export default async function HomePage() {
         </div>
       </header>
 
+      <main>
       {/* ── Hero ── */}
       <section className="text-center px-5 py-24 md:py-[100px]">
         <div className="max-w-[680px] mx-auto hero-content">
@@ -324,6 +328,8 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      </main>
 
       {/* ── Footer ── */}
       <footer className="border-t border-border py-8 px-5">
