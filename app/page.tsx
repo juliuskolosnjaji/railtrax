@@ -1,8 +1,16 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Clock, Map, CheckCircle, Train } from 'lucide-react'
+import { Clock, Map, CheckCircle, Train, Search, CalendarDays, Navigation } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import DemoMap from '@/components/landing/DemoMap'
 import { prisma } from '@/lib/prisma'
+
+export const revalidate = 3600 // rebuild stats at most once per hour
+
+export const metadata: Metadata = {
+  title: 'Railtrax — European Rail Planner',
+  description: 'Plane Zugreisen quer durch Europa. Verbindungen suchen, Routen visualisieren, Erlebnisse dokumentieren und automatisch auf Träwelling einchecken.',
+}
 
 const FEATURES = [
   {
@@ -24,6 +32,27 @@ const FEATURES = [
     icon: Train,
     title: 'Baureihen-Info',
     desc: 'Fahrzeuginfo für ICE, TGV, Railjet und mehr — WiFi, Bistro, Fahrradstellplätze.',
+  },
+]
+
+const HOW_IT_WORKS = [
+  {
+    icon: Search,
+    step: '01',
+    title: 'Verbindung suchen',
+    desc: 'Gib Start und Ziel ein. Railtrax findet alle Züge — egal in welchem Land oder bei welchem Betreiber.',
+  },
+  {
+    icon: CalendarDays,
+    step: '02',
+    title: 'Reise planen',
+    desc: 'Füge Abschnitte zusammen, hinterlege dein Ticket und lege Sitzplatz, Notizen und mehr fest.',
+  },
+  {
+    icon: Navigation,
+    step: '03',
+    title: 'Unterwegs erleben',
+    desc: 'Verfolge Live-Verspätungen, check dich automatisch ein und halte Erlebnisse im Reisetagebuch fest.',
   },
 ]
 
@@ -62,6 +91,7 @@ async function getPublicStats() {
 
 export default async function HomePage() {
   const stats = await getPublicStats()
+  const showStats = stats && stats.users >= 25
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -72,6 +102,7 @@ export default async function HomePage() {
           <Logo size="md" />
           <nav className="hidden md:flex items-center gap-8 text-[14px] font-medium text-muted-foreground">
             <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+            <a href="#wie-es-funktioniert" className="hover:text-foreground transition-colors">So funktioniert&apos;s</a>
             <a href="#züge" className="hover:text-foreground transition-colors">Züge</a>
           </nav>
           <div className="flex items-center gap-3">
@@ -123,7 +154,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── Social proof ── */}
-      {stats && (stats.users > 0 || stats.trips > 0) && (
+      {showStats && (
         <section className="px-5 pb-10">
           <div className="max-w-[580px] mx-auto">
             <div className="grid grid-cols-3 divide-x divide-border border border-border rounded-xl overflow-hidden">
@@ -194,14 +225,42 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ── How it works ── */}
+      <section id="wie-es-funktioniert" className="py-20 md:py-[80px] px-5">
+        <div className="max-w-[900px] mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-3 tracking-tight">
+            So funktioniert&apos;s
+          </h2>
+          <p className="text-center text-muted-foreground text-sm md:text-base mb-12 md:mb-14">
+            Von der ersten Suche bis zum Reisebericht — in drei Schritten.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {HOW_IT_WORKS.map(({ icon: Icon, step, title, desc }) => (
+              <div key={step} className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon size={18} className="text-primary" />
+                  </div>
+                  <span className="text-[11px] font-bold text-primary tracking-[0.12em] uppercase">{step}</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold mb-2">{title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Features ── */}
       <section id="features" className="bg-[hsl(var(--card))] py-20 md:py-[80px] px-5">
         <div className="max-w-[900px] mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-3 tracking-tight">
-            Alles was du für deine Reise brauchst
+            Ein Ticket. Viele Länder. Eine App.
           </h2>
           <p className="text-center text-muted-foreground text-sm md:text-base mb-12 md:mb-14">
-            Von der Planung bis zum Reisebericht — alles in einer App.
+            Alles was du brauchst, um komplexe Interrail-Reisen stressfrei zu planen.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {FEATURES.map(({ icon: Icon, title, desc }) => (
@@ -225,8 +284,9 @@ export default async function HomePage() {
       {/* ── Operator strip ── */}
       <section id="züge" className="py-14 md:py-[56px] px-5 text-center border-y border-border">
         <div className="max-w-[900px] mx-auto">
-          <p className="stat-label mb-6 md:mb-8">
-            Unterstützte Betreiber
+          <h2 className="text-lg font-semibold mb-2">Unterstützte Betreiber</h2>
+          <p className="text-muted-foreground text-sm mb-8">
+            DB, SBB, ÖBB, NS, SNCF und weitere europäische Anbieter.
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {OPERATORS.map(({ name, color }) => (
