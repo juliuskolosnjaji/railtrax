@@ -39,6 +39,11 @@ function formatDate(dateStr: string | null) {
   return new Date(dateStr).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+function formatTime(dateStr: string | null) {
+  if (!dateStr) return null
+  return new Date(dateStr).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+}
+
 export default function TripDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -134,6 +139,49 @@ export default function TripDetailPage() {
   const startDate = formatDate(trip.startDate)
   const endDate = formatDate(trip.endDate)
   const floatingEntries = entries.filter((e) => !e.legId)
+  const legEntries = entries.filter((e) => e.legId)
+  const sortedLegs = [...trip.legs].sort(
+    (a, b) => new Date(a.plannedDeparture).getTime() - new Date(b.plannedDeparture).getTime()
+  )
+  const now = Date.now()
+  const nextLeg = sortedLegs.find((leg) => new Date(leg.plannedDeparture).getTime() >= now)
+  const activeLeg = sortedLegs.find((leg) => {
+    const dep = new Date(leg.plannedDeparture).getTime()
+    const arr = new Date(leg.plannedArrival).getTime()
+    return dep <= now && arr >= now
+  })
+  const completedLegs = sortedLegs.filter((leg) => leg.status === 'completed').length
+  const totalDistanceKm = sortedLegs.reduce((sum, leg) => sum + (leg.distanceKm ?? 0), 0)
+  const routeStart = sortedLegs[0]?.originName ?? null
+  const routeEnd = sortedLegs[sortedLegs.length - 1]?.destName ?? null
+  const tripSummaryCards = [
+    {
+      label: 'Gerade jetzt',
+      value: activeLeg ? `${activeLeg.originName} → ${activeLeg.destName}` : nextLeg ? 'Nächster Abschnitt bereit' : 'Reise abgeschlossen',
+      meta: activeLeg
+        ? `Ankunft geplant ${formatTime(activeLeg.plannedArrival) ?? 'bald'}`
+        : nextLeg
+          ? `${formatDate(nextLeg.plannedDeparture) ?? ''} · ${formatTime(nextLeg.plannedDeparture) ?? ''}`.trim()
+          : `${completedLegs}/${trip.legs.length} abgeschlossen`,
+    },
+    {
+      label: 'Nächster Halt',
+      value: nextLeg ? nextLeg.originName : routeEnd ?? 'Kein weiterer Halt',
+      meta: nextLeg
+        ? `${formatTime(nextLeg.plannedDeparture) ?? '—'} · ${nextLeg.lineName ?? nextLeg.trainNumber ?? 'Zug'}`
+        : routeEnd ? `Ziel: ${routeEnd}` : 'Noch keine Abschnitte geplant',
+    },
+    {
+      label: 'Journal',
+      value: `${entries.length} Einträge`,
+      meta: legEntries.length > 0 ? `${legEntries.length} mit Abschnitt verknüpft` : 'Noch keine Abschnittsnotizen',
+    },
+    {
+      label: 'Strecke',
+      value: totalDistanceKm > 0 ? `${Math.round(totalDistanceKm).toLocaleString('de-DE')} km` : `${trip.legs.length} Abschnitte`,
+      meta: routeStart && routeEnd ? `${routeStart} → ${routeEnd}` : 'Route baut sich mit deinen Abschnitten auf',
+    },
+  ]
 
   return (
     <div className="flex flex-col h-full">
@@ -229,6 +277,68 @@ export default function TripDetailPage() {
             {trip?.description && <p className="w-full text-sm text-muted-foreground mt-1">{trip.description}</p>}
           </div>
 
+          <div className="grid gap-3 mb-8 md:grid-cols-2 xl:grid-cols-4">
+            {tripSummaryCards.map((card) => (
+              <div key={card.label} className="rounded-xl border border-border bg-card/70 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  {card.label}
+                </p>
+                <p className="mt-2 text-base font-semibold text-foreground leading-tight">
+                  {card.value}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground leading-5">
+                  {card.meta}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mb-8 rounded-2xl border border-border bg-card/60 p-4 sm:p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Schnellaktionen</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Häufige Schritte für Planung, Live-Nutzung und Journaling an einem Ort.
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <button
+                  onClick={() => setAddLegOpen(true)}
+                  className="tap-small h-10 px-4 rounded-xl bg-primary text-primary-foreground flex items-center justify-center gap-2 text-sm font-medium hover:bg-primary/90 transition-colors"
+                  style={{ border: 'none', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
+                >
+                  <Plus className="w-4 h-4" />
+                  Abschnitt
+                </button>
+                <button
+                  onClick={() => openNewEntry(activeLeg?.id ?? nextLeg?.id)}
+                  className="tap-small h-10 px-4 rounded-xl border flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Journaleintrag
+                </button>
+                <button
+                  onClick={() => setExpandedLeg(activeLeg?.id ?? nextLeg?.id ?? sortedLegs[0]?.id ?? null)}
+                  disabled={!trip.legs.length}
+                  className="tap-small h-10 px-4 rounded-xl border flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                  style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: trip.legs.length ? 'pointer' : 'default', minHeight: 'unset', minWidth: 'unset' }}
+                >
+                  <Pencil className="w-4 h-4" />
+                  Nächsten Fokus
+                </button>
+                <button
+                  onClick={() => setPublishOpen(true)}
+                  className="tap-small h-10 px-4 rounded-xl border flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Veröffentlichen
+                </button>
+              </div>
+            </div>
+          </div>
+
           {trip.legs.length > 0 && (
             <div className="mb-8">
               <TripRouteCard legs={trip.legs} mapContainerId={mapContainerId} />
@@ -237,14 +347,41 @@ export default function TripDetailPage() {
 
           {/* Timeline */}
           <div className="pb-8">
-            <div className="flex items-center justify-between mb-4 px-4 pt-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold text-foreground">Zeitlinie</h2>
-                <span className="px-2.5 py-0.5 rounded-full bg-secondary text-[11px] font-medium text-secondary-foreground whitespace-nowrap">
-                  {trip.legs.length} Abschnitte · {entries.length} Einträge
-                </span>
+            <div className="mb-4 rounded-2xl border border-border bg-card/50 px-4 py-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Zeitlinie</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Abschnitte, Live-Status und Reisetagebuch auf einen Blick.
+                    </p>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full bg-secondary text-[11px] font-medium text-secondary-foreground whitespace-nowrap">
+                    {trip.legs.length} Abschnitte · {entries.length} Einträge
+                  </span>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="rounded-xl border border-border bg-background/70 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Aktiv</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {activeLeg ? `${activeLeg.originName} → ${activeLeg.destName}` : 'Kein Abschnitt unterwegs'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background/70 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Nächster Start</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {nextLeg ? `${nextLeg.originName} · ${formatTime(nextLeg.plannedDeparture) ?? '—'}` : 'Kein weiterer Abschnitt'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background/70 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Journalstand</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">
+                      {entries.length > 0 ? `${entries.length} Einträge dokumentiert` : 'Noch nichts festgehalten'}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="mt-4 flex items-center gap-2">
                 <button
                   onClick={() => openNewEntry()}
                   className="tap-small h-8 px-3 rounded-lg border flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
@@ -342,12 +479,6 @@ export default function TripDetailPage() {
           trainNumber={detailTrain.trainNumber}
           date={detailTrain.departure}
           onClose={() => setDetailTrain(null)}
-        />
-      )}
-      {publishOpen && (
-        <PublishTripModal
-          tripId={id}
-          onClose={() => setPublishOpen(false)}
         />
       )}
       {publishOpen && (
