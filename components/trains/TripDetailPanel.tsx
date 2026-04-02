@@ -22,6 +22,59 @@ interface Props {
   onClose: () => void
 }
 
+interface TripRemark {
+  type: 'warning' | 'hint'
+  text: string
+}
+
+interface TripStopover {
+  name: string
+  id: string | null
+  lat: number | null
+  lon: number | null
+  plannedDeparture: string | null
+  actualDeparture: string | null
+  plannedArrival: string | null
+  actualArrival: string | null
+  departureDelay: number
+  arrivalDelay: number
+  platform: string | null
+  platformActual: string | null
+  cancelled: boolean
+  isPassed: boolean
+}
+
+interface TripDetailData {
+  tripId: string
+  lineName: string | null
+  operator: string | null
+  direction: string | null
+  origin: string | null
+  destination: string | null
+  cancelled: boolean
+  currentIdx: number
+  stopovers: TripStopover[]
+  remarks: TripRemark[]
+}
+
+function fmtTime(iso: string | null) {
+  return iso ? new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : null
+}
+
+function delayMin(sec: number) {
+  return Math.round(sec / 60)
+}
+
+function getCurrentStop(data: TripDetailData | undefined) {
+  if (!data?.stopovers?.length) return null
+  return data.stopovers[data.currentIdx] ?? data.stopovers[data.stopovers.length - 1] ?? null
+}
+
+function getNextUpcomingStop(data: TripDetailData | undefined) {
+  if (!data?.stopovers?.length) return null
+  return data.stopovers.slice(data.currentIdx + 1).find(stop => !stop.cancelled) ?? null
+}
+
 export function TripDetailPanel({ departure, stationName, onClose }: Props) {
   const [shareOpen, setShareOpen] = useState(false)
   const [copied, setCopied]       = useState(false)
@@ -42,7 +95,7 @@ export function TripDetailPanel({ departure, stationName, onClose }: Props) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery<TripDetailData>({
     queryKey: ['trip-detail', departure.tripId],
     queryFn: () =>
       fetch(
@@ -52,11 +105,15 @@ export function TripDetailPanel({ departure, stationName, onClose }: Props) {
     staleTime: 30_000,
     refetchInterval: 60_000,
   })
-
-  const fmtTime = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : null
-
-  const delayMin = (sec: number) => Math.round(sec / 60)
+  const currentStop = getCurrentStop(data)
+  const nextStop = getNextUpcomingStop(data)
+  const currentDelay = currentStop
+    ? Math.max(delayMin(currentStop.departureDelay), delayMin(currentStop.arrivalDelay))
+    : 0
+  const platformDisplay = departure.platformActual ?? departure.platform
+  const platformChanged = !!(departure.platformActual && departure.platform && departure.platformActual !== departure.platform)
+  const stopCount = data?.stopovers.length ?? 0
+  const warningCount = data?.remarks.filter((remark) => remark.type === 'warning').length ?? 0
 
   return (
     <>
@@ -139,9 +196,9 @@ export function TripDetailPanel({ departure, stationName, onClose }: Props) {
                     +{delayMin(departure.delay)} Min
                   </span>
                 )}
-                {(departure.platformActual ?? departure.platform) && (
-                  <span style={{ marginLeft: 6 }}>
-                    · Gl. {departure.platformActual ?? departure.platform}
+                {platformDisplay && (
+                  <span style={{ marginLeft: 6, color: platformChanged ? '#f59e0b' : undefined }}>
+                    · Gl. {platformDisplay}
                   </span>
                 )}
               </div>
@@ -340,9 +397,78 @@ export function TripDetailPanel({ departure, stationName, onClose }: Props) {
           )}
         </div>
 
+        {data && (
+          <div style={{
+            padding: '12px 16px',
+            borderBottom: '1px solid hsl(var(--border))',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 10,
+            flexShrink: 0,
+          }}>
+            {[
+              {
+                label: 'Jetzt',
+                value: currentStop?.name ?? 'Unbekannt',
+                meta: currentDelay > 0 ? `+${currentDelay} Min` : 'Pünktlich',
+                tone: currentDelay > 0 ? '#ef4444' : 'hsl(var(--primary))',
+              },
+              {
+                label: 'Als Nächstes',
+                value: nextStop?.name ?? data.destination ?? 'Endstation',
+                meta: fmtTime(nextStop?.plannedArrival ?? nextStop?.plannedDeparture ?? null) ?? 'Keine weiteren Halte',
+                tone: 'hsl(var(--muted-foreground))',
+              },
+              {
+                label: 'Strecke',
+                value: `${data.origin ?? 'Start'} → ${data.destination ?? 'Ziel'}`,
+                meta: `${stopCount} Halte`,
+                tone: 'hsl(var(--muted-foreground))',
+              },
+              {
+                label: 'Hinweise',
+                value: warningCount > 0 ? `${warningCount} Warnung${warningCount === 1 ? '' : 'en'}` : 'Keine Warnungen',
+                meta: `${data.remarks.length} Meldung${data.remarks.length === 1 ? '' : 'en'} insgesamt`,
+                tone: warningCount > 0 ? '#f59e0b' : 'hsl(var(--muted-foreground))',
+              },
+            ].map((item) => (
+              <div key={item.label} style={{
+                border: '1px solid hsl(var(--border))',
+                borderRadius: 10,
+                background: 'hsl(var(--background) / 0.55)',
+                padding: '10px 12px',
+                minWidth: 0,
+              }}>
+                <div style={{
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: 'hsl(var(--muted-foreground))',
+                  fontWeight: 600,
+                  marginBottom: 6,
+                }}>
+                  {item.label}
+                </div>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'hsl(var(--foreground))',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {item.value}
+                </div>
+                <div style={{ fontSize: 11, color: item.tone, marginTop: 4 }}>
+                  {item.meta}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── Compact map ── */}
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {((data?.stopovers as any[])?.filter((s: any) => s.lat != null && s.lon != null).length ?? 0) >= 2 && (
+        {data && data.stopovers.filter((stop) => stop.lat != null && stop.lon != null).length >= 2 && (
           <div style={{ borderBottom: '1px solid hsl(var(--border))', flexShrink: 0 }}>
             <TrainRouteMap
               stopovers={data.stopovers}
@@ -353,14 +479,13 @@ export function TripDetailPanel({ departure, stationName, onClose }: Props) {
         )}
 
         {/* ── Remarks / warnings ── */}
-        {(data?.remarks?.length ?? 0) > 0 && (
+        {data && data.remarks.length > 0 && (
           <div style={{
             padding: '10px 16px',
             borderBottom: '1px solid hsl(var(--border))',
             flexShrink: 0,
           }}>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {data.remarks.map((r: any, i: number) => (
+            {data.remarks.map((r, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, padding: '6px 0' }}>
                 {r.type === 'warning'
                   ? <AlertTriangle size={13} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
@@ -398,8 +523,7 @@ export function TripDetailPanel({ departure, stationName, onClose }: Props) {
             </div>
           )}
 
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          {data?.stopovers?.map((stop: any, i: number) => {
+          {data?.stopovers?.map((stop, i) => {
             const isCurrent   = i === data.currentIdx
             const isPassed    = stop.isPassed
             const isFirst     = i === 0
