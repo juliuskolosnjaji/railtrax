@@ -161,16 +161,19 @@ export default function TripDetailPage() {
               </Link>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <a
-                href={`/api/trips/${id}/export/pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={async () => {
+                  const { exportTripAsPdf } = await import('@/lib/export/clientExport')
+                  const mapContainer = document.getElementById(mapContainerId)
+                  if (!mapContainer) return
+                  await exportTripAsPdf(trip, mapContainer)
+                }}
                 className="tap-small h-8 px-3 rounded-lg border flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
-                style={{ borderColor: 'hsl(var(--border))', textDecoration: 'none', minHeight: 'unset' }}
+                style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
               >
                 <FileText className="w-3.5 h-3.5" />
                 PDF
-              </a>
+              </button>
               <button
                 onClick={async () => {
                   const { exportTripAsImage } = await import('@/lib/export/clientExport')

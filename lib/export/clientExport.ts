@@ -25,6 +25,19 @@ function getMapCanvas(mapContainer: HTMLElement): HTMLCanvasElement | null {
   return mapContainer.querySelector('canvas')
 }
 
+async function getRenderedMapImage(mapContainer: HTMLElement | null): Promise<string | null> {
+  const mapCanvas = mapContainer ? getMapCanvas(mapContainer) : null
+  if (!mapCanvas || mapCanvas.width <= 0 || mapCanvas.height <= 0) return null
+
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+  try {
+    return mapCanvas.toDataURL('image/png')
+  } catch {
+    return null
+  }
+}
+
 function getOperatorColor(operator: string | null): string {
   if (!operator) return '#e11d48'
   const op = operator.toUpperCase()
@@ -145,25 +158,8 @@ export async function exportTripAsImage(
   const EXPORT_H = 630
 
   // Step 1: get map image.
-  // Priority: high-res server preview → live MapLibre canvas → SVG from coordinates → dark placeholder
-  let mapImageSrc: string | null = null
-
-  try {
-    const mapPreviewRes = await fetch(`/api/trips/${trip.id}/map-preview?width=${660 * EXPORT_SCALE}&height=${630 * EXPORT_SCALE}`, {
-      credentials: 'same-origin',
-    })
-    if (mapPreviewRes.ok) {
-      const payload = await mapPreviewRes.json()
-      if (payload?.mapBase64) mapImageSrc = payload.mapBase64
-    }
-  } catch {
-    // Fall through to local canvas/fallback rendering
-  }
-
-  const mapCanvas = mapContainer ? getMapCanvas(mapContainer) : null
-  if (!mapImageSrc && mapCanvas && mapCanvas.width > 0 && mapCanvas.height > 0) {
-    try { mapImageSrc = mapCanvas.toDataURL('image/png') } catch { /* tainted/cross-origin */ }
-  }
+  // Priority: live MapLibre canvas → SVG from coordinates → dark placeholder
+  let mapImageSrc: string | null = await getRenderedMapImage(mapContainer)
 
   if (!mapImageSrc) {
     const { generateFallbackMapSVG } = await import('./fallbackMap')
@@ -396,43 +392,30 @@ export async function exportTripAsPdf(
   const { jsPDF } = await import('jspdf')
   const legs = trip.legs
 
-  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
-  const PW = 297
-  const PH = 210
-  const M = 12
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+  const PW = 210
+  const PH = 297
+  const M = 14
+  const CONTENT_W = PW - M * 2
+  const mapImage = await getRenderedMapImage(mapContainer)
 
-  const BG_DARK = [15, 23, 42] as const       // #0f172a
-  const BG_ROW  = [30, 41, 59] as const        // #1e293b
-  const RED_RGB = [227, 34, 40] as const       // #E32228
-
-  // Full page dark background
-  pdf.setFillColor(...BG_DARK)
+  pdf.setFillColor(255, 255, 255)
   pdf.rect(0, 0, PW, PH, 'F')
 
-  // ── Map ──────────────────────────────────────────────────────────────────────
-  const MAP_H = 90 // mm
-  const mapCanvas = getMapCanvas(mapContainer)
-  if (mapCanvas) {
-    const mapData = mapCanvas.toDataURL('image/png')
-    pdf.addImage(mapData, 'PNG', M, M, PW - 2 * M, MAP_H)
-  } else {
-    pdf.setFillColor(20, 30, 48)
-    pdf.rect(M, M, PW - 2 * M, MAP_H, 'F')
-    pdf.setFontSize(10)
-    pdf.setTextColor(100, 116, 139)
-    pdf.text('Map unavailable', PW / 2, M + MAP_H / 2, { align: 'center' })
-  }
+  let y = 20
 
-  // Red accent bar below map
-  pdf.setFillColor(...RED_RGB)
-  pdf.rect(M, M + MAP_H, PW - 2 * M, 1, 'F')
+  pdf.setTextColor(107, 114, 128)
+  pdf.setFont('helvetica', 'normal')
+  pdf.setFontSize(9)
+  pdf.text('Railtrax Trip Overview', M, y)
+  y += 8
 
-  // ── Title & date ─────────────────────────────────────────────────────────────
-  const topY = M + MAP_H + 7
-  pdf.setTextColor(255, 255, 255)
-  pdf.setFontSize(14)
+  pdf.setTextColor(17, 24, 39)
   pdf.setFont('helvetica', 'bold')
-  pdf.text(trip.title, M, topY)
+  pdf.setFontSize(20)
+  const titleLines = pdf.splitTextToSize(trip.title, CONTENT_W)
+  pdf.text(titleLines, M, y)
+  y += titleLines.length * 8
 
   const startDate = formatDate(trip.startDate)
   const endDate = formatDate(trip.endDate)
@@ -440,110 +423,123 @@ export async function exportTripAsPdf(
     ? `${startDate} – ${endDate}` : startDate !== '-' ? startDate : endDate
 
   if (dateRange && dateRange !== '-') {
+    pdf.setTextColor(75, 85, 99)
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(10)
+    pdf.text(dateRange, M, y)
+    y += 7
+  }
+
+  if (trip.description) {
+    pdf.setTextColor(55, 65, 81)
+    pdf.setFontSize(10)
+    const descriptionLines = pdf.splitTextToSize(trip.description, CONTENT_W)
+    pdf.text(descriptionLines, M, y)
+    y += descriptionLines.length * 5 + 3
+  }
+
+  const totalKm = Math.round(legs.reduce((sum, leg) => sum + (leg.distanceKm ?? 0), 0))
+  const stats = [
+    { label: 'Abschnitte', value: String(legs.length) },
+    { label: 'Strecke', value: totalKm > 0 ? `${totalKm} km` : '–' },
+    { label: 'Dauer', value: formatDuration(legs[0]?.plannedDeparture, legs[legs.length - 1]?.plannedArrival) },
+  ]
+
+  const statW = (CONTENT_W - 8) / 3
+  stats.forEach((stat, index) => {
+    const x = M + index * (statW + 4)
+    pdf.setFillColor(249, 250, 251)
+    pdf.setDrawColor(209, 213, 219)
+    pdf.roundedRect(x, y, statW, 18, 2, 2, 'FD')
+    pdf.setTextColor(107, 114, 128)
     pdf.setFontSize(8)
     pdf.setFont('helvetica', 'normal')
-    pdf.setTextColor(100, 116, 139)
-    pdf.text(dateRange, M, topY + 5.5)
-  }
+    pdf.text(stat.label.toUpperCase(), x + 4, y + 6)
+    pdf.setTextColor(17, 24, 39)
+    pdf.setFontSize(12)
+    pdf.setFont('helvetica', 'bold')
+    pdf.text(stat.value, x + 4, y + 13)
+  })
+  y += 26
 
-  // ── Leg table ────────────────────────────────────────────────────────────────
-  const TABLE_Y = topY + 11
-  const ROW_H = 7
-  const HEADER_H = ROW_H + 1
-
-  const cols = {
-    date:  M,
-    train: M + 24,
-    route: M + 52,
-    dep:   M + 168,
-    arr:   M + 188,
-    dur:   M + 208,
-    seat:  M + 230,
-  }
-
-  // Header row (red background)
-  pdf.setFillColor(...RED_RGB)
-  pdf.rect(M, TABLE_Y - ROW_H + 1, PW - 2 * M, HEADER_H, 'F')
-  pdf.setFontSize(7.5)
-  pdf.setFont('helvetica', 'bold')
-  pdf.setTextColor(255, 255, 255)
-  const headerY = TABLE_Y + 0.5
-  pdf.text('Date',     cols.date,  headerY)
-  pdf.text('Train',    cols.train, headerY)
-  pdf.text('From → To', cols.route, headerY)
-  pdf.text('Dep',      cols.dep,   headerY)
-  pdf.text('Arr',      cols.arr,   headerY)
-  pdf.text('Dur',      cols.dur,   headerY)
-  pdf.text('Seat',     cols.seat,  headerY)
-
-  let y = TABLE_Y + ROW_H
+  pdf.setTextColor(107, 114, 128)
   pdf.setFont('helvetica', 'normal')
-  pdf.setFontSize(7.5)
+  pdf.setFontSize(9)
+  pdf.text('Route', M, y)
+  y += 4
 
-  legs.forEach((leg, i) => {
-    if (y > PH - 14) {
-      pdf.addPage()
-      // Re-fill dark bg on new page
-      pdf.setFillColor(...BG_DARK)
-      pdf.rect(0, 0, PW, PH, 'F')
-      y = 20
+  const mapH = 82
+  pdf.setDrawColor(209, 213, 219)
+  pdf.setFillColor(248, 250, 252)
+  pdf.roundedRect(M, y, CONTENT_W, mapH, 2, 2, 'FD')
+  if (mapImage) {
+    pdf.addImage(mapImage, 'PNG', M + 1, y + 1, CONTENT_W - 2, mapH - 2)
+  } else {
+    pdf.setTextColor(107, 114, 128)
+    pdf.setFontSize(10)
+    pdf.text('Karte nicht verfuegbar', PW / 2, y + mapH / 2, { align: 'center' })
+  }
+  y += mapH + 10
+
+  pdf.setTextColor(107, 114, 128)
+  pdf.setFontSize(9)
+  pdf.text('Abschnitte', M, y)
+  y += 5
+
+  const visibleLegs = legs.slice(0, 10)
+  pdf.setDrawColor(209, 213, 219)
+  pdf.setFillColor(243, 244, 246)
+  pdf.rect(M, y, CONTENT_W, 8, 'FD')
+  pdf.setTextColor(107, 114, 128)
+  pdf.setFont('helvetica', 'bold')
+  pdf.setFontSize(8)
+  pdf.text('#', M + 3, y + 5.3)
+  pdf.text('Route', M + 12, y + 5.3)
+  pdf.text('Zeit', M + 110, y + 5.3)
+  pdf.text('Zug', M + 145, y + 5.3)
+  y += 8
+
+  visibleLegs.forEach((leg, index) => {
+    pdf.setFillColor(index % 2 === 0 ? 255 : 249, index % 2 === 0 ? 255 : 250, index % 2 === 0 ? 255 : 251)
+    pdf.rect(M, y, CONTENT_W, 11, 'F')
+    pdf.setDrawColor(229, 231, 235)
+    pdf.line(M, y + 11, M + CONTENT_W, y + 11)
+
+    pdf.setTextColor(17, 24, 39)
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(8.5)
+    pdf.text(String(index + 1), M + 3, y + 6.5)
+    pdf.text(truncatePdfText(pdf, `${leg.originName} → ${leg.destName}`, 92), M + 12, y + 4.8)
+    pdf.setTextColor(107, 114, 128)
+    pdf.setFontSize(7.5)
+    if (leg.distanceKm) {
+      pdf.text(`${Math.round(leg.distanceKm)} km`, M + 12, y + 8.8)
     }
 
-    // Alternating row background
-    if (i % 2 === 1) {
-      pdf.setFillColor(...BG_ROW)
-      pdf.rect(M, y - ROW_H + 1.5, PW - 2 * M, ROW_H, 'F')
-    }
-
-    // Operator colour dot
-    const opColor = getOperatorColor(leg.operator ?? null)
-    const [r, g, b] = hexToRgb(opColor)
-    pdf.setFillColor(r, g, b)
-    pdf.circle(cols.train - 3, y - 1.5, 1.5, 'F')
-
-    pdf.setTextColor(203, 213, 225) // #cbd5e1
-    pdf.text(formatDate(leg.plannedDeparture), cols.date, y)
-    pdf.text(
-      [leg.trainType, leg.trainNumber].filter(Boolean).join(' ') || '—',
-      cols.train, y,
-    )
-
-    const routeStr = `${leg.originName} → ${leg.destName}`
-    const maxRouteW = cols.dep - cols.route - 4
-    const truncated = truncatePdfText(pdf, routeStr, maxRouteW)
-    pdf.text(truncated, cols.route, y)
-
-    pdf.text(formatTime(leg.plannedDeparture), cols.dep, y)
-    pdf.text(formatTime(leg.plannedArrival),   cols.arr, y)
-    pdf.text(formatDuration(leg.plannedDeparture, leg.plannedArrival), cols.dur, y)
-    pdf.setTextColor(100, 116, 139)
-    pdf.text(leg.seat ?? '—', cols.seat, y)
-    pdf.setTextColor(203, 213, 225)
-
-    y += ROW_H
+    pdf.setTextColor(17, 24, 39)
+    pdf.setFontSize(8.5)
+    pdf.text(`${formatTime(leg.plannedDeparture)} → ${formatTime(leg.plannedArrival)}`, M + 110, y + 6.5)
+    const trainText = [leg.trainType, leg.trainNumber].filter(Boolean).join(' ') || leg.lineName || '—'
+    pdf.text(truncatePdfText(pdf, trainText, 42), M + 145, y + 6.5)
+    y += 11
   })
 
-  // ── Footer ───────────────────────────────────────────────────────────────────
-  pdf.setFontSize(6.5)
-  pdf.setTextColor(71, 85, 105) // #475569
-  pdf.text(
-    `Generated by Railtrax · ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`,
-    M, PH - 5,
-  )
-  pdf.setFont('helvetica', 'bold')
-  pdf.setTextColor(100, 116, 139)
-  pdf.text('RAILTRAX', PW - M, PH - 5, { align: 'right' })
+  if (legs.length > visibleLegs.length) {
+    y += 4
+    pdf.setTextColor(107, 114, 128)
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(8)
+    pdf.text(`+ ${legs.length - visibleLegs.length} weitere Abschnitte`, M, y)
+  }
+
+  pdf.setTextColor(107, 114, 128)
+  pdf.setFontSize(8)
+  pdf.text('Erstellt mit railtrax.eu', M, PH - 10)
 
   pdf.save(`railtrax-${trip.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`)
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-
-function hexToRgb(hex: string): [number, number, number] {
-  const v = hex.replace('#', '')
-  const n = parseInt(v, 16)
-  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff]
-}
 
 function truncatePdfText(pdf: InstanceType<typeof import('jspdf').jsPDF>, text: string, maxMm: number): string {
   // jsPDF getStringUnitWidth returns width in points; divide by 2.835 to get mm at font size 1
