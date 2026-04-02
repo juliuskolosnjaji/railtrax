@@ -224,11 +224,11 @@ export function TrainRouteMap({ stopovers, currentIdx, height = 320 }: Props) {
       mapRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [currentIdx, stopovers])
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div ref={containerRef} style={{ height, background: BG }} />
+    <div style={{ position: 'relative', height, width: '100%' }}>
+      <div ref={containerRef} style={{ height, width: '100%', background: BG }} />
       <div style={{
         position: 'absolute', bottom: 6, left: 8,
         fontSize: 9, color: 'rgba(255,255,255,0.3)',

@@ -238,6 +238,25 @@ code, .font-mono {
   100% { background-position:  200% 0; }
 }
 
+/* Train public page */
+.train-page-root {
+  overflow: hidden;
+  height: 100vh;
+}
+
+.stop-list-scroll::-webkit-scrollbar {
+  width: 2px;
+}
+
+.stop-list-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.stop-list-scroll::-webkit-scrollbar-thumb {
+  background: #1a2030;
+  border-radius: 1px;
+}
+
 /* Demo route dash animation — offset the dash pattern along the route */
 @keyframes dash {
   from { stroke-dashoffset: 0; }
