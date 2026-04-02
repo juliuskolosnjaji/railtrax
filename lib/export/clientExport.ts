@@ -80,6 +80,49 @@ async function resolveMapImageSource(
   )
 }
 
+async function createZoomedMapDataUrl(
+  sourceDataUrl: string,
+  targetAspectRatio: number,
+  zoomFactor: number = 1.3,
+): Promise<string> {
+  const img = new Image()
+  await new Promise<void>((resolve) => {
+    img.onload = () => resolve()
+    img.onerror = () => resolve()
+    img.src = sourceDataUrl
+  })
+
+  if (!img.naturalWidth || !img.naturalHeight) return sourceDataUrl
+
+  const sourceAspect = img.naturalWidth / img.naturalHeight
+  let cropW = img.naturalWidth
+  let cropH = img.naturalHeight
+
+  if (sourceAspect > targetAspectRatio) {
+    cropW = Math.round(cropH * targetAspectRatio)
+  } else {
+    cropH = Math.round(cropW / targetAspectRatio)
+  }
+
+  const safeZoom = Math.max(1, zoomFactor)
+  cropW = Math.max(1, Math.round(cropW / safeZoom))
+  cropH = Math.max(1, Math.round(cropH / safeZoom))
+
+  const sx = Math.round((img.naturalWidth - cropW) / 2)
+  const sy = Math.round((img.naturalHeight - cropH) / 2)
+
+  const outW = 1600
+  const outH = Math.max(1, Math.round(outW / targetAspectRatio))
+  const out = document.createElement('canvas')
+  out.width = outW
+  out.height = outH
+  const outCtx = out.getContext('2d')
+  if (!outCtx) return sourceDataUrl
+
+  outCtx.drawImage(img, sx, sy, cropW, cropH, 0, 0, outW, outH)
+  return out.toDataURL('image/png')
+}
+
 function getOperatorColor(operator: string | null): string {
   if (!operator) return '#e11d48'
   const op = operator.toUpperCase()
@@ -421,7 +464,7 @@ export async function exportTripAsPdf(
 ): Promise<void> {
   const { jsPDF } = await import('jspdf')
   const legs = trip.legs
-  const FONT_FAMILY = 'times'
+  const FONT_FAMILY = 'helvetica'
 
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const PW = 210
@@ -489,7 +532,7 @@ export async function exportTripAsPdf(
     pdf.setTextColor(107, 114, 128)
     pdf.setFontSize(8)
     pdf.setFont(FONT_FAMILY, 'normal')
-    pdf.text(stat.label.toUpperCase(), x + 4, y + 6)
+    pdf.text(stat.label, x + 4, y + 6)
     pdf.setTextColor(17, 24, 39)
     pdf.setFontSize(12)
     pdf.setFont(FONT_FAMILY, 'bold')
@@ -508,28 +551,11 @@ export async function exportTripAsPdf(
   pdf.setFillColor(248, 250, 252)
   pdf.roundedRect(M, y, CONTENT_W, mapH, 2, 2, 'FD')
   if (mapImage) {
-    const mapBoxX = M + 1
-    const mapBoxY = y + 1
     const mapBoxW = CONTENT_W - 2
     const mapBoxH = mapH - 2
-    const mapProps = pdf.getImageProperties(mapImage)
-    const mapRatio = mapProps.width / mapProps.height
-    const boxRatio = mapBoxW / mapBoxH
-
-    let drawW = mapBoxW
-    let drawH = mapBoxH
-    let drawX = mapBoxX
-    let drawY = mapBoxY
-
-    if (mapRatio > boxRatio) {
-      drawH = mapBoxW / mapRatio
-      drawY = mapBoxY + (mapBoxH - drawH) / 2
-    } else {
-      drawW = mapBoxH * mapRatio
-      drawX = mapBoxX + (mapBoxW - drawW) / 2
-    }
-
-    pdf.addImage(mapImage, 'PNG', drawX, drawY, drawW, drawH)
+    const mapAspect = mapBoxW / mapBoxH
+    const zoomedMapImage = await createZoomedMapDataUrl(mapImage, mapAspect, 1.35)
+    pdf.addImage(zoomedMapImage, 'PNG', M + 1, y + 1, mapBoxW, mapBoxH)
   } else {
     pdf.setTextColor(107, 114, 128)
     pdf.setFontSize(10)
