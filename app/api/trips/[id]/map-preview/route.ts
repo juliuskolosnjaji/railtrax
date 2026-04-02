@@ -36,6 +36,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       })),
       width,
       height,
+      'dark-matter',
     )
 
     const fallbackBase64 = mapBase64 ?? await generateFallbackMapPng(
@@ -48,6 +49,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       })),
       width,
       height,
+      { theme: 'dark' },
     )
 
     return NextResponse.json({ mapBase64: fallbackBase64 })

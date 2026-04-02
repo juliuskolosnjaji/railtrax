@@ -140,7 +140,7 @@ export async function exportTripAsImage(
   mapContainer: HTMLElement | null,
 ): Promise<void> {
   const legs = trip.legs
-  const EXPORT_SCALE = 2
+  const EXPORT_SCALE = 3
   const EXPORT_W = 1200
   const EXPORT_H = 630
 
@@ -177,6 +177,7 @@ export async function exportTripAsImage(
       })),
       660 * EXPORT_SCALE,
       630 * EXPORT_SCALE,
+      { theme: 'dark' },
     )
   }
 

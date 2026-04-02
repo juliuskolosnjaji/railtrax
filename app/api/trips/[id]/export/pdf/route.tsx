@@ -62,7 +62,8 @@ export async function GET(
       operator: l.operator,
     })),
     1588,
-    560
+    560,
+    'osm-bright',
   )
 
   // Fallback to rasterized SVG map if Geoapify fails
@@ -77,7 +78,8 @@ export async function GET(
         operator: l.operator,
       })),
       1588,
-      560
+      560,
+      { theme: 'light' },
     )
     finalMapImage = fallbackMap
   }

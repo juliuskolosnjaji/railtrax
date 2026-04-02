@@ -7,8 +7,9 @@ export async function generateFallbackMapPng(
   legs: FallbackLeg[],
   width: number = 794,
   height: number = 280,
+  options?: { theme?: 'dark' | 'light' },
 ): Promise<string | null> {
-  const svg = buildFallbackMapSvgMarkup(legs, width, height)
+  const svg = buildFallbackMapSvgMarkup(legs, width, height, options)
   if (!svg) return null
 
   const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer()

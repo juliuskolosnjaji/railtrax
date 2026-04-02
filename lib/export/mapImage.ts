@@ -8,7 +8,8 @@ export async function fetchRouteMapImage(
     operator?: string | null
   }>,
   width: number,
-  height: number
+  height: number,
+  style: string = 'dark-matter',
 ): Promise<string | null> {
   const geometries = legs
     .filter(
@@ -64,7 +65,7 @@ export async function fetchRouteMapImage(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          style: 'dark-matter',
+          style,
           width,
           height,
           geometry: geometries,
