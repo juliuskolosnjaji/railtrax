@@ -194,7 +194,7 @@ export function CommentsSection({
                     style={{ width: 28, height: 28, borderRadius: '50%' }}
                   />
                 ) : (
-                  comment.user.username[0]?.toUpperCase()
+                  <span>{comment.user.username[0]?.toUpperCase()}</span>
                 )}
               </div>
               <div style={{ flex: 1 }}>

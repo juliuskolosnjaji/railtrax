@@ -6,7 +6,9 @@ import { Train, ExternalLink, Loader2, Unplug, Plug } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useTraewellingAutoCheckinPreference } from '@/hooks/useTraewelling'
 
 export function ConnectionsClient({
   initialTraewellingUsername,
@@ -18,6 +20,7 @@ export function ConnectionsClient({
   const [token, setToken] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { query: autoCheckinQuery, mutation: autoCheckinMutation } = useTraewellingAutoCheckinPreference()
 
   async function handleConnect(e: React.FormEvent) {
     e.preventDefault()

@@ -18,7 +18,7 @@ export async function POST(
   try {
     const existing = await prisma().communityLike.findUnique({
       where: {
-        communityTripId_userId: { communityTripId: id, userId: user.id },
+        uniq_community_like_trip_user: { communityTripId: id, userId: user.id },
       },
     })
 

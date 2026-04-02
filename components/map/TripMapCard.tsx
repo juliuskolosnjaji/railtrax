@@ -66,6 +66,22 @@ export function TripMapCard({ legs, height = 280 }: { legs: Leg[]; height?: numb
     )
 
     map.on('load', () => {
+      // ── Add missing sprite images the style expects ────────────────────────
+      if (!map.hasImage('circle-11')) {
+        const size = 22
+        const cvs = document.createElement('canvas')
+        cvs.width = cvs.height = size
+        const ctx = cvs.getContext('2d')!
+        ctx.beginPath()
+        ctx.arc(size / 2, size / 2, 8, 0, Math.PI * 2)
+        ctx.fillStyle = '#4f8ef7'
+        ctx.fill()
+        ctx.strokeStyle = '#fff'
+        ctx.lineWidth = 2
+        ctx.stroke()
+        map.addImage('circle-11', { width: size, height: size, data: ctx.getImageData(0, 0, size, size).data }, { pixelRatio: 1 })
+      }
+
       // ── Build route coordinates ──────────────────────────────────────────
       const allCoords: [number, number][] = []
 

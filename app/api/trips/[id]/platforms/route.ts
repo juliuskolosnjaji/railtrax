@@ -103,7 +103,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
               (s) => s.ibnr === leg.destIbnr,
             )
             if (arrivalStop?.platform) {
-              arrivalPlatform = arrivalStop
+              arrivalPlatform = arrivalStop.platform
             }
           }
         }

@@ -36,7 +36,23 @@
       "Bash(\\()",
       "Bash(app)",
       "Bash(\\))",
-      "Bash(/search/page.tsx components/trains/JourneyDetailSheet.tsx)"
+      "Bash(/search/page.tsx components/trains/JourneyDetailSheet.tsx)",
+      "Bash(ls /Users/julius/railtrax/public/og-image*)",
+      "Bash(ls /Users/julius/railtrax/public/favicon*)",
+      "Bash(ls /Users/julius/railtrax/public/apple-touch-icon*)",
+      "Bash(python3:*)",
+      "Bash(convert:*)",
+      "Bash(ls -la app/*.tsx app/**/page.tsx)",
+      "Bash(lsof:*)",
+      "Bash(npx --yes puppeteer --version)",
+      "Bash(auth)",
+      "Bash(/layout.tsx)",
+      "Bash(node:*)",
+      "Bash(npx dotenv-cli:*)",
+      "Bash(/dev/null:*)",
+      "Bash(npx dotenv -e .env.local ts-node --skip-project -e \":*)",
+      "Bash(grep -r \"getOperatorStyle\\\\|OPERATOR_COLORS\" /Users/julius/railtrax/components --include=*.tsx)",
+      "Bash(grep -r toast /Users/julius/railtrax --include=*.tsx --include=*.ts -l)"
     ]
   }
 }

@@ -18,7 +18,7 @@ export async function POST(
   try {
     const existing = await prisma().commentLike.findUnique({
       where: {
-        commentId_userId: { commentId: id, userId: user.id },
+        uniq_comment_like_comment_user: { commentId: id, userId: user.id },
       },
     })
 

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LegEditorSheet } from './LegEditorSheet'
 import { useDeleteLeg, useUpdateLeg, type Leg } from '@/hooks/useTrips'
-import { useTraewellingStatus, useTraewellingCheckin } from '@/hooks/useTraewelling'
+import { useTraewellingStatus, useTraewellingCheckin, useTraewellingAutoCheckinPreference } from '@/hooks/useTraewelling'
 import { ReviewPrompt } from '@/components/reviews/ReviewPrompt'
 import { formatDate as fmtDate } from '@/lib/i18n/format'
 import { useJourneyNumber } from '@/hooks/useJourneyNumber'
@@ -67,6 +67,7 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
   const updateLeg = useUpdateLeg(tripId)
 
   const { data: traewelling } = useTraewellingStatus()
+  const { query: autoCheckinPref } = useTraewellingAutoCheckinPreference()
   const checkin = useTraewellingCheckin(tripId)
   const [checkinError, setCheckinError] = useState<string | null>(null)
 
@@ -192,8 +193,19 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
                     </span>
                   )}
                   {isCheckedIn && (
-                    <span className="flex items-center gap-1 text-xs text-success">
-                      <CheckCircle2 className="h-3 w-3" /> Eingecheckt
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                      fontSize: 11, fontWeight: 600,
+                      color: '#cc1f3a',
+                      background: 'rgba(204,31,58,0.08)',
+                      border: '1px solid rgba(204,31,58,0.2)',
+                      borderRadius: 5, padding: '1px 6px',
+                    }}>
+                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                        <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4" />
+                        <path d="M3.5 6l1.8 1.8L8.5 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Träwelling
                     </span>
                   )}
                   {isCompleted && (
@@ -341,39 +353,57 @@ export function LegCard({ leg, tripId, isExpanded, onToggle, onTrainClick }: Pro
                       onClick={e => { e.stopPropagation(); handleCheckin() }}
                       disabled={checkin.isPending}
                       style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        fontSize: 12,
-                        color: checkin.isPending ? 'hsl(var(--muted-foreground))' : 'hsl(var(--primary))',
-                        background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                        marginLeft: 'auto',
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        fontSize: 11, fontWeight: 600,
+                        color: checkin.isPending ? 'hsl(var(--muted-foreground))' : '#cc1f3a',
+                        background: checkin.isPending ? 'hsl(var(--secondary))' : 'rgba(204,31,58,0.08)',
+                        border: `1px solid ${checkin.isPending ? 'hsl(var(--border))' : 'rgba(204,31,58,0.25)'}`,
+                        borderRadius: 6, padding: '4px 10px',
+                        cursor: checkin.isPending ? 'default' : 'pointer',
+                        marginLeft: 'auto', transition: 'opacity 0.15s',
                       }}
                     >
                       {checkin.isPending
-                        ? <Loader2 size={11} className="animate-spin" />
+                        ? <Loader2 size={10} className="animate-spin" />
                         : (
-                          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                            <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
-                            <path d="M4 6l1.5 1.5L8 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                            <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4" />
+                            <path d="M3.5 6l1.8 1.8L8.5 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         )}
-                      {checkin.isPending ? 'Eincheckend…' : 'Träwelling Check-in'}
+                      {checkin.isPending ? 'Eincheckend…' : autoCheckinPref.data?.autoCheckin ? 'Jetzt einchecken' : 'Träwelling Check-in'}
                     </button>
                   )}
 
                   {isCheckedIn && !isCompleted && (
-                    <button
-                      onClick={e => { e.stopPropagation(); handleComplete() }}
-                      disabled={updateLeg.isPending}
-                      style={{
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+                      <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: 4,
-                        fontSize: 12, color: 'hsl(var(--primary))',
-                        background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                        marginLeft: 'auto',
-                      }}
-                    >
-                      <CheckCircle2 size={11} />
-                      Als abgeschlossen markieren
-                    </button>
+                        fontSize: 11, fontWeight: 600,
+                        color: '#cc1f3a',
+                        background: 'rgba(204,31,58,0.08)',
+                        border: '1px solid rgba(204,31,58,0.2)',
+                        borderRadius: 6, padding: '4px 10px',
+                      }}>
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                          <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.4" />
+                          <path d="M3.5 6l1.8 1.8L8.5 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Eingecheckt
+                      </span>
+                      <button
+                        onClick={e => { e.stopPropagation(); handleComplete() }}
+                        disabled={updateLeg.isPending}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          fontSize: 11, color: 'hsl(var(--muted-foreground))',
+                          background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                        }}
+                      >
+                        <CheckCircle2 size={11} />
+                        Abschließen
+                      </button>
+                    </div>
                   )}
 
                   {isCompleted && (

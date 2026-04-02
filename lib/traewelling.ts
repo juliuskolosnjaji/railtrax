@@ -119,6 +119,11 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
   if (!depRes.ok) {
     const txt = await depRes.text()
     console.error('Departures failed:', depRes.status, txt)
+    if (depRes.status === 400) {
+      let msg = 'Ungültige Stations-ID.'
+      try { msg = JSON.parse(txt)?.message ?? msg } catch {}
+      throw new TraewellingError('api_error', msg)
+    }
     if (depRes.status === 401 || depRes.status === 403) {
       throw new TraewellingError(
         'auth_failed',
@@ -293,10 +298,17 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
     console.log('Trip detail fetch error (non-fatal):', e)
   }
 
-  // ── STEP 6: Build payload with correct IDs ────────────────────
-  // Always ibnr: false — use Träwelling internal IDs from stopovers.
+  // ── STEP 6: Validate IDs ──────────────────────────────────────
+  // Station IDs must be positive integers for Träwelling
 
-  if (correctDestId === null) {
+  if (!Number.isInteger(correctStartId) || correctStartId <= 0) {
+    throw new TraewellingError(
+      'api_error',
+      `Ungültige Start-Station-ID: ${correctStartId}. Station nicht in Träwelling gefunden.`
+    )
+  }
+
+  if (correctDestId === null || !Number.isInteger(correctDestId) || correctDestId <= 0) {
     throw new TraewellingError(
       'train_not_found',
       `Zielbahnhof "${leg.destName}" nicht im Zugfahrplan gefunden.`

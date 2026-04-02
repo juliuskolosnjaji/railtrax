@@ -523,7 +523,7 @@ export default function CommunityTripDetailPage() {
               style={{ width: 36, height: 36, borderRadius: '50%' }}
             />
           ) : (
-            trip.user.username[0]?.toUpperCase()
+            <span>{trip.user.username[0]?.toUpperCase()}</span>
           )}
         </div>
         <div>

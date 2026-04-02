@@ -57,11 +57,11 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // unsafe-eval required by maplibre-gl WebGL shader compilation
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.openfreemap.org https://tiles.openfreemap.org https://upload.wikimedia.org https://maps.geoapify.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.geoapify.com https://maps.geoapify.com https://*.upstash.io https://tiles.openfreemap.org",
-      "font-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflare.com https://cdn.speed.cloudflare.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: blob: https://*.openfreemap.org https://tiles.openfreemap.org https://upload.wikimedia.org https://maps.geoapify.com https://static.cloudflare.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.geoapify.com https://maps.geoapify.com https://*.upstash.io https://tiles.openfreemap.org https://static.cloudflare.com https://cdn.speed.cloudflare.com https://browser-intake-datadoghq.com",
+      "font-src 'self' https://fonts.gstatic.com",
       "frame-src 'none'",
       "object-src 'none'",
       "base-uri 'self'",

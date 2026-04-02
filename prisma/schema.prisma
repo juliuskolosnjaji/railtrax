@@ -6,60 +6,59 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model User {
-  id               String   @id @default(uuid()) @db.Uuid
-  email            String   @unique
-  username         String   @unique
-  displayName      String?  @map("display_name")
-  avatarUrl        String?  @map("avatar_url")
-  homeStation      String?  @map("home_station")
-  traewellingToken String?  @map("traewelling_token")
-  traewellingUsername String? @map("traewelling_username")
-  calendarToken    String?  @unique @map("calendar_token") @db.Uuid
-  unsubscribeToken String?  @unique @default(cuid()) @map("unsubscribe_token")
-  marketingEmails  Boolean  @default(true) @map("marketing_emails")
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  id                  String   @id @default(uuid()) @db.Uuid
+  email               String   @unique
+  username            String   @unique
+  displayName         String?  @map("display_name")
+  avatarUrl           String?  @map("avatar_url")
+  homeStation         String?  @map("home_station")
+  traewellingToken    String?  @map("traewelling_token")
+  traewellingUsername String?  @map("traewelling_username")
+  calendarToken       String?  @unique @map("calendar_token") @db.Uuid
+  unsubscribeToken    String?  @unique @default(cuid()) @map("unsubscribe_token")
+  marketingEmails     Boolean  @default(true) @map("marketing_emails")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  trips           Trip[]
-  tickets         Ticket[]
-  journalEntries  JournalEntry[]
-  routeReviews    RouteReview[]
-  interrailPasses InterrailPass[]
-  userAchievements UserAchievement[]
-  apiKeys         ApiKey[]
-  subscriptions   Subscription[]
-  usageCounter    UsageCounter?
-  customRoutes    CustomRoute[]
+  trips             Trip[]
+  tickets           Ticket[]
+  journalEntries    JournalEntry[]
+  routeReviews      RouteReview[]
+  interrailPasses   InterrailPass[]
+  userAchievements  UserAchievement[]
+  apiKeys           ApiKey[]
+  subscriptions     Subscription[]
+  usageCounter      UsageCounter?
+  customRoutes      CustomRoute[]
   pushSubscriptions PushSubscription[]
-  communityTrips  CommunityTrip[]
-  communityRatings CommunityRating[]
-  communityLikes  CommunityLike[]
+  communityTrips    CommunityTrip[]
+  communityRatings  CommunityRating[]
+  communityLikes    CommunityLike[]
   communityComments CommunityComment[]
-  commentLikes    CommentLike[]
-  communityPhotos CommunityPhoto[]
+  commentLikes      CommentLike[]
+  communityPhotos   CommunityPhoto[]
 
   @@map("users")
 }
 
 model Trip {
-  id              String   @id @default(uuid()) @db.Uuid
-  userId          String   @map("user_id") @db.Uuid
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
   title           String
   description     String?
-  status          String?  @default("planned")
+  status          String?   @default("planned")
   startDate       DateTime? @map("start_date") @db.Date
   endDate         DateTime? @map("end_date") @db.Date
-  isPublic        Boolean  @default(false) @map("is_public")
-  shareToken      String?  @unique @map("share_token")
-  interrailPassId String?  @map("interrail_pass_id") @db.Uuid
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  isPublic        Boolean   @default(false) @map("is_public")
+  shareToken      String?   @unique @map("share_token")
+  interrailPassId String?   @map("interrail_pass_id") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  legs            Leg[]
-  journalEntries  JournalEntry[]
-  interrailPass   InterrailPass? @relation(fields: [interrailPassId], references: [id])
-  communityTrip   CommunityTrip?
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  legs           Leg[]
+  journalEntries JournalEntry[]
+  interrailPass  InterrailPass? @relation(fields: [interrailPassId], references: [id])
+  communityTrip  CommunityTrip?
 
   // Dashboard list query: filter by user, sort by most recent
   @@index([userId, status, createdAt(sort: Desc)], name: "idx_trips_user_status_created")
@@ -67,53 +66,53 @@ model Trip {
 }
 
 model Leg {
-  id                  String    @id @default(uuid()) @db.Uuid
-  tripId              String    @map("trip_id") @db.Uuid
-  position            Int
+  id       String @id @default(uuid()) @db.Uuid
+  tripId   String @map("trip_id") @db.Uuid
+  position Int
 
-  originName          String    @map("origin_name")
-  originIbnr          String?   @map("origin_ibnr")
-  originLat           Float?    @map("origin_lat")
-  originLon           Float?    @map("origin_lon")
-  plannedDeparture    DateTime  @map("planned_departure") @db.Timestamptz
-  actualDeparture     DateTime? @map("actual_departure") @db.Timestamptz
+  originName       String    @map("origin_name")
+  originIbnr       String?   @map("origin_ibnr")
+  originLat        Float?    @map("origin_lat")
+  originLon        Float?    @map("origin_lon")
+  plannedDeparture DateTime  @map("planned_departure") @db.Timestamptz
+  actualDeparture  DateTime? @map("actual_departure") @db.Timestamptz
 
-  destName            String    @map("dest_name")
-  destIbnr            String?   @map("dest_ibnr")
-  destLat             Float?    @map("dest_lat")
-  destLon             Float?    @map("dest_lon")
-  plannedArrival      DateTime  @map("planned_arrival") @db.Timestamptz
-  actualArrival       DateTime? @map("actual_arrival") @db.Timestamptz
+  destName       String    @map("dest_name")
+  destIbnr       String?   @map("dest_ibnr")
+  destLat        Float?    @map("dest_lat")
+  destLon        Float?    @map("dest_lon")
+  plannedArrival DateTime  @map("planned_arrival") @db.Timestamptz
+  actualArrival  DateTime? @map("actual_arrival") @db.Timestamptz
 
-  operator            String?
-  lineName            String?   @map("line_name")
-  trainType           String?   @map("train_type")
-  trainNumber         String?   @map("train_number")
-  platformPlanned          String?   @map("platform_planned")
-  platformActual           String?   @map("platform_actual")
-  arrivalPlatformPlanned   String?   @map("arrival_platform_planned")
-  arrivalPlatformActual    String?   @map("arrival_platform_actual")
+  operator               String?
+  lineName               String? @map("line_name")
+  trainType              String? @map("train_type")
+  trainNumber            String? @map("train_number")
+  platformPlanned        String? @map("platform_planned")
+  platformActual         String? @map("platform_actual")
+  arrivalPlatformPlanned String? @map("arrival_platform_planned")
+  arrivalPlatformActual  String? @map("arrival_platform_actual")
 
-  status              String?   @default("planned")
-  delayMinutes        Int       @default(0) @map("delay_minutes")
-  cancelled           Boolean   @default(false)
+  status       String? @default("planned")
+  delayMinutes Int     @default(0) @map("delay_minutes")
+  cancelled    Boolean @default(false)
 
-  tripIdVendo         String?   @map("trip_id_vendo")  // HAFAS/Vendo trip ID for direct polyline fetch
-  journeyNumber       String?   @map("journey_number") // Fahrtnummer from bahn.expert, cached
-  polyline            Json?
-  distanceKm          Float?    @map("distance_km")
+  tripIdVendo   String? @map("trip_id_vendo") // HAFAS/Vendo trip ID for direct polyline fetch
+  journeyNumber String? @map("journey_number") // Fahrtnummer from bahn.expert, cached
+  polyline      Json?
+  distanceKm    Float?  @map("distance_km")
 
-  ticketId            String?   @map("ticket_id") @db.Uuid
-  traewellingStatusId String?   @map("traewelling_status_id")
+  ticketId            String?  @map("ticket_id") @db.Uuid
+  traewellingStatusId String?  @map("traewelling_status_id")
   notes               String?
   seat                String?
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  trip                Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  ticket              Ticket?   @relation(fields: [ticketId], references: [id])
-  routeReviews        RouteReview[]
-  journalEntries      JournalEntry[]
-  rollingStock        LegRollingStock?
+  trip           Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  ticket         Ticket?          @relation(fields: [ticketId], references: [id])
+  routeReviews   RouteReview[]
+  journalEntries JournalEntry[]
+  rollingStock   LegRollingStock?
 
   // Trip detail query: all legs for a trip ordered by departure time
   @@index([tripId, plannedDeparture], name: "idx_legs_trip_departure")
@@ -123,44 +122,44 @@ model Leg {
 }
 
 model Ticket {
-  id          String    @id @default(uuid()) @db.Uuid
-  userId      String    @map("user_id") @db.Uuid
-  title       String?
-  operator    String?
-  validFrom   DateTime? @map("valid_from") @db.Timestamptz
-  validUntil  DateTime? @map("valid_until") @db.Timestamptz
-  fileUrl     String?   @map("file_url")
-  barcode     String?
-  rawText     String?   @map("raw_text")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  title      String?
+  operator   String?
+  validFrom  DateTime? @map("valid_from") @db.Timestamptz
+  validUntil DateTime? @map("valid_until") @db.Timestamptz
+  fileUrl    String?   @map("file_url")
+  barcode    String?
+  rawText    String?   @map("raw_text")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  user        User      @relation(fields: [userId], references: [id])
-  legs        Leg[]
+  user User  @relation(fields: [userId], references: [id])
+  legs Leg[]
 
   @@map("tickets")
 }
 
 model RouteReview {
-  id               String   @id @default(uuid()) @db.Uuid
-  userId           String   @map("user_id") @db.Uuid
-  legId            String   @map("leg_id") @db.Uuid
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  legId  String @map("leg_id") @db.Uuid
 
-  originIbnr       String   @map("origin_ibnr")
-  destIbnr         String   @map("dest_ibnr")
-  operator         String?
-  trainType        String?  @map("train_type")
+  originIbnr String  @map("origin_ibnr")
+  destIbnr   String  @map("dest_ibnr")
+  operator   String?
+  trainType  String? @map("train_type")
 
-  scoreOverall     Int?     @map("score_overall")
-  scoreScenery     Int?     @map("score_scenery")
-  scoreComfort     Int?     @map("score_comfort")
-  scorePunctuality Int?     @map("score_punctuality")
-  scoreWifi        Int?     @map("score_wifi")
+  scoreOverall     Int? @map("score_overall")
+  scoreScenery     Int? @map("score_scenery")
+  scoreComfort     Int? @map("score_comfort")
+  scorePunctuality Int? @map("score_punctuality")
+  scoreWifi        Int? @map("score_wifi")
 
-  text             String?
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  text      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user             User     @relation(fields: [userId], references: [id])
-  leg              Leg      @relation(fields: [legId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+  leg  Leg  @relation(fields: [legId], references: [id], onDelete: Cascade)
 
   @@map("route_reviews")
 }
@@ -177,10 +176,10 @@ model JournalEntry {
   lon          Float?
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  leg          Leg?     @relation(fields: [legId], references: [id], onDelete: SetNull)
-  user         User     @relation(fields: [userId], references: [id])
-  photos       JournalPhoto[]
+  trip   Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  leg    Leg?           @relation(fields: [legId], references: [id], onDelete: SetNull)
+  user   User           @relation(fields: [userId], references: [id])
+  photos JournalPhoto[]
 
   @@map("journal_entries")
 }
@@ -192,26 +191,26 @@ model JournalPhoto {
   caption  String?
   position Int?
 
-  entry    JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entry JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@map("journal_photos")
 }
 
 model InterrailPass {
-  id            String    @id @default(uuid()) @db.Uuid
-  userId        String    @map("user_id") @db.Uuid
-  passType      String?   @map("pass_type")
-  travelClass   Int?      @map("travel_class")
-  totalDays     Int?      @map("total_days")
-  usedDays      Int       @default(0) @map("used_days")
-  startDate     DateTime? @map("start_date") @db.Date
-  endDate       DateTime? @map("end_date") @db.Date
-  countries     String[]
-  pricePaidEur  Decimal?  @map("price_paid_eur") @db.Decimal(8, 2)
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  passType     String?   @map("pass_type")
+  travelClass  Int?      @map("travel_class")
+  totalDays    Int?      @map("total_days")
+  usedDays     Int       @default(0) @map("used_days")
+  startDate    DateTime? @map("start_date") @db.Date
+  endDate      DateTime? @map("end_date") @db.Date
+  countries    String[]
+  pricePaidEur Decimal?  @map("price_paid_eur") @db.Decimal(8, 2)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  user          User      @relation(fields: [userId], references: [id])
-  trips         Trip[]
+  user  User   @relation(fields: [userId], references: [id])
+  trips Trip[]
 
   @@map("interrail_passes")
 }
@@ -232,8 +231,8 @@ model UserAchievement {
   achievementId String   @map("achievement_id")
   unlockedAt    DateTime @default(now()) @map("unlocked_at") @db.Timestamptz
 
-  user          User        @relation(fields: [userId], references: [id])
-  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  achievement Achievement @relation(fields: [achievementId], references: [id])
 
   @@id([userId, achievementId])
   @@map("user_achievements")
@@ -248,30 +247,30 @@ model ApiKey {
   lastUsed  DateTime? @map("last_used") @db.Timestamptz
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  user      User      @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@map("api_keys")
 }
 
 model Subscription {
-  id                  String    @id @default(uuid()) @db.Uuid
-  userId              String    @map("user_id") @db.Uuid
-  lsSubscriptionId    String?   @unique @map("ls_subscription_id")
-  lsCustomerId        String?   @map("ls_customer_id")
-  lsVariantId         String?   @map("ls_variant_id")
-  lsOrderId           String?   @map("ls_order_id")
-  plan                String
-  status              String
-  billingInterval     String?   @map("billing_interval")
-  currentPeriodStart  DateTime? @map("current_period_start") @db.Timestamptz
-  currentPeriodEnd    DateTime? @map("current_period_end") @db.Timestamptz
-  cancelAtPeriodEnd   Boolean   @default(false) @map("cancel_at_period_end")
-  cancelledAt         DateTime? @map("cancelled_at") @db.Timestamptz
-  trialEndsAt         DateTime? @map("trial_ends_at") @db.Timestamptz
-  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt           DateTime  @default(now()) @map("updated_at") @db.Timestamptz
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+  lsSubscriptionId   String?   @unique @map("ls_subscription_id")
+  lsCustomerId       String?   @map("ls_customer_id")
+  lsVariantId        String?   @map("ls_variant_id")
+  lsOrderId          String?   @map("ls_order_id")
+  plan               String
+  status             String
+  billingInterval    String?   @map("billing_interval")
+  currentPeriodStart DateTime? @map("current_period_start") @db.Timestamptz
+  currentPeriodEnd   DateTime? @map("current_period_end") @db.Timestamptz
+  cancelAtPeriodEnd  Boolean   @default(false) @map("cancel_at_period_end")
+  cancelledAt        DateTime? @map("cancelled_at") @db.Timestamptz
+  trialEndsAt        DateTime? @map("trial_ends_at") @db.Timestamptz
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamptz
 
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], name: "idx_subscriptions_user_id")
   @@index([lsSubscriptionId], name: "idx_subscriptions_ls_id")
@@ -279,15 +278,15 @@ model Subscription {
 }
 
 model UsageCounter {
-  userId             String   @id @map("user_id") @db.Uuid
-  tripsCount         Int      @default(0) @map("trips_count")
-  legsCount          Int      @default(0) @map("legs_count")
-  photosCount        Int      @default(0) @map("photos_count")
-  storageBytes       BigInt   @default(0) @map("storage_bytes")
-  apiCallsThisMonth  Int      @default(0) @map("api_calls_this_month")
-  updatedAt          DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  userId            String   @id @map("user_id") @db.Uuid
+  tripsCount        Int      @default(0) @map("trips_count")
+  legsCount         Int      @default(0) @map("legs_count")
+  photosCount       Int      @default(0) @map("photos_count")
+  storageBytes      BigInt   @default(0) @map("storage_bytes")
+  apiCallsThisMonth Int      @default(0) @map("api_calls_this_month")
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz
 
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("usage_counters")
 }
@@ -305,20 +304,20 @@ model CustomRoute {
   tags        String[]
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user        User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@map("custom_routes")
 }
 
 model PushSubscription {
-  id            String   @id @default(uuid()) @db.Uuid
-  userId        String   @map("user_id") @db.Uuid
-  endpoint      String   @unique
-  p256dh        String
-  auth          String
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId], name: "idx_push_subscriptions_user_id")
   @@map("push_subscriptions")
@@ -326,49 +325,50 @@ model PushSubscription {
 
 model UserPreferences {
   userId               String  @id @map("user_id") @db.Uuid
-  notificationsEnabled Boolean @default(false) @map("notifications_enabled")
-  delayAlerts          Boolean @default(true) @map("delay_alerts")
-  platformChanges      Boolean @default(true) @map("platform_changes")
-  cancellations        Boolean @default(true) @map("cancellations")
+  notificationsEnabled     Boolean @default(false) @map("notifications_enabled")
+  delayAlerts              Boolean @default(true) @map("delay_alerts")
+  platformChanges          Boolean @default(true) @map("platform_changes")
+  cancellations            Boolean @default(true) @map("cancellations")
+  traewellingAutoCheckin   Boolean @default(false) @map("traewelling_auto_checkin")
 
   @@map("user_preferences")
 }
 
 model RollingStock {
-  id              String  @id
-  operator        String
-  series          String
-  uicClass        String? @map("uic_class")
-  manufacturer    String?
-  introducedYear  Int?    @map("introduced_year")
-  maxSpeedKmh     Int?    @map("max_speed_kmh")
-  seats1st        Int?    @map("seats_1st")
-  seats2nd        Int?    @map("seats_2nd")
-  hasBistro       Boolean? @map("has_bistro")
-  hasWifi         Boolean? @map("has_wifi")
-  hasWheelchair   Boolean? @map("has_wheelchair")
-  hasBikeSpace    Boolean? @map("has_bike_space")
-  powerSystem     String? @map("power_system")
-  traction        String?
-  description     String?
-  photoUrl        String? @map("photo_url")
-  wikiUrl         String? @map("wiki_url")
-  dataSource      String? @map("data_source")
+  id             String   @id
+  operator       String
+  series         String
+  uicClass       String?  @map("uic_class")
+  manufacturer   String?
+  introducedYear Int?     @map("introduced_year")
+  maxSpeedKmh    Int?     @map("max_speed_kmh")
+  seats1st       Int?     @map("seats_1st")
+  seats2nd       Int?     @map("seats_2nd")
+  hasBistro      Boolean? @map("has_bistro")
+  hasWifi        Boolean? @map("has_wifi")
+  hasWheelchair  Boolean? @map("has_wheelchair")
+  hasBikeSpace   Boolean? @map("has_bike_space")
+  powerSystem    String?  @map("power_system")
+  traction       String?
+  description    String?
+  photoUrl       String?  @map("photo_url")
+  wikiUrl        String?  @map("wiki_url")
+  dataSource     String?  @map("data_source")
 
-  legs            LegRollingStock[]
+  legs LegRollingStock[]
 
   @@map("rolling_stock")
 }
 
 model LegRollingStock {
-  legId           String  @id @map("leg_id") @db.Uuid
-  rollingStockId  String  @map("rolling_stock_id")
-  setNumber       String? @map("set_number")
-  confirmed       Boolean @default(false)
-  source          String?
+  legId          String  @id @map("leg_id") @db.Uuid
+  rollingStockId String  @map("rolling_stock_id")
+  setNumber      String? @map("set_number")
+  confirmed      Boolean @default(false)
+  source         String?
 
-  leg             Leg          @relation(fields: [legId], references: [id], onDelete: Cascade)
-  rollingStock    RollingStock @relation(fields: [rollingStockId], references: [id])
+  leg          Leg          @relation(fields: [legId], references: [id], onDelete: Cascade)
+  rollingStock RollingStock @relation(fields: [rollingStockId], references: [id])
 
   @@map("leg_rolling_stock")
 }
@@ -383,12 +383,12 @@ model CommunityTrip {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz
 
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trip        Trip              @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  ratings     CommunityRating[]
-  likes       CommunityLike[]
-  comments    CommunityComment[]
-  photos      CommunityPhoto[]
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip     Trip               @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  ratings  CommunityRating[]
+  likes    CommunityLike[]
+  comments CommunityComment[]
+  photos   CommunityPhoto[]
 
   @@index([userId], name: "idx_community_trips_user_id")
   @@index([isPublic], name: "idx_community_trips_is_public")
@@ -402,8 +402,8 @@ model CommunityRating {
   rating          Int
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  communityTrip   CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityTrip CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([communityTripId, userId], name: "uniq_community_rating_trip_user")
   @@map("community_ratings")
@@ -415,8 +415,8 @@ model CommunityLike {
   userId          String   @map("user_id") @db.Uuid
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  communityTrip   CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityTrip CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([communityTripId, userId], name: "uniq_community_like_trip_user")
   @@map("community_likes")
@@ -430,9 +430,9 @@ model CommunityComment {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime @default(now()) @map("updated_at") @db.Timestamptz
 
-  communityTrip   CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes           CommentLike[]
+  communityTrip CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes         CommentLike[]
 
   @@map("community_comments")
 }
@@ -443,8 +443,8 @@ model CommentLike {
   userId    String   @map("user_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  comment   CommunityComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment CommunityComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([commentId, userId], name: "uniq_comment_like_comment_user")
   @@map("comment_likes")
@@ -458,8 +458,8 @@ model CommunityPhoto {
   caption         String?
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  communityTrip   CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityTrip CommunityTrip @relation(fields: [communityTripId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("community_photos")
 }

@@ -22,7 +22,7 @@ export async function POST(
   try {
     await prisma().communityRating.upsert({
       where: {
-        communityTripId_userId: { communityTripId: id, userId: user.id },
+        uniq_community_rating_trip_user: { communityTripId: id, userId: user.id },
       },
       create: { communityTripId: id, userId: user.id, rating },
       update: { rating },

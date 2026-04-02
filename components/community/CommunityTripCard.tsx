@@ -96,10 +96,10 @@ export function CommunityTripCard({ trip }: CommunityTripCardProps) {
                     l.destLon != null,
                 )
                 .map((l) => ({
-                  x1: ((l.originLon + 20) * 280) / 40,
-                  y1: ((60 - l.originLat) * 160) / 20,
-                  x2: ((l.destLon + 20) * 280) / 40,
-                  y2: ((60 - l.destLat) * 160) / 20,
+                  x1: ((l.originLon! + 20) * 280) / 40,
+                  y1: ((60 - l.originLat!) * 160) / 20,
+                  x2: ((l.destLon! + 20) * 280) / 40,
+                  y2: ((60 - l.destLat!) * 160) / 20,
                 }))
               return pts.map((p, i) => (
                 <line
