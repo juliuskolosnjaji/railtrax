@@ -57,6 +57,7 @@ export function TripMapCard({ legs, height = 280 }: { legs: Leg[]; height?: numb
       style: MAP_STYLE,
       interactive: true,
       attributionControl: false,
+      canvasContextAttributes: { preserveDrawingBuffer: true },  // required for canvas.toDataURL() in exports
     })
     mapRef.current = map
 

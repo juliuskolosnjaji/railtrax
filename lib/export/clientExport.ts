@@ -68,16 +68,30 @@ export async function exportTripAsImage(
 ): Promise<void> {
   const legs = trip.legs
 
-  // Step 1: fetch Geoapify static map (dark-matter style)
+  // Step 1: get map image.
+  // Priority: live MapLibre canvas → SVG from coordinates → dark placeholder
   let mapImageSrc: string | null = null
-  try {
-    const res = await fetch(`/api/trips/${trip.id}/map-preview`)
-    if (res.ok) {
-      const data = await res.json() as { mapBase64?: string | null }
-      mapImageSrc = data.mapBase64 ?? null
-    }
-  } catch {
-    mapImageSrc = null
+
+  // Try the MapLibre canvas rendered on the page (requires preserveDrawingBuffer: true)
+  const mapCanvas = document.querySelector<HTMLCanvasElement>('.trip-map-card canvas')
+  if (mapCanvas && mapCanvas.width > 0 && mapCanvas.height > 0) {
+    try { mapImageSrc = mapCanvas.toDataURL('image/png') } catch { /* tainted/cross-origin */ }
+  }
+
+  // If canvas unavailable, generate an SVG route map from coordinates
+  if (!mapImageSrc) {
+    const { generateFallbackMapSVG } = await import('./fallbackMap')
+    mapImageSrc = generateFallbackMapSVG(
+      legs.map(l => ({
+        origin_lat: l.originLat,
+        origin_lon: l.originLon,
+        destination_lat: l.destLat,
+        destination_lon: l.destLon,
+        operator: l.operator,
+      })),
+      660,
+      630,
+    )
   }
 
   const canvas = document.createElement('canvas')
@@ -94,10 +108,9 @@ export async function exportTripAsImage(
   ctx.fillStyle = '#080d1a'
   ctx.fillRect(0, 0, 1200, 630)
 
-  // ── Left: Geoapify map image ─────────────────────────────────────────────────
+  // ── Left: map image ─────────────────────────────────────────────────────────
   if (mapImageSrc) {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
     await new Promise<void>((resolve) => {
       img.onload = () => resolve()
       img.onerror = () => resolve()
@@ -105,13 +118,8 @@ export async function exportTripAsImage(
     })
     ctx.drawImage(img, 0, 0, MAP_W, 630)
   } else {
-    // Fallback: dark panel
     ctx.fillStyle = '#0a1628'
     ctx.fillRect(0, 0, MAP_W, 630)
-    ctx.fillStyle = '#1e3a6e'
-    ctx.font = '14px system-ui, sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('Karte nicht verfügbar', MAP_W / 2, 315)
   }
 
   // ── Divider ──────────────────────────────────────────────────────────────────
