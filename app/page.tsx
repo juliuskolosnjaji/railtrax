@@ -1,9 +1,8 @@
-'use client'
-
 import Link from 'next/link'
 import { Clock, Map, CheckCircle, Train } from 'lucide-react'
 import { Logo } from '@/components/ui/Logo'
 import DemoMap from '@/components/landing/DemoMap'
+import { prisma } from '@/lib/prisma'
 
 const FEATURES = [
   {
@@ -38,7 +37,32 @@ const OPERATORS = [
   { name: 'Flixtrain', color: '#73d700' },
 ]
 
-export default function HomePage() {
+function formatNumber(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace('.0', '')} Mio.`
+  if (n >= 1_000) return `${Math.round(n / 1_000)}k`
+  return String(n)
+}
+
+async function getPublicStats() {
+  try {
+    const [userCount, kmResult, tripCount] = await Promise.all([
+      prisma().user.count(),
+      prisma().leg.aggregate({ _sum: { distanceKm: true } }),
+      prisma().trip.count(),
+    ])
+    return {
+      users: userCount,
+      km: Math.round(kmResult._sum.distanceKm ?? 0),
+      trips: tripCount,
+    }
+  } catch {
+    return null
+  }
+}
+
+export default async function HomePage() {
+  const stats = await getPublicStats()
+
   return (
     <div className="min-h-screen bg-background text-foreground">
 
@@ -97,6 +121,26 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Social proof ── */}
+      {stats && (stats.users > 0 || stats.trips > 0) && (
+        <section className="px-5 pb-10">
+          <div className="max-w-[580px] mx-auto">
+            <div className="grid grid-cols-3 divide-x divide-border border border-border rounded-xl overflow-hidden">
+              {[
+                { label: 'Nutzer', value: formatNumber(stats.users) },
+                { label: 'Reisen geplant', value: formatNumber(stats.trips) },
+                { label: 'km zurückgelegt', value: formatNumber(stats.km) },
+              ].map(({ label, value }) => (
+                <div key={label} className="px-4 py-4 text-center">
+                  <p className="text-lg md:text-xl font-bold text-foreground">{value}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-wide font-medium">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Map preview card ── */}
       <section className="px-5 pb-20 md:pb-[80px]">
