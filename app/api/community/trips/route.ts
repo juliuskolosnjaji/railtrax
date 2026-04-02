@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
                 polyline: true,
               },
               orderBy: { plannedDeparture: 'asc' },
+              take: 50,
             },
           },
         },

@@ -16,15 +16,18 @@ export async function POST(
   const { id } = await params
   const { text } = await req.json()
 
-  if (!text?.trim())
+  const trimmed = text?.trim() ?? ''
+  if (!trimmed)
     return NextResponse.json({ error: 'empty_comment' }, { status: 400 })
+  if (trimmed.length > 5000)
+    return NextResponse.json({ error: 'comment_too_long' }, { status: 400 })
 
   try {
     const comment = await prisma().communityComment.create({
       data: {
         communityTripId: id,
         userId: user.id,
-        text: text.trim(),
+        text: trimmed,
       },
       include: {
         user: { select: { id: true, username: true, avatarUrl: true } },

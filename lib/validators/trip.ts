@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const TRIP_STATUSES = ['planned', 'active', 'completed', 'cancelled'] as const
 
-export const createTripSchema = z.object({
+const tripObjectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(2000).optional(),
   startDate: z.string().optional(),
@@ -13,7 +13,15 @@ export const createTripSchema = z.object({
   status: z.enum(TRIP_STATUSES),
 })
 
-export const updateTripSchema = createTripSchema.partial()
+export const createTripSchema = tripObjectSchema.refine(
+  (data) => {
+    if (!data.startDate || !data.endDate) return true
+    return new Date(data.startDate) <= new Date(data.endDate)
+  },
+  { message: 'Enddatum muss nach dem Startdatum liegen', path: ['endDate'] }
+)
+
+export const updateTripSchema = tripObjectSchema.partial()
 
 export type CreateTripInput = z.infer<typeof createTripSchema>
 export type UpdateTripInput = z.infer<typeof updateTripSchema>

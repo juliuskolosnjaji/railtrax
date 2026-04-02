@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 type Params = { params: Promise<{ id: string }> }
@@ -29,35 +30,26 @@ export async function POST(
   }
 
   // Check if user owns the trip
-  const { data: trip, error: tripError } = await supabase
-    .from('trips')
-    .select('id, user_id, is_public, share_token')
-    .eq('id', id)
-    .single()
-
-  if (tripError || !trip) {
+  const existing = await prisma().trip.findUnique({
+    where: { id, userId: user.id },
+    select: { id: true, isPublic: true, shareToken: true },
+  })
+  if (!existing) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 })
   }
 
-  if (trip.user_id !== user.id) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
-  }
-
   // Generate share token if not already shared
-  let shareToken = trip.share_token
-  
+  let shareToken = existing.shareToken
+
   if (!shareToken) {
     shareToken = crypto.randomUUID()
-    
-    const { error: updateError } = await supabase
-      .from('trips')
-      .update({ 
-        is_public: true,
-        share_token: shareToken 
-      })
-      .eq('id', id)
 
-    if (updateError) {
+    try {
+      await prisma().trip.update({
+        where: { id },
+        data: { isPublic: true, shareToken },
+      })
+    } catch {
       return NextResponse.json({ error: 'internal_error' }, { status: 500 })
     }
   }
@@ -65,12 +57,12 @@ export async function POST(
   const shareUrl = `${process.env.NEXT_PUBLIC_URL}/trip/${shareToken}`
   const embedUrl = `${process.env.NEXT_PUBLIC_URL}/embed/${shareToken}`
 
-  return NextResponse.json({ 
+  return NextResponse.json({
     data: {
       shareUrl,
       embedUrl,
-      shareToken
-    }
+      shareToken,
+    },
   }, { status: 200 })
 }
 
@@ -95,30 +87,21 @@ export async function DELETE(
   }
 
   // Check if user owns the trip
-  const { data: trip, error: tripError } = await supabase
-    .from('trips')
-    .select('id, user_id, is_public, share_token')
-    .eq('id', id)
-    .single()
-
-  if (tripError || !trip) {
+  const existing = await prisma().trip.findUnique({
+    where: { id, userId: user.id },
+    select: { id: true },
+  })
+  if (!existing) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 })
   }
 
-  if (trip.user_id !== user.id) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
-  }
-
   // Unshare the trip
-  const { error: updateError } = await supabase
-    .from('trips')
-    .update({ 
-      is_public: false,
-      share_token: null 
+  try {
+    await prisma().trip.update({
+      where: { id },
+      data: { isPublic: false, shareToken: null },
     })
-    .eq('id', id)
-
-  if (updateError) {
+  } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 

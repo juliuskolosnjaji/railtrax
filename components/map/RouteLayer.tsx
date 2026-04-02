@@ -2,16 +2,7 @@
 
 import { Source, Layer } from 'react-map-gl/maplibre'
 import type { Leg } from '@/hooks/useTrips'
-
-const OPERATOR_COLORS: Record<string, string> = {
-  DB: '#E32228',
-  SBB: '#EB0000',
-  ÖBB: '#C8102E',
-}
-
-function getColor(operator: string | null): string {
-  return operator ? (OPERATOR_COLORS[operator] ?? '#6B7280') : '#6B7280'
-}
+import { getOperatorColors } from '@/lib/operators'
 
 function clipPolylineToLeg(
   polyline: [number, number][],
@@ -70,7 +61,7 @@ export function RouteLayer({ leg }: RouteLayerProps) {
 
   if (!coordinates) return null
 
-  const color = getColor(leg.operator)
+  const color = getOperatorColors(leg.operator).line
 
   const paint = isDashed
     ? {

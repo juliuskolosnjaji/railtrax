@@ -18,6 +18,7 @@ export default function ProfileClient() {
   const [editing, setEditing] = useState(false)
   const [displayName, setDisplayName] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const { data: profile } = useQuery<UserProfile>({
     queryKey: ['user-profile'],
@@ -56,6 +57,19 @@ export default function ProfileClient() {
     const file = e.target.files?.[0]
     if (!file || !profile) return
 
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+    const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setUploadError('Nur JPEG, PNG oder WebP erlaubt.')
+      return
+    }
+    if (file.size > MAX_BYTES) {
+      setUploadError('Bild darf maximal 5 MB groß sein.')
+      return
+    }
+
+    setUploadError(null)
     setUploading(true)
     try {
       const supabase = createClient()
@@ -80,6 +94,7 @@ export default function ProfileClient() {
       qc.invalidateQueries({ queryKey: ['user-profile'] })
     } catch (err) {
       console.error('Avatar upload failed:', err)
+      setUploadError('Upload fehlgeschlagen. Bitte erneut versuchen.')
     } finally {
       setUploading(false)
     }
@@ -97,6 +112,12 @@ export default function ProfileClient() {
           Dein öffentlicher Profilname und Avatar
         </p>
       </div>
+
+      {uploadError && (
+        <div className="text-xs text-red-400 bg-red-950/40 border border-red-900/50 rounded-lg px-3 py-2">
+          {uploadError}
+        </div>
+      )}
 
       {/* Avatar */}
       <div className="flex items-center gap-6">

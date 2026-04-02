@@ -55,7 +55,11 @@ export async function GET(req: NextRequest) {
     }
 
     if (statusUpdates.length > 0) {
-      await Promise.all(statusUpdates)
+      const results = await Promise.allSettled(statusUpdates)
+      const failed = results.filter(r => r.status === 'rejected')
+      if (failed.length > 0) {
+        console.error('[trips] Failed to update trip statuses:', failed)
+      }
     }
 
     // Remove legs from output if not requested

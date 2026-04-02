@@ -53,32 +53,6 @@ export async function GET(
 
   const legs = trip.legs
 
-  // DEBUG LOGGING - Add this to check data issues
-  console.log('=== PDF EXPORT DEBUG ===')
-  console.log('Trip:', JSON.stringify({ 
-    id: trip.id, 
-    title: trip.title, 
-    created_at: trip.createdAt,
-    legs_count: legs.length 
-  }))
-  console.log('Legs count:', legs.length)
-  if (legs[0]) {
-    console.log('First leg raw:', JSON.stringify({
-      origin_name: legs[0].originName,
-      destination_name: legs[0].destinationName,
-      planned_departure: legs[0].plannedDeparture,
-      planned_arrival: legs[0].plannedArrival,
-      distance_km: legs[0].distanceKm,
-      origin_lat: legs[0].originLat,
-      origin_lon: legs[0].originLon,
-      destination_lat: legs[0].destLat,
-      destination_lon: legs[0].destLon,
-      operator: legs[0].operator,
-      train_number: legs[0].trainNumber,
-      polyline: legs[0].polyline,
-    }))
-  }
-
   const mapImage = await fetchRouteMapImage(
     legs.map((l: any) => ({
       origin_lat: l.originLat,
@@ -92,12 +66,9 @@ export async function GET(
     280
   )
 
-  console.log('Map fetch result:', mapImage ? 'SUCCESS' : 'FAILED')
-  
   // Fallback to SVG map if Geoapify fails
   let finalMapImage = mapImage
   if (!mapImage) {
-    console.log('Using fallback SVG map...')
     const fallbackMap = generateFallbackMapSVG(
       legs.map((l: any) => ({
         origin_lat: l.originLat,
@@ -111,8 +82,6 @@ export async function GET(
     )
     finalMapImage = fallbackMap
   }
-  
-  console.log('=== END PDF EXPORT DEBUG ===')
 
   let qrBase64: string | null = null
   if (trip.shareToken) {

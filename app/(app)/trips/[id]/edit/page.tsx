@@ -29,8 +29,8 @@ function isoToTime(iso: string | null | undefined): string {
 }
 
 // Combine back to ISO (UTC)
-function combineToISO(date: string, time: string): string {
-  if (!date || !time) return ''
+function combineToISO(date: string, time: string): string | null {
+  if (!date || !time) return null
   return `${date}T${time}:00.000Z`
 }
 
@@ -131,6 +131,13 @@ export default function TripEditPage() {
       })
       // Save dirty legs
       const dirtyLegs = Object.entries(legForms).filter(([, f]) => f.dirty)
+      for (const [, form] of dirtyLegs) {
+        if (!combineToISO(form.date, form.depTime) || !combineToISO(form.date, form.arrTime)) {
+          setApiError('Bitte Datum und Uhrzeiten für alle Abschnitte ausfüllen.')
+          setIsSaving(false)
+          return
+        }
+      }
       await Promise.all(
         dirtyLegs.map(([legId, form]) =>
           updateLeg.mutateAsync({
@@ -139,8 +146,8 @@ export default function TripEditPage() {
               originName: form.originName,
               destName: form.destName,
               trainNumber: form.trainNumber || undefined,
-              plannedDeparture: combineToISO(form.date, form.depTime),
-              plannedArrival: combineToISO(form.date, form.arrTime),
+              plannedDeparture: combineToISO(form.date, form.depTime) as string,
+              plannedArrival: combineToISO(form.date, form.arrTime) as string,
             },
           })
         )
