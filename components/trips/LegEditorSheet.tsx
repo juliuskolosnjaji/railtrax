@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
+import { ArrowRight, CalendarClock, PencilLine, Search } from 'lucide-react'
 import { createLegSchema, OPERATORS, type CreateLegInput } from '@/lib/validators/leg'
 import { useCreateLeg, useUpdateLeg, type Leg, apiFetch } from '@/hooks/useTrips'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -90,6 +91,16 @@ function toISO(local: string): string {
   return new Date(local).toISOString()
 }
 
+function getDefaultDepartureLocal(): string {
+  const date = new Date()
+  date.setMinutes(Math.ceil(date.getMinutes() / 15) * 15, 0, 0)
+  return toDatetimeLocal(date.toISOString())
+}
+
+function getDefaultTrainDate(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
 // ─── Spinner ──────────────────────────────────────────────────────────────────
 
 function Spinner() {
@@ -105,6 +116,8 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
   const createLeg = useCreateLeg()
   const updateLeg = useUpdateLeg(tripId)
   const isPending = createLeg.isPending || updateLeg.isPending
+  const defaultDeparture = getDefaultDepartureLocal()
+  const defaultTrainDate = getDefaultTrainDate()
 
   // ── Tab state ──────────────────────────────────────────────────────────────
   const [tab, setTab] = useState<Tab>(isEditing ? 'manual' : 'departures')
@@ -132,7 +145,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
   const [apiError, setApiError] = useState<string | null>(null)
 
   // ── Manual form ────────────────────────────────────────────────────────────
-  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } =
+  const { control, register, handleSubmit, setValue, reset, formState: { errors } } =
     useForm<CreateLegInput>({
       resolver: zodResolver(createLegSchema),
       defaultValues: { tripId },
@@ -144,9 +157,13 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
   // ── Reset when closing ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedStation(null)
       setStationInput('')
+      setDepDatetime(defaultDeparture)
       setSelectedTripId(null)
+      setTrainInput('')
+      setTrainDate(defaultTrainDate)
       setTrainSearchKey('')
       setBoardIdx(0)
       setAlightIdx(0)
@@ -157,7 +174,15 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
       setShowSuggestions(false)
       setTab(isEditing ? 'manual' : 'departures')
     }
-  }, [open, isEditing])
+  }, [defaultDeparture, defaultTrainDate, open, isEditing])
+
+  useEffect(() => {
+    if (open && !isEditing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDepDatetime((current) => current || defaultDeparture)
+      setTrainDate((current) => current || defaultTrainDate)
+    }
+  }, [defaultDeparture, defaultTrainDate, open, isEditing])
 
   // ── Populate manual form when editing ─────────────────────────────────────
   useEffect(() => {
@@ -230,6 +255,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
         const found = activeJourney.stopovers.findIndex(s => s.stationId === selectedStation.id)
         if (found >= 0) bIdx = found
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBoardIdx(bIdx)
       setAlightIdx(activeJourney.stopovers.length - 1)
     }
@@ -276,7 +302,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
     const board = activeJourney.stopovers[boardIdx]
     const alight = activeJourney.stopovers[alightIdx]
     if (!board.plannedDeparture || !alight.plannedArrival) {
-      setApiError('Selected stops have no departure/arrival time')
+      setApiError('Die gewählten Halte haben keine vollständigen Abfahrts- oder Ankunftszeit.')
       return
     }
 
@@ -309,6 +335,32 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
     }
   }
 
+  function copyJourneyToManual() {
+    if (!activeJourney) return
+
+    const board = activeJourney.stopovers[boardIdx]
+    const alight = activeJourney.stopovers[alightIdx]
+
+    setValue('originName', board.stationName, { shouldDirty: true })
+    setValue('originIbnr', board.stationId ?? '', { shouldDirty: true })
+    setValue('originLat', board.lat ?? undefined, { shouldDirty: true })
+    setValue('originLon', board.lon ?? undefined, { shouldDirty: true })
+    setValue('plannedDeparture', toDatetimeLocal(board.plannedDeparture), { shouldDirty: true })
+    setValue('destName', alight.stationName, { shouldDirty: true })
+    setValue('destIbnr', alight.stationId ?? '', { shouldDirty: true })
+    setValue('destLat', alight.lat ?? undefined, { shouldDirty: true })
+    setValue('destLon', alight.lon ?? undefined, { shouldDirty: true })
+    setValue('plannedArrival', toDatetimeLocal(alight.plannedArrival), { shouldDirty: true })
+    setValue('operator', inferOperator(activeJourney.operator ?? activeJourney.lineName), { shouldDirty: true })
+    setValue('trainNumber', activeJourney.lineName ?? '', { shouldDirty: true })
+    setValue('lineName', activeJourney.lineName ?? '', { shouldDirty: true })
+    setValue('tripIdVendo', activeJourney.tripId ?? '', { shouldDirty: true })
+    setValue('platformPlanned', board.platform ?? smartPlatform, { shouldDirty: true })
+    setValue('seat', smartSeat, { shouldDirty: true })
+    setValue('notes', smartNotes, { shouldDirty: true })
+    setTab('manual')
+  }
+
   // ─── Derived values for journey confirm ───────────────────────────────────
   const alightStops = activeJourney
     ? activeJourney.stopovers.slice(boardIdx + 1).filter(s => s.plannedArrival)
@@ -316,6 +368,17 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
 
   const boardStop = activeJourney?.stopovers[boardIdx] ?? null
   const alightStop = activeJourney?.stopovers[alightIdx] ?? null
+  const [manualDeparture, manualArrival, manualOrigin, manualDestination, manualOperator, manualTrainNumber, manualLineName] =
+    useWatch({
+      control,
+      name: ['plannedDeparture', 'plannedArrival', 'originName', 'destName', 'operator', 'trainNumber', 'lineName'],
+    })
+  const manualDuration = fmtDuration(
+    manualDeparture ? toISO(manualDeparture) : null,
+    manualArrival ? toISO(manualArrival) : null
+  )
+  const manualTrainLabel = manualLineName || manualTrainNumber
+  const canSearchDepartures = !!selectedStation && depDatetime.length > 0
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
@@ -323,15 +386,46 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="bg-background border-border text-foreground w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-foreground">{isEditing ? 'Edit leg' : 'Add leg'}</SheetTitle>
+          <SheetTitle className="text-foreground">{isEditing ? 'Abschnitt bearbeiten' : 'Abschnitt hinzufügen'}</SheetTitle>
           <SheetDescription className="text-muted-foreground">
-            One train ride — one vehicle, one departure to one arrival.
+            Ein Abschnitt steht für genau eine Fahrt: von Abfahrt bis Ankunft mit einem Zug.
           </SheetDescription>
         </SheetHeader>
 
         {/* Tab bar — only shown when creating */}
         {!isEditing && (
-          <div className="mt-4 flex rounded-lg bg-card p-1 gap-1">
+          <>
+            <div className="mt-4 grid gap-3 rounded-xl border border-border bg-card/60 p-3 text-sm sm:grid-cols-3">
+              <div className="rounded-lg border border-border/70 bg-background/80 p-3">
+                <div className="mb-2 flex items-center gap-2 text-foreground">
+                  <Search className="h-4 w-4" />
+                  <span className="font-medium">Abfahrten</span>
+                </div>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Am schnellsten, wenn du Bahnhof und Uhrzeit kennst.
+                </p>
+              </div>
+              <div className="rounded-lg border border-border/70 bg-background/80 p-3">
+                <div className="mb-2 flex items-center gap-2 text-foreground">
+                  <CalendarClock className="h-4 w-4" />
+                  <span className="font-medium">Zugnummer</span>
+                </div>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Ideal, wenn du schon genau weisst, welchen Zug du nehmen willst.
+                </p>
+              </div>
+              <div className="rounded-lg border border-border/70 bg-background/80 p-3">
+                <div className="mb-2 flex items-center gap-2 text-foreground">
+                  <PencilLine className="h-4 w-4" />
+                  <span className="font-medium">Manuell</span>
+                </div>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Für eigene Notizen, Sonderfälle oder wenn keine Live-Daten verfügbar sind.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex rounded-lg bg-card p-1 gap-1">
             {(['departures', 'train', 'manual'] as Tab[]).map((t) => (
               <button
                 key={t}
@@ -344,10 +438,11 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     : 'text-muted-foreground hover:text-foreground/80',
                 ].join(' ')}
               >
-                {t === 'departures' ? 'Departures' : t === 'train' ? 'Train' : 'Manual'}
+                {t === 'departures' ? 'Abfahrten' : t === 'train' ? 'Zugnummer' : 'Manuell'}
               </button>
             ))}
-          </div>
+            </div>
+          </>
         )}
 
         <div className="mt-6 space-y-5">
@@ -360,7 +455,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 <Label className="text-secondary-foreground">Station</Label>
                 <div className="relative flex items-center">
                   <Input
-                    placeholder="Search station…"
+                    placeholder="Bahnhof suchen…"
                     value={selectedStation ? selectedStation.name : stationInput}
                     onChange={(e) => {
                       if (selectedStation) {
@@ -382,7 +477,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                         setSelectedTripId(null)
                       }}
                       className="absolute right-2 text-muted-foreground hover:text-foreground/80 text-lg leading-none"
-                      aria-label="Clear station"
+                      aria-label="Bahnhof zurücksetzen"
                     >
                       ×
                     </button>
@@ -415,25 +510,30 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
 
               {/* Datetime */}
               <div className="space-y-1.5">
-                <Label className="text-secondary-foreground">Departure time</Label>
+                <Label className="text-secondary-foreground">Abfahrtszeit</Label>
                 <Input
                   type="datetime-local"
                   value={depDatetime}
                   onChange={(e) => setDepDatetime(e.target.value)}
                   className="bg-card border-border text-foreground"
                 />
+                {!canSearchDepartures && (
+                  <p className="text-xs text-muted-foreground">
+                    Wähle zuerst einen Bahnhof und eine Uhrzeit, dann laden passende Abfahrten.
+                  </p>
+                )}
               </div>
 
               {/* Departures list */}
               {fetchingDepartures && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
                   <Spinner />
-                  <span>Searching…</span>
+                  <span>Abfahrten werden geladen…</span>
                 </div>
               )}
 
               {!fetchingDepartures && departures && departures.length === 0 && (
-                <p className="text-sm text-muted-foreground py-2">No departures found.</p>
+                <p className="text-sm text-muted-foreground py-2">Keine Abfahrten gefunden.</p>
               )}
 
               {!fetchingDepartures && departures && departures.length > 0 && (
@@ -480,7 +580,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
               {selectedTripId && fetchingJourneyFromDep && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
                   <Spinner />
-                  <span>Loading journey details…</span>
+                  <span>Fahrtdetails werden geladen…</span>
                 </div>
               )}
             </div>
@@ -490,7 +590,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
           {tab === 'train' && (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-secondary-foreground">Train number</Label>
+                <Label className="text-secondary-foreground">Zugnummer</Label>
                 <Input
                   placeholder="ICE 724"
                   value={trainInput}
@@ -499,7 +599,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-secondary-foreground">Date</Label>
+                <Label className="text-secondary-foreground">Datum</Label>
                 <Input
                   type="date"
                   value={trainDate}
@@ -516,20 +616,20 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 {fetchingTrain ? (
                   <span className="flex items-center gap-2">
                     <Spinner />
-                    Looking for {trainInput}…
+                    Suche nach {trainInput}…
                   </span>
-                ) : 'Find train'}
+                ) : 'Zug finden'}
               </Button>
 
               {trainError && !fetchingTrain && (
                 <div className="rounded-lg border border-amber-900/50 bg-amber-950/30 p-3 text-sm text-amber-300">
-                  <p>Train not found. Try the Departures tab instead.</p>
+                  <p>Zug nicht gefunden. Versuch es stattdessen über die Abfahrten.</p>
                   <button
                     type="button"
                     onClick={() => setTab('departures')}
                     className="mt-1 text-amber-200 underline text-xs"
                   >
-                    Switch to Departures
+                    Zu Abfahrten wechseln
                   </button>
                 </div>
               )}
@@ -556,13 +656,13 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
 
               {/* Board at */}
               <div className="space-y-1.5">
-                <Label className="text-secondary-foreground">Board at</Label>
+                <Label className="text-secondary-foreground">Einsteigen in</Label>
                 <Select
                   value={String(boardIdx)}
                   onValueChange={(v) => {
                     const idx = Number(v)
-                    setBoardIdx(idx)
-                    if (alightIdx <= idx) {
+                  setBoardIdx(idx)
+                  if (alightIdx <= idx) {
                       const nextAlight = activeJourney.stopovers
                         .slice(idx + 1)
                         .findIndex(s => s.plannedArrival)
@@ -571,7 +671,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   }}
                 >
                   <SelectTrigger className="bg-card border-border text-foreground">
-                    <SelectValue placeholder="Select boarding stop…" />
+                    <SelectValue placeholder="Einstieg wählen…" />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     {activeJourney.stopovers.map((s, i) => {
@@ -591,13 +691,13 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
 
               {/* Alight at */}
               <div className="space-y-1.5">
-                <Label className="text-secondary-foreground">Alight at</Label>
+                <Label className="text-secondary-foreground">Aussteigen in</Label>
                 <Select
                   value={String(alightIdx)}
                   onValueChange={(v) => setAlightIdx(Number(v))}
                 >
                   <SelectTrigger className="bg-card border-border text-foreground">
-                    <SelectValue placeholder="Select alighting stop…" />
+                    <SelectValue placeholder="Ausstieg wählen…" />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     {alightStops.map((s) => {
@@ -621,12 +721,12 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   <div className="flex items-center gap-2 text-foreground">
                     <span className="font-medium">{boardStop.stationName}</span>
                     <span className="font-mono text-muted-foreground">{fmtTime(boardStop.plannedDeparture)}</span>
-                    <span className="text-muted-foreground">→</span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">{alightStop.stationName}</span>
                     <span className="font-mono text-muted-foreground">{fmtTime(alightStop.plannedArrival)}</span>
                   </div>
                   <div className="text-muted-foreground text-xs">
-                    Duration: {fmtDuration(boardStop.plannedDeparture, alightStop.plannedArrival)}
+                    Fahrzeit: {fmtDuration(boardStop.plannedDeparture, alightStop.plannedArrival)}
                   </div>
                 </div>
               )}
@@ -644,7 +744,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-secondary-foreground">Seat</Label>
+                    <Label className="text-secondary-foreground">Sitzplatz</Label>
                     <Input
                       placeholder="Wagen 5, Platz 42"
                       value={smartSeat}
@@ -654,9 +754,9 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-secondary-foreground">Notes</Label>
+                  <Label className="text-secondary-foreground">Notizen</Label>
                   <Textarea
-                    placeholder="Any notes about this leg…"
+                    placeholder="Optional: Reservierung, Umstieg, Besonderheiten…"
                     rows={2}
                     value={smartNotes}
                     onChange={(e) => setSmartNotes(e.target.value)}
@@ -671,14 +771,22 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                 </p>
               )}
 
-              <div className="flex gap-3 pt-1">
+              <div className="grid gap-3 pt-1 sm:grid-cols-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border-border text-secondary-foreground hover:bg-secondary"
+                  onClick={copyJourneyToManual}
+                >
+                  In manuell bearbeiten
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="flex-1 border-border text-secondary-foreground hover:bg-secondary"
                   onClick={() => onOpenChange(false)}
                 >
-                  Cancel
+                  Abbrechen
                 </Button>
                 <Button
                   type="button"
@@ -686,7 +794,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   disabled={isPending || !boardStop || !alightStop}
                   onClick={handleSmartSubmit}
                 >
-                  {isPending ? 'Adding…' : 'Add leg'}
+                  {isPending ? 'Wird hinzugefügt…' : 'Abschnitt hinzufügen'}
                 </Button>
               </div>
             </div>
@@ -695,9 +803,24 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
           {/* ── MANUAL TAB ─────────────────────────────────────────────────── */}
           {tab === 'manual' && (
             <form onSubmit={handleSubmit(onManualSubmit)} className="space-y-5">
+              <div className="rounded-xl border border-border bg-card/60 p-4">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-foreground">
+                  <span className="font-medium">{manualOrigin || 'Start wählen'}</span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">{manualDestination || 'Ziel wählen'}</span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  {manualDeparture && <span>Abfahrt: {fmtTime(toISO(manualDeparture))}</span>}
+                  {manualArrival && <span>Ankunft: {fmtTime(toISO(manualArrival))}</span>}
+                  {manualDuration && <span>Fahrzeit: {manualDuration}</span>}
+                  {manualOperator && <span>Betreiber: {manualOperator}</span>}
+                  {manualTrainLabel && <span>Zug: {manualTrainLabel}</span>}
+                </div>
+              </div>
+
               {/* Origin */}
               <fieldset className="space-y-3">
-                <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Origin</legend>
+                <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Start</legend>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-2 space-y-1.5">
                     <Label htmlFor="originName" className="text-secondary-foreground">Station *</Label>
@@ -720,7 +843,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="plannedDeparture" className="text-secondary-foreground">Departure *</Label>
+                  <Label htmlFor="plannedDeparture" className="text-secondary-foreground">Abfahrt *</Label>
                   <Input
                     id="plannedDeparture"
                     type="datetime-local"
@@ -733,7 +856,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
 
               {/* Destination */}
               <fieldset className="space-y-3">
-                <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Destination</legend>
+                <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ziel</legend>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-2 space-y-1.5">
                     <Label htmlFor="destName" className="text-secondary-foreground">Station *</Label>
@@ -756,7 +879,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="plannedArrival" className="text-secondary-foreground">Arrival *</Label>
+                  <Label htmlFor="plannedArrival" className="text-secondary-foreground">Ankunft *</Label>
                   <Input
                     id="plannedArrival"
                     type="datetime-local"
@@ -769,16 +892,16 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
 
               {/* Train info */}
               <fieldset className="space-y-3">
-                <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Train</legend>
-                <div className="grid grid-cols-2 gap-3">
+                <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Zugdetails</legend>
+                <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-secondary-foreground">Operator</Label>
+                    <Label className="text-secondary-foreground">Betreiber</Label>
                     <Select
-                      value={watch('operator') ?? ''}
+                      value={manualOperator ?? ''}
                       onValueChange={(v) => setValue('operator', v as typeof OPERATORS[number])}
                     >
                       <SelectTrigger className="bg-card border-border text-foreground">
-                        <SelectValue placeholder="Select…" />
+                        <SelectValue placeholder="Auswählen…" />
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border">
                         {OPERATORS.map((op) => (
@@ -789,9 +912,17 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                       </SelectContent>
                     </Select>
                   </div>
-                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="trainNumber" className="text-secondary-foreground">Train number</Label>
+                    <Label htmlFor="lineName" className="text-secondary-foreground">Linie</Label>
+                    <Input
+                      id="lineName"
+                      placeholder="ICE 724"
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
+                      {...register('lineName')}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="trainNumber" className="text-secondary-foreground">Zugnummer</Label>
                     <Input
                       id="trainNumber"
                       placeholder="ICE 724"
@@ -808,25 +939,24 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                       {...register('platformPlanned')}
                     />
                   </div>
-                </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="seat" className="text-secondary-foreground">Seat</Label>
-                  <Input
-                    id="seat"
-                    placeholder="Wagen 5, Platz 42"
-                    className="bg-card border-border text-foreground placeholder:text-muted-foreground"
-                    {...register('seat')}
-                  />
+                  <div className="space-y-1.5">
+                    <Label htmlFor="seat" className="text-secondary-foreground">Sitzplatz</Label>
+                    <Input
+                      id="seat"
+                      placeholder="Wagen 5, Platz 42"
+                      className="bg-card border-border text-foreground placeholder:text-muted-foreground"
+                      {...register('seat')}
+                    />
+                  </div>
                 </div>
               </fieldset>
 
               <div className="space-y-1.5">
-                <Label htmlFor="notes" className="text-secondary-foreground">Notes</Label>
+                <Label htmlFor="notes" className="text-secondary-foreground">Notizen</Label>
                 <Textarea
                   id="notes"
-                  placeholder="Any notes about this leg…"
-                  rows={2}
+                  placeholder="Optional: Reservierung, Wagenreihung, Hinweise zum Umstieg…"
+                  rows={3}
                   className="bg-card border-border text-foreground placeholder:text-muted-foreground resize-none"
                   {...register('notes')}
                 />
@@ -845,7 +975,7 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   className="flex-1 border-border text-secondary-foreground hover:bg-secondary"
                   onClick={() => onOpenChange(false)}
                 >
-                  Cancel
+                  Abbrechen
                 </Button>
                 <Button
                   type="submit"
@@ -853,8 +983,8 @@ export function LegEditorSheet({ tripId, open, onOpenChange, leg }: LegEditorShe
                   disabled={isPending}
                 >
                   {isPending
-                    ? (isEditing ? 'Saving…' : 'Adding…')
-                    : (isEditing ? 'Save changes' : 'Add leg')}
+                    ? (isEditing ? 'Wird gespeichert…' : 'Wird hinzugefügt…')
+                    : (isEditing ? 'Änderungen speichern' : 'Abschnitt hinzufügen')}
                 </Button>
               </div>
             </form>
