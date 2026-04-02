@@ -47,7 +47,7 @@ export default function DemoMap() {
             type="line"
             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
             paint={{
-              'line-color': '#4f8ef7',
+              'line-color': '#34d4b0',
               'line-width': 10,
               'line-opacity': 0.15,
             }}
@@ -58,7 +58,7 @@ export default function DemoMap() {
             type="line"
             layout={{ 'line-cap': 'round', 'line-join': 'round' }}
             paint={{
-              'line-color': '#4f8ef7',
+              'line-color': '#34d4b0',
               'line-width': 3,
               'line-opacity': 0.9,
             }}
@@ -82,9 +82,9 @@ export default function DemoMap() {
               type="circle"
               paint={{
                 'circle-radius': i === 0 || i === DEMO_STATIONS.length - 1 ? 6 : 4,
-                'circle-color': i === 0 || i === DEMO_STATIONS.length - 1 ? '#4f8ef7' : '#0a1628',
+                'circle-color': i === 0 || i === DEMO_STATIONS.length - 1 ? '#34d4b0' : '#0a1628',
                 'circle-stroke-width': 2,
-                'circle-stroke-color': '#4f8ef7',
+                'circle-stroke-color': '#34d4b0',
               }}
             />
             <Layer
@@ -146,7 +146,7 @@ export default function DemoMap() {
             borderRadius: '6px',
             padding: '4px 10px',
             fontSize: 12,
-            color: '#4f8ef7',
+            color: '#34d4b0',
             fontWeight: 500,
           }}>
             {train}
