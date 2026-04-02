@@ -421,6 +421,7 @@ export async function exportTripAsPdf(
 ): Promise<void> {
   const { jsPDF } = await import('jspdf')
   const legs = trip.legs
+  const FONT_FAMILY = 'times'
 
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const PW = 210
@@ -439,13 +440,13 @@ export async function exportTripAsPdf(
   let y = 20
 
   pdf.setTextColor(107, 114, 128)
-  pdf.setFont('helvetica', 'normal')
+  pdf.setFont(FONT_FAMILY, 'normal')
   pdf.setFontSize(9)
   pdf.text('Railtrax Trip Overview', M, y)
   y += 8
 
   pdf.setTextColor(17, 24, 39)
-  pdf.setFont('helvetica', 'bold')
+  pdf.setFont(FONT_FAMILY, 'bold')
   pdf.setFontSize(20)
   const titleLines = pdf.splitTextToSize(trip.title, CONTENT_W)
   pdf.text(titleLines, M, y)
@@ -458,7 +459,7 @@ export async function exportTripAsPdf(
 
   if (dateRange && dateRange !== '-') {
     pdf.setTextColor(75, 85, 99)
-    pdf.setFont('helvetica', 'normal')
+    pdf.setFont(FONT_FAMILY, 'normal')
     pdf.setFontSize(10)
     pdf.text(dateRange, M, y)
     y += 7
@@ -487,17 +488,17 @@ export async function exportTripAsPdf(
     pdf.roundedRect(x, y, statW, 18, 2, 2, 'FD')
     pdf.setTextColor(107, 114, 128)
     pdf.setFontSize(8)
-    pdf.setFont('helvetica', 'normal')
+    pdf.setFont(FONT_FAMILY, 'normal')
     pdf.text(stat.label.toUpperCase(), x + 4, y + 6)
     pdf.setTextColor(17, 24, 39)
     pdf.setFontSize(12)
-    pdf.setFont('helvetica', 'bold')
+    pdf.setFont(FONT_FAMILY, 'bold')
     pdf.text(stat.value, x + 4, y + 13)
   })
   y += 26
 
   pdf.setTextColor(107, 114, 128)
-  pdf.setFont('helvetica', 'normal')
+  pdf.setFont(FONT_FAMILY, 'normal')
   pdf.setFontSize(9)
   pdf.text('Route', M, y)
   y += 4
@@ -507,7 +508,28 @@ export async function exportTripAsPdf(
   pdf.setFillColor(248, 250, 252)
   pdf.roundedRect(M, y, CONTENT_W, mapH, 2, 2, 'FD')
   if (mapImage) {
-    pdf.addImage(mapImage, 'PNG', M + 1, y + 1, CONTENT_W - 2, mapH - 2)
+    const mapBoxX = M + 1
+    const mapBoxY = y + 1
+    const mapBoxW = CONTENT_W - 2
+    const mapBoxH = mapH - 2
+    const mapProps = pdf.getImageProperties(mapImage)
+    const mapRatio = mapProps.width / mapProps.height
+    const boxRatio = mapBoxW / mapBoxH
+
+    let drawW = mapBoxW
+    let drawH = mapBoxH
+    let drawX = mapBoxX
+    let drawY = mapBoxY
+
+    if (mapRatio > boxRatio) {
+      drawH = mapBoxW / mapRatio
+      drawY = mapBoxY + (mapBoxH - drawH) / 2
+    } else {
+      drawW = mapBoxH * mapRatio
+      drawX = mapBoxX + (mapBoxW - drawW) / 2
+    }
+
+    pdf.addImage(mapImage, 'PNG', drawX, drawY, drawW, drawH)
   } else {
     pdf.setTextColor(107, 114, 128)
     pdf.setFontSize(10)
@@ -525,7 +547,7 @@ export async function exportTripAsPdf(
   pdf.setFillColor(243, 244, 246)
   pdf.rect(M, y, CONTENT_W, 8, 'FD')
   pdf.setTextColor(107, 114, 128)
-  pdf.setFont('helvetica', 'bold')
+  pdf.setFont(FONT_FAMILY, 'bold')
   pdf.setFontSize(8)
   pdf.text('#', M + 3, y + 5.3)
   pdf.text('Route', M + 12, y + 5.3)
@@ -540,7 +562,7 @@ export async function exportTripAsPdf(
     pdf.line(M, y + 11, M + CONTENT_W, y + 11)
 
     pdf.setTextColor(17, 24, 39)
-    pdf.setFont('helvetica', 'normal')
+    pdf.setFont(FONT_FAMILY, 'normal')
     pdf.setFontSize(8.5)
     pdf.text(String(index + 1), M + 3, y + 6.5)
     pdf.text(truncatePdfText(pdf, `${leg.originName} → ${leg.destName}`, 92), M + 12, y + 4.8)
@@ -561,7 +583,7 @@ export async function exportTripAsPdf(
   if (legs.length > visibleLegs.length) {
     y += 4
     pdf.setTextColor(107, 114, 128)
-    pdf.setFont('helvetica', 'normal')
+    pdf.setFont(FONT_FAMILY, 'normal')
     pdf.setFontSize(8)
     pdf.text(`+ ${legs.length - visibleLegs.length} weitere Abschnitte`, M, y)
   }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { searchJourneys, searchStations } from '@/lib/vendo'
+import { getPublicCommunityTripOrNull } from '@/lib/community'
 
 async function resolveIbnr(name: string): Promise<string | null> {
   if (!name || name.length < 2) return null
@@ -29,8 +30,12 @@ export async function POST(
   const { startDate, startTime, selectedJourneyIndex } = await req.json()
 
   try {
+    const publicTrip = await getPublicCommunityTripOrNull(id)
+    if (!publicTrip)
+      return NextResponse.json({ error: 'not_found' }, { status: 404 })
+
     const communityTrip = await prisma().communityTrip.findUnique({
-      where: { id },
+      where: { id: publicTrip.id },
       include: {
         trip: {
           include: {

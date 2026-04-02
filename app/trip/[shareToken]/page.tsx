@@ -13,7 +13,7 @@ interface PageProps {
 
 interface RollingStockRef {
   set_number?: string | null
-  rolling_stock?: { series: string; operator: string } | null
+  rolling_stock?: { series: string; operator: string }[] | null
 }
 
 interface TripLeg {
@@ -43,36 +43,6 @@ interface TripLeg {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const IBNR_COUNTRIES: Record<string, { flag: string; name: string }> = {
-  '80': { flag: '🇩🇪', name: 'Deutschland' },
-  '81': { flag: '🇦🇹', name: 'Österreich' },
-  '82': { flag: '🇱🇺', name: 'Luxemburg' },
-  '83': { flag: '🇧🇪', name: 'Belgien' },
-  '84': { flag: '🇳🇱', name: 'Niederlande' },
-  '85': { flag: '🇨🇭', name: 'Schweiz' },
-  '86': { flag: '🇪🇸', name: 'Spanien' },
-  '87': { flag: '🇫🇷', name: 'Frankreich' },
-  '88': { flag: '🇭🇺', name: 'Ungarn' },
-  '70': { flag: '🇬🇧', name: 'Großbritannien' },
-  '79': { flag: '🇮🇹', name: 'Italien' },
-}
-
-function getCountries(legs: TripLeg[]): { flag: string; name: string }[] {
-  const seen = new Set<string>()
-  const result: { flag: string; name: string }[] = []
-  for (const leg of legs) {
-    for (const ibnr of [leg.origin_ibnr, leg.dest_ibnr]) {
-      if (!ibnr) continue
-      const prefix = ibnr.slice(0, 2)
-      if (!seen.has(prefix) && IBNR_COUNTRIES[prefix]) {
-        seen.add(prefix)
-        result.push(IBNR_COUNTRIES[prefix])
-      }
-    }
-  }
-  return result
-}
 
 function getOperatorStyle(operator: string | null | undefined): { background: string; color: string; border: string } {
   const op = (operator ?? '').toUpperCase()
@@ -153,9 +123,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const desc = trip.description || `Zugreise von ${user?.username || 'einem Reisenden'}${dateRange ? ` · ${dateRange}` : ''}`
 
-    // Get base URL from environment variable with fallback
-    // @ts-ignore - NEXT_PUBLIC_URL is defined in .env
-    const baseUrl = (process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu').replace(/\/+$/, '')
+  const baseUrl = (process.env.NEXT_PUBLIC_URL ?? 'https://railtrax.eu').replace(/\/+$/, '')
    return {
      title: `${trip.title} – Railtrax`,
      description: desc,
@@ -183,9 +151,35 @@ export default async function PublicTripPage({ params }: PageProps) {
   const { data: trip } = await supabase
     .from('trips')
     .select(`
-      *,
+      id,
+      title,
+      description,
+      status,
+      start_date,
+      end_date,
       legs(
-        *,
+        id,
+        position,
+        planned_departure,
+        planned_arrival,
+        actual_departure,
+        actual_arrival,
+        distance_km,
+        origin_name,
+        dest_name,
+        origin_ibnr,
+        dest_ibnr,
+        origin_lat,
+        origin_lon,
+        dest_lat,
+        dest_lon,
+        train_type,
+        train_number,
+        operator,
+        platform_planned,
+        platform_actual,
+        delay_minutes,
+        polyline,
         leg_rolling_stock(
           set_number,
           rolling_stock(series, operator)
@@ -402,7 +396,7 @@ export default async function PublicTripPage({ params }: PageProps) {
                   const arrTime  = formatTime(leg.planned_arrival)
                   const platform = leg.platform_actual ?? leg.platform_planned
                   const trainLabel = [leg.train_type, leg.train_number].filter(Boolean).join(' ')
-                  const rs     = leg.leg_rolling_stock?.[0]?.rolling_stock
+                  const rs     = leg.leg_rolling_stock?.[0]?.rolling_stock?.[0]
                   const setNum = leg.leg_rolling_stock?.[0]?.set_number
                   const hasDelay = (leg.delay_minutes ?? 0) > 0
 

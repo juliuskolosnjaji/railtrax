@@ -16,9 +16,17 @@ export async function POST(
   const { id } = await params
 
   try {
+    const comment = await prisma().communityComment.findUnique({
+      where: { id },
+      select: { id: true, communityTrip: { select: { id: true, isPublic: true } } },
+    })
+    if (!comment || !comment.communityTrip.isPublic) {
+      return NextResponse.json({ error: 'not_found' }, { status: 404 })
+    }
+
     const existing = await prisma().commentLike.findUnique({
       where: {
-        uniq_comment_like_comment_user: { commentId: id, userId: user.id },
+        uniq_comment_like_comment_user: { commentId: comment.id, userId: user.id },
       },
     })
 
@@ -27,7 +35,7 @@ export async function POST(
       return NextResponse.json({ data: { liked: false } })
     } else {
       await prisma().commentLike.create({
-        data: { commentId: id, userId: user.id },
+        data: { commentId: comment.id, userId: user.id },
       })
       return NextResponse.json({ data: { liked: true } })
     }

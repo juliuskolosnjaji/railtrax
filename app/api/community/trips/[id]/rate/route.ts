@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getPublicCommunityTripOrNull } from '@/lib/community'
 
 export async function POST(
   req: NextRequest,
@@ -20,11 +21,15 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_rating' }, { status: 400 })
 
   try {
+    const communityTrip = await getPublicCommunityTripOrNull(id)
+    if (!communityTrip)
+      return NextResponse.json({ error: 'not_found' }, { status: 404 })
+
     await prisma().communityRating.upsert({
       where: {
-        uniq_community_rating_trip_user: { communityTripId: id, userId: user.id },
+        uniq_community_rating_trip_user: { communityTripId: communityTrip.id, userId: user.id },
       },
-      create: { communityTripId: id, userId: user.id, rating },
+      create: { communityTripId: communityTrip.id, userId: user.id, rating },
       update: { rating },
     })
 

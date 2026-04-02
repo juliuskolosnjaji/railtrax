@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getPublicCommunityTripOrNull } from '@/lib/community'
 
 export async function POST(
   req: NextRequest,
@@ -23,9 +24,13 @@ export async function POST(
     return NextResponse.json({ error: 'comment_too_long' }, { status: 400 })
 
   try {
+    const communityTrip = await getPublicCommunityTripOrNull(id)
+    if (!communityTrip)
+      return NextResponse.json({ error: 'not_found' }, { status: 404 })
+
     const comment = await prisma().communityComment.create({
       data: {
-        communityTripId: id,
+        communityTripId: communityTrip.id,
         userId: user.id,
         text: trimmed,
       },

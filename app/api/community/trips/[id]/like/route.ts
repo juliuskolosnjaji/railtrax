@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { getPublicCommunityTripOrNull } from '@/lib/community'
 
 export async function POST(
   req: NextRequest,
@@ -16,9 +17,13 @@ export async function POST(
   const { id } = await params
 
   try {
+    const communityTrip = await getPublicCommunityTripOrNull(id)
+    if (!communityTrip)
+      return NextResponse.json({ error: 'not_found' }, { status: 404 })
+
     const existing = await prisma().communityLike.findUnique({
       where: {
-        uniq_community_like_trip_user: { communityTripId: id, userId: user.id },
+        uniq_community_like_trip_user: { communityTripId: communityTrip.id, userId: user.id },
       },
     })
 
@@ -27,7 +32,7 @@ export async function POST(
       return NextResponse.json({ data: { liked: false } })
     } else {
       await prisma().communityLike.create({
-        data: { communityTripId: id, userId: user.id },
+        data: { communityTripId: communityTrip.id, userId: user.id },
       })
       return NextResponse.json({ data: { liked: true } })
     }

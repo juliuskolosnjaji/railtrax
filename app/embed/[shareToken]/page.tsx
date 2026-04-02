@@ -13,8 +13,34 @@ export default async function EmbedPage({ params }: PageProps) {
   const { data: trip } = await supabase
     .from('trips')
     .select(`
-      *,
-      legs(*)
+      id,
+      title,
+      legs(
+        id,
+        position,
+        origin_name,
+        origin_ibnr,
+        origin_lat,
+        origin_lon,
+        planned_departure,
+        actual_departure,
+        dest_name,
+        dest_ibnr,
+        dest_lat,
+        dest_lon,
+        planned_arrival,
+        actual_arrival,
+        operator,
+        line_name,
+        train_type,
+        train_number,
+        platform_planned,
+        platform_actual,
+        delay_minutes,
+        cancelled,
+        distance_km,
+        polyline
+      )
     `)
     .eq('share_token', shareToken)
     .eq('is_public', true)

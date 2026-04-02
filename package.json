@@ -6,11 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint app components hooks lib middleware.ts next.config.mjs tailwind.config.ts prisma.config.ts postcss.config.mjs service-worker.js --max-warnings=0",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:setup": "prisma db push && tsx prisma/seed.ts",
-    "type-check": "tsc --noEmit",
+    "type-check": "rm -rf .next && tsc --noEmit",
     "build:clean": "rm -rf .next && npm run build",
     "postinstall": "prisma generate"
   },

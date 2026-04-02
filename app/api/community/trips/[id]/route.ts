@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
+import { PUBLIC_LEG_SELECT } from '@/lib/community'
 
 export async function GET(
   req: NextRequest,
@@ -15,11 +16,24 @@ export async function GET(
   try {
     const trip = await prisma().communityTrip.findUnique({
       where: { id, isPublic: true },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        createdAt: true,
+        updatedAt: true,
         user: { select: { id: true, username: true, avatarUrl: true } },
         trip: {
-          include: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+            createdAt: true,
             legs: {
+              select: PUBLIC_LEG_SELECT,
               orderBy: { plannedDeparture: 'asc' },
             },
           },
@@ -28,12 +42,19 @@ export async function GET(
         likes: { select: { userId: true } },
         comments: {
           orderBy: { createdAt: 'asc' },
-          include: {
+          select: {
+            id: true,
+            text: true,
+            createdAt: true,
+            updatedAt: true,
             user: { select: { id: true, username: true, avatarUrl: true } },
             _count: { select: { likes: true } },
           },
         },
-        photos: { orderBy: { createdAt: 'asc' } },
+        photos: {
+          orderBy: { createdAt: 'asc' },
+          select: { id: true, url: true, caption: true, createdAt: true, userId: true },
+        },
         _count: { select: { ratings: true, likes: true, comments: true } },
       },
     })
@@ -56,7 +77,21 @@ export async function GET(
       : false
 
     return NextResponse.json({
-      data: { ...trip, avgRating, userRating, userLiked },
+      data: {
+        id: trip.id,
+        title: trip.title,
+        description: trip.description,
+        createdAt: trip.createdAt,
+        updatedAt: trip.updatedAt,
+        user: trip.user,
+        trip: trip.trip,
+        comments: trip.comments,
+        photos: trip.photos,
+        _count: trip._count,
+        avgRating,
+        userRating,
+        userLiked,
+      },
     })
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
