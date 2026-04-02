@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get('userId')
-  if (!userId) {
-    return NextResponse.json({ error: 'missing_user_id' }, { status: 400 })
-  }
+export async function GET() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   try {
     const count = await prisma().leg.count({
       where: {
-        trip: { userId },
+        trip: { userId: user.id },
         status: { in: ['planned', 'checked_in'] },
       },
     })

@@ -7,6 +7,8 @@ import sharp from 'sharp'
 
 const MAX_DIMENSION = 2000
 const MAX_STORAGE_MB = 500
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'])
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -29,6 +31,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const file = formData.get('file') as File | null
   if (!file) return NextResponse.json({ error: 'validation_error', details: 'file required' }, { status: 422 })
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    return NextResponse.json({ error: 'validation_error', details: 'unsupported image type' }, { status: 422 })
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return NextResponse.json({ error: 'validation_error', details: 'file too large' }, { status: 413 })
+  }
 
   // Check storage limit
   const usage = await prisma().usageCounter.findUnique({ where: { userId: user.id } })
@@ -42,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const inputBuffer = Buffer.from(await file.arrayBuffer())
   let outputBuffer: Buffer
   try {
-    outputBuffer = await sharp(inputBuffer)
+    outputBuffer = await sharp(inputBuffer, { limitInputPixels: 25_000_000 })
       .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 85 })
       .toBuffer()
@@ -74,13 +82,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   })
 
   // Update usage counters
-  await prisma().usageCounter.update({
-    where: { userId: user.id },
-    data: {
-      photosCount: { increment: 1 },
-      storageBytes: { increment: outputBuffer.length },
-    },
-  })
+  try {
+    await prisma().usageCounter.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        photosCount: 1,
+        storageBytes: BigInt(outputBuffer.length),
+      },
+      update: {
+        photosCount: { increment: 1 },
+        storageBytes: { increment: outputBuffer.length },
+      },
+    })
+  } catch {
+    await prisma().journalPhoto.delete({ where: { id: photo.id } }).catch(() => {})
+    await admin.storage.from('journal-photos').remove([storagePath]).catch(() => {})
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 })
+  }
 
   return NextResponse.json({ data: photo }, { status: 201 })
 }

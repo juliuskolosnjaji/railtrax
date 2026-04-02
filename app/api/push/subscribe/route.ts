@@ -24,6 +24,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const existing = await prisma().pushSubscription.findUnique({
+      where: { endpoint: parsed.data.endpoint },
+      select: { userId: true },
+    })
+    if (existing && existing.userId !== user.id) {
+      return NextResponse.json({ error: 'subscription_conflict' }, { status: 409 })
+    }
+
     await prisma().pushSubscription.upsert({
       where: { endpoint: parsed.data.endpoint },
       create: {

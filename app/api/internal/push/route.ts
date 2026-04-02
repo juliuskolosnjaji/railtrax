@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendToUser } from '@/lib/push'
+import crypto from 'crypto'
 
 const pushSchema = {
   parse: (body: unknown) => {
@@ -13,7 +14,14 @@ const pushSchema = {
 
 export async function POST(req: NextRequest) {
   const internalSecret = req.headers.get('X-Internal-Secret')
-  if (internalSecret !== process.env.INTERNAL_SECRET) {
+  const expectedSecret = process.env.INTERNAL_SECRET
+  if (!expectedSecret || !internalSecret) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
+  const provided = Buffer.from(internalSecret)
+  const expected = Buffer.from(expectedSecret)
+  if (provided.length !== expected.length || !crypto.timingSafeEqual(provided, expected)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 

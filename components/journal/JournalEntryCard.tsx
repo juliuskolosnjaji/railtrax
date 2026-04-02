@@ -13,13 +13,45 @@ import { useDeleteJournalEntry, type JournalEntry } from '@/hooks/useJournal'
 
 const TIPTAP_EXTENSIONS = [StarterKit, Image, Link]
 
+function sanitizeHtml(html: string): string {
+  if (typeof window === 'undefined') return html
+
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  const blockedTags = new Set(['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'meta', 'link'])
+
+  for (const element of Array.from(doc.body.querySelectorAll('*'))) {
+    const tagName = element.tagName.toLowerCase()
+    if (blockedTags.has(tagName)) {
+      element.remove()
+      continue
+    }
+
+    for (const attr of Array.from(element.attributes)) {
+      const name = attr.name.toLowerCase()
+      const value = attr.value.trim()
+
+      if (name.startsWith('on')) {
+        element.removeAttribute(attr.name)
+        continue
+      }
+
+      if ((name === 'href' || name === 'src') && /^javascript:/i.test(value)) {
+        element.removeAttribute(attr.name)
+      }
+    }
+  }
+
+  return doc.body.innerHTML
+}
+
 function renderBody(body: string | null): string {
   if (!body) return ''
   try {
     const doc = JSON.parse(body)
-    return generateHTML(doc, TIPTAP_EXTENSIONS)
+    return sanitizeHtml(generateHTML(doc, TIPTAP_EXTENSIONS))
   } catch {
-    return body
+    return sanitizeHtml(body)
   }
 }
 
