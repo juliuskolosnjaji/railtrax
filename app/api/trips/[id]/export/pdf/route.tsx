@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma'
 import { fetchRouteMapImage } from '@/lib/export/mapImage'
 import { generateFallbackMapSVG } from '@/lib/export/fallbackMap'
 import { TripDocument } from '@/lib/export/TripDocument'
-import QRCode from 'qrcode'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,18 +82,8 @@ export async function GET(
     finalMapImage = fallbackMap
   }
 
-  let qrBase64: string | null = null
-  if (trip.shareToken) {
-    const qrDataUrl = await QRCode.toDataURL(`https://railtrax.eu/trip/${trip.shareToken}`, {
-      width: 120, margin: 1, color: { dark: '#4f8ef7', light: '#080d1a' }
-    })
-    qrBase64 = qrDataUrl
-  }
-
   const totalKm = legs.reduce((s: number, l: any) => s + (Number(l.distanceKm) || 0), 0)
-  const co2Saved = totalKm * 0.22
   
-  // Fix total duration calculation with null checks
   const legsWithValidDates = legs.filter((l: any) => 
     l.plannedDeparture && !isNaN(new Date(l.plannedDeparture).getTime())
   )
@@ -122,10 +111,8 @@ export async function GET(
       trip={trip}
       legs={legs}
       mapImageBase64={finalMapImage}
-      qrBase64={qrBase64}
       totalKm={totalKm}
       totalDuration={totalDuration}
-      co2Saved={co2Saved}
       shareUrl={shareUrl}
     />
   )

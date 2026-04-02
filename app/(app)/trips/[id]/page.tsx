@@ -56,6 +56,7 @@ export default function TripDetailPage() {
   const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
   const [expandedLeg, setExpandedLeg] = useState<string | null>(null)
   const [publishOpen, setPublishOpen] = useState(false)
+  const mapContainerId = `trip-map-${id}`
 
   useTraewellingAutoCheckin(id, trip?.legs ?? [])
 
@@ -173,7 +174,7 @@ export default function TripDetailPage() {
               <button
                 onClick={async () => {
                   const { exportTripAsImage } = await import('@/lib/export/clientExport')
-                  await exportTripAsImage(trip, null as unknown as HTMLElement)
+                  await exportTripAsImage(trip, document.getElementById(mapContainerId))
                 }}
                 className="tap-small h-8 px-3 rounded-lg border flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
                 style={{ borderColor: 'hsl(var(--border))', background: 'transparent', cursor: 'pointer', minHeight: 'unset', minWidth: 'unset' }}
@@ -227,7 +228,7 @@ export default function TripDetailPage() {
 
           {trip.legs.length > 0 && (
             <div className="mb-8">
-              <TripRouteCard legs={trip.legs} />
+              <TripRouteCard legs={trip.legs} mapContainerId={mapContainerId} />
             </div>
           )}
 

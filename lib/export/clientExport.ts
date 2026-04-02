@@ -60,11 +60,84 @@ function roundRect(
   ctx.closePath()
 }
 
+function fitTextToWidth(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+): string {
+  let value = text
+  while (ctx.measureText(value).width > maxWidth && value.length > 4) {
+    value = value.slice(0, -1)
+  }
+  return value === text ? value : `${value.trimEnd()}…`
+}
+
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return ['']
+
+  const lines: string[] = []
+  let current = words[0]
+
+  for (const word of words.slice(1)) {
+    const candidate = `${current} ${word}`
+    if (ctx.measureText(candidate).width <= maxWidth) {
+      current = candidate
+      continue
+    }
+
+    lines.push(current)
+    current = word
+
+    if (lines.length === maxLines - 1) break
+  }
+
+  const consumedWords = lines.join(' ').split(/\s+/).filter(Boolean).length
+  const remainingWords = words.slice(consumedWords)
+  if (remainingWords.length > 0) {
+    const finalLine = remainingWords.join(' ')
+    lines.push(fitTextToWidth(ctx, finalLine, maxWidth))
+  } else {
+    lines.push(current)
+  }
+
+  return lines.slice(0, maxLines)
+}
+
+function drawCoverImage(
+  ctx: CanvasRenderingContext2D,
+  img: CanvasImageSource,
+  targetX: number,
+  targetY: number,
+  targetW: number,
+  targetH: number,
+  sourceW: number,
+  sourceH: number,
+) {
+  const scale = Math.max(targetW / sourceW, targetH / sourceH)
+  const drawW = sourceW * scale
+  const drawH = sourceH * scale
+  const drawX = targetX + (targetW - drawW) / 2
+  const drawY = targetY + (targetH - drawH) / 2
+
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(targetX, targetY, targetW, targetH)
+  ctx.clip()
+  ctx.drawImage(img, drawX, drawY, drawW, drawH)
+  ctx.restore()
+}
+
 // ── IMAGE EXPORT ───────────────────────────────────────────────────────────────
 
 export async function exportTripAsImage(
   trip: TripDetail,
-  _mapContainer: HTMLElement,
+  mapContainer: HTMLElement | null,
 ): Promise<void> {
   const legs = trip.legs
 
@@ -73,7 +146,7 @@ export async function exportTripAsImage(
   let mapImageSrc: string | null = null
 
   // Try the MapLibre canvas rendered on the page (requires preserveDrawingBuffer: true)
-  const mapCanvas = document.querySelector<HTMLCanvasElement>('.trip-map-card canvas')
+  const mapCanvas = mapContainer ? getMapCanvas(mapContainer) : null
   if (mapCanvas && mapCanvas.width > 0 && mapCanvas.height > 0) {
     try { mapImageSrc = mapCanvas.toDataURL('image/png') } catch { /* tainted/cross-origin */ }
   }
@@ -100,15 +173,21 @@ export async function exportTripAsImage(
   const ctx = canvas.getContext('2d')!
 
   const MAP_W = 660
+  const MAP_H = 630
   const PANEL_X = MAP_W
   const PANEL_W = 540
   const PAD = 36
+  const PANEL_INNER_W = PANEL_W - PAD * 2
+  const STATS_Y = 555
+  const CONTENT_BOTTOM = STATS_Y - 18
 
   // ── Background ──────────────────────────────────────────────────────────────
   ctx.fillStyle = '#080d1a'
   ctx.fillRect(0, 0, 1200, 630)
 
   // ── Left: map image ─────────────────────────────────────────────────────────
+  ctx.fillStyle = '#0a1628'
+  ctx.fillRect(0, 0, MAP_W, MAP_H)
   if (mapImageSrc) {
     const img = new Image()
     await new Promise<void>((resolve) => {
@@ -116,19 +195,18 @@ export async function exportTripAsImage(
       img.onerror = () => resolve()
       img.src = mapImageSrc!
     })
-    ctx.drawImage(img, 0, 0, MAP_W, 630)
-  } else {
-    ctx.fillStyle = '#0a1628'
-    ctx.fillRect(0, 0, MAP_W, 630)
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      drawCoverImage(ctx, img, 0, 0, MAP_W, MAP_H, img.naturalWidth, img.naturalHeight)
+    }
   }
 
   // ── Divider ──────────────────────────────────────────────────────────────────
   ctx.fillStyle = '#4f8ef7'
-  ctx.fillRect(MAP_W, 0, 2, 630)
+  ctx.fillRect(MAP_W, 0, 2, MAP_H)
 
   // ── Right: dark info panel ───────────────────────────────────────────────────
   ctx.fillStyle = '#080d1a'
-  ctx.fillRect(PANEL_X + 2, 0, PANEL_W - 2, 630)
+  ctx.fillRect(PANEL_X + 2, 0, PANEL_W - 2, MAP_H)
 
   let cy = 52
 
@@ -136,13 +214,12 @@ export async function exportTripAsImage(
   ctx.fillStyle = '#ffffff'
   ctx.font = '500 28px system-ui, -apple-system, sans-serif'
   ctx.textAlign = 'left'
-  let title = trip.title
-  while (ctx.measureText(title).width > PANEL_W - PAD * 2 - 10 && title.length > 4) {
-    title = title.slice(0, -1)
-  }
-  if (title !== trip.title) title = title.trimEnd() + '…'
-  ctx.fillText(title, PANEL_X + PAD, cy)
-  cy += 36
+  const titleLines = wrapText(ctx, trip.title, PANEL_INNER_W, 2)
+  titleLines.forEach((line) => {
+    ctx.fillText(line, PANEL_X + PAD, cy)
+    cy += 34
+  })
+  cy += 6
 
   // Status badge
   const status = trip.status ?? 'planned'
@@ -167,26 +244,50 @@ export async function exportTripAsImage(
     ctx.fillStyle = '#4a6a9a'
     ctx.font = '400 15px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'left'
-    ctx.fillText(dateRange, PANEL_X + PAD, cy)
-    cy += 28
+    const dateLines = wrapText(ctx, dateRange, PANEL_INNER_W, 2)
+    dateLines.forEach((line) => {
+      ctx.fillText(line, PANEL_X + PAD, cy)
+      cy += 22
+    })
   }
 
-  cy += 12
+  cy += 14
 
   // Divider
   ctx.fillStyle = '#1e2d4a'
-  ctx.fillRect(PANEL_X + PAD, cy, PANEL_W - PAD * 2, 1)
-  cy += 16
+  ctx.fillRect(PANEL_X + PAD, cy, PANEL_INNER_W, 1)
+  cy += 20
 
-  // Legs (up to 5)
-  const visibleLegs = legs.slice(0, 5)
+  const legAreaTop = cy
+  let availableLegHeight = CONTENT_BOTTOM - legAreaTop
+  let maxVisibleLegs = Math.min(legs.length, 5)
+
+  if (legs.length > maxVisibleLegs) {
+    availableLegHeight -= 20
+  }
+
+  while (maxVisibleLegs > 0 && maxVisibleLegs * 56 > availableLegHeight) {
+    maxVisibleLegs -= 1
+  }
+
+  const visibleLegs = legs.slice(0, Math.max(maxVisibleLegs, 0))
   const extraLegs = legs.length - visibleLegs.length
 
   for (const leg of visibleLegs) {
     const opColor = getOperatorColor(leg.operator ?? null)
-    const trainLabel = [leg.trainType, leg.trainNumber].filter(Boolean).join(' ') || '—'
+    ctx.font = '500 11px system-ui, -apple-system, sans-serif'
+    const trainLabel = fitTextToWidth(
+      ctx,
+      [leg.trainType, leg.trainNumber].filter(Boolean).join(' ') || '—',
+      140,
+    )
     const depTime = formatTime(leg.plannedDeparture)
     const arrTime = formatTime(leg.plannedArrival)
+    const routeMaxWidth = PANEL_INNER_W - 16
+    const routeLines = (() => {
+      ctx.font = '400 12px system-ui, -apple-system, sans-serif'
+      return wrapText(ctx, `${leg.originName} → ${leg.destName}`, routeMaxWidth, 2)
+    })()
 
     // Operator colour dot
     ctx.fillStyle = opColor
@@ -213,23 +314,19 @@ export async function exportTripAsImage(
 
     cy += 22
 
-    // Origin → Dest
     ctx.fillStyle = '#8ba3c7'
     ctx.font = '400 12px system-ui, -apple-system, sans-serif'
     ctx.textAlign = 'left'
-    const routeText = `${leg.originName} → ${leg.destName}`
-    let rt = routeText
-    while (ctx.measureText(rt).width > PANEL_W - PAD * 2 - 20 && rt.length > 4) {
-      rt = rt.slice(0, -1)
-    }
-    if (rt !== routeText) rt = rt.trimEnd() + '…'
-    ctx.fillText(rt, PANEL_X + PAD + 16, cy)
+    routeLines.forEach((line) => {
+      ctx.fillText(line, PANEL_X + PAD + 16, cy)
+      cy += 16
+    })
 
-    cy += 20
+    cy += 8
 
     // Separator
     ctx.fillStyle = '#1e2d4a'
-    ctx.fillRect(PANEL_X + PAD, cy, PANEL_W - PAD * 2, 1)
+    ctx.fillRect(PANEL_X + PAD, cy, PANEL_INNER_W, 1)
     cy += 10
   }
 

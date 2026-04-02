@@ -9,19 +9,25 @@ export function generateFallbackMapSVG(
   width: number = 794,
   height: number = 280
 ): string | null {
-  const validLegs = legs.filter(l => l.origin_lat && l.origin_lon && l.destination_lat && l.destination_lon)
+  const validLegs = legs.filter(
+    (leg) =>
+      leg.origin_lat != null &&
+      leg.origin_lon != null &&
+      leg.destination_lat != null &&
+      leg.destination_lon != null,
+  )
   if (validLegs.length === 0) return null
 
   // Calculate bounds
   let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180
   validLegs.forEach(leg => {
-    if (leg.origin_lat && leg.origin_lon) {
+    if (leg.origin_lat != null && leg.origin_lon != null) {
       minLat = Math.min(minLat, leg.origin_lat)
       maxLat = Math.max(maxLat, leg.origin_lat)
       minLon = Math.min(minLon, leg.origin_lon)
       maxLon = Math.max(maxLon, leg.origin_lon)
     }
-    if (leg.destination_lat && leg.destination_lon) {
+    if (leg.destination_lat != null && leg.destination_lon != null) {
       minLat = Math.min(minLat, leg.destination_lat)
       maxLat = Math.max(maxLat, leg.destination_lat)
       minLon = Math.min(minLon, leg.destination_lon)
@@ -38,8 +44,8 @@ export function generateFallbackMapSVG(
   maxLon += lonPadding
 
   // Calculate scale
-  const latRange = maxLat - minLat
-  const lonRange = maxLon - minLon
+  const latRange = Math.max(maxLat - minLat, 0.0001)
+  const lonRange = Math.max(maxLon - minLon, 0.0001)
   const scale = Math.min(width / lonRange, height / latRange) * 0.8
 
   // Convert coordinates to SVG coordinates
@@ -54,7 +60,7 @@ export function generateFallbackMapSVG(
   let markers = ''
   const stationSet = new Set<string>()
 
-  validLegs.forEach((leg, index) => {
+  validLegs.forEach((leg) => {
     const start = project(leg.origin_lat!, leg.origin_lon!)
     const end = project(leg.destination_lat!, leg.destination_lon!)
 

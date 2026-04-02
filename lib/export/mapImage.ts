@@ -4,21 +4,29 @@ export async function fetchRouteMapImage(
     origin_lon: number | null
     destination_lat: number | null
     destination_lon: number | null
-    polyline?: { coordinates: number[][] } | null
+    polyline?: { coordinates: number[][] } | [number, number][] | null
     operator?: string | null
   }>,
   width: number,
   height: number
 ): Promise<string | null> {
   const geometries = legs
-    .filter(l => l.origin_lat && l.destination_lat)
+    .filter(
+      (leg) =>
+        leg.origin_lat != null &&
+        leg.origin_lon != null &&
+        leg.destination_lat != null &&
+        leg.destination_lon != null,
+    )
     .map(leg => {
       const color = leg.operator === 'DB' ? '#E32228'
                   : leg.operator === 'SBB' ? '#EB0000'
                   : leg.operator === 'ÖBB' ? '#C8102E'
                   : '#4f8ef7'
 
-      const polylineCoords = leg.polyline?.coordinates
+      const polylineCoords = Array.isArray(leg.polyline)
+        ? leg.polyline
+        : leg.polyline?.coordinates
       if (polylineCoords && polylineCoords.length > 1) {
         return {
           type: 'polyline',

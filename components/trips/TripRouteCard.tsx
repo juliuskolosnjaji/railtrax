@@ -17,7 +17,7 @@ function formatDuration(min: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
-export function TripRouteCard({ legs }: { legs: Leg[] }) {
+export function TripRouteCard({ legs, mapContainerId }: { legs: Leg[]; mapContainerId?: string }) {
   if (!legs.length) return null
 
   const sortedLegs = [...legs].sort(
@@ -166,7 +166,7 @@ export function TripRouteCard({ legs }: { legs: Leg[] }) {
       </div>
 
       {/* ── Map ── */}
-      <TripMapCard legs={sortedLegs} />
+      <TripMapCard legs={sortedLegs} containerId={mapContainerId} />
 
       {/* ── Footer stats ── */}
       <div
