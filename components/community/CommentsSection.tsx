@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Heart } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -26,9 +26,9 @@ export function CommentsSection({
   const [user, setUser] = useState<{ id: string } | null>(null)
   const qc = useQueryClient()
 
-  useState(() => {
+  useEffect(() => {
     createClient().auth.getUser().then(({ data }) => setUser(data.user))
-  })
+  }, [])
 
   const commentMutation = useMutation({
     mutationFn: async () => {
@@ -52,15 +52,31 @@ export function CommentsSection({
     },
   })
 
-  const likeMutation = useMutation({
+  const commentLikeMutation = useMutation({
     mutationFn: async (commentId: string) => {
       const res = await fetch(
         `/api/community/comments/${commentId}/like`,
         { method: 'POST' },
       )
+      if (!res.ok) throw new Error('Failed')
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data, commentId) => {
+      const liked = data.data?.liked ?? false
+      setComments((prev) =>
+        prev.map((c) => {
+          if (c.id !== commentId) return c
+          const currentLiked = c.likes?.some((l) => l.userId === user?.id) ?? false
+          return {
+            ...c,
+            _count: {
+              likes: liked
+                ? (c._count?.likes ?? 0) + (currentLiked ? 0 : 1)
+                : Math.max(0, (c._count?.likes ?? 0) - (currentLiked ? 1 : 0)),
+            },
+          }
+        }),
+      )
       qc.invalidateQueries({
         queryKey: ['community-trip', communityTripId],
       })
@@ -145,101 +161,106 @@ export function CommentsSection({
 
       {/* Comments list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {comments.map((comment) => (
-          <div
-            key={comment.id}
-            style={{
-              display: 'flex',
-              gap: 10,
-              paddingBottom: 12,
-              borderBottom: '1px solid hsl(var(--border))',
-            }}
-          >
+        {comments.map((comment) => {
+          const isLiked = comment.likes?.some((l) => l.userId === user?.id) ?? false
+          return (
             <div
+              key={comment.id}
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                background: 'hsl(var(--muted))',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 12,
-                color: 'hsl(var(--muted-foreground))',
-                flexShrink: 0,
-                overflow: 'hidden',
+                gap: 10,
+                paddingBottom: 12,
+                borderBottom: '1px solid hsl(var(--border))',
               }}
             >
-              {comment.user.avatarUrl ? (
-                <img
-                  src={comment.user.avatarUrl}
-                  alt=""
-                  style={{ width: 28, height: 28, borderRadius: '50%' }}
-                />
-              ) : (
-                comment.user.username[0]?.toUpperCase()
-              )}
-            </div>
-            <div style={{ flex: 1 }}>
               <div
                 style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  background: 'hsl(var(--muted))',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 4,
+                  justifyContent: 'center',
+                  fontSize: 12,
+                  color: 'hsl(var(--muted-foreground))',
+                  flexShrink: 0,
+                  overflow: 'hidden',
                 }}
               >
-                <span
+                {comment.user.avatarUrl ? (
+                  <img
+                    src={comment.user.avatarUrl}
+                    alt=""
+                    style={{ width: 28, height: 28, borderRadius: '50%' }}
+                  />
+                ) : (
+                  comment.user.username[0]?.toUpperCase()
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 4,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: 'hsl(var(--foreground))',
+                    }}
+                  >
+                    {comment.user.username}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: 'hsl(var(--muted-foreground))',
+                    }}
+                  >
+                    {new Date(comment.createdAt).toLocaleDateString('de-DE', {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </span>
+                </div>
+                <p
                   style={{
                     fontSize: 13,
-                    fontWeight: 500,
                     color: 'hsl(var(--foreground))',
+                    margin: 0,
+                    lineHeight: 1.5,
                   }}
                 >
-                  {comment.user.username}
-                </span>
-                <span
+                  {comment.text}
+                </p>
+                <button
+                  onClick={() => commentLikeMutation.mutate(comment.id)}
                   style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    marginTop: 4,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
                     fontSize: 11,
-                    color: 'hsl(var(--muted-foreground))',
+                    color: isLiked ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))',
+                    transition: 'color 0.15s',
                   }}
                 >
-                  {new Date(comment.createdAt).toLocaleDateString('de-DE', {
-                    day: 'numeric',
-                    month: 'short',
-                  })}
-                </span>
+                  <Heart size={12} fill={isLiked ? 'currentColor' : 'none'} />{' '}
+                  {comment._count?.likes ?? 0}
+                </button>
               </div>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: 'hsl(var(--foreground))',
-                  margin: 0,
-                  lineHeight: 1.5,
-                }}
-              >
-                {comment.text}
-              </p>
-              <button
-                onClick={() => likeMutation.mutate(comment.id)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  marginTop: 4,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  color: 'hsl(var(--muted-foreground))',
-                }}
-              >
-                <Heart size={12} /> {comment._count.likes}
-              </button>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

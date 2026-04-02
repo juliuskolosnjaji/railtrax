@@ -24,7 +24,7 @@ const DEMO_ROUTE: GeoJSON.Feature = {
 
 export default function DemoMap() {
   return (
-    <div style={{ position: 'relative', height: '420px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #1e2d4a' }}>
+    <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
       <Map
         initialViewState={{
           longitude: 10.5,
