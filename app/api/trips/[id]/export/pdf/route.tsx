@@ -2,7 +2,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { fetchRouteMapImage } from '@/lib/export/mapImage'
-import { generateFallbackMapPng } from '@/lib/export/fallbackMap'
+import { generateFallbackMapPng } from '@/lib/export/fallbackMap.server'
 import { TripDocument } from '@/lib/export/TripDocument'
 
 export const dynamic = 'force-dynamic'

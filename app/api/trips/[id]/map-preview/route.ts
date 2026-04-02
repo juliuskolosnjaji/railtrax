@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { fetchRouteMapImage } from '@/lib/export/mapImage'
-import { generateFallbackMapPng } from '@/lib/export/fallbackMap'
+import { generateFallbackMapPng } from '@/lib/export/fallbackMap.server'
 
 type Params = { params: Promise<{ id: string }> }
 

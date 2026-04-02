@@ -1,4 +1,4 @@
-type FallbackLeg = {
+export type FallbackLeg = {
   origin_lat: number | null
   origin_lon: number | null
   destination_lat: number | null
@@ -6,7 +6,7 @@ type FallbackLeg = {
   operator?: string | null
 }
 
-function buildFallbackMapSvgMarkup(
+export function buildFallbackMapSvgMarkup(
   legs: FallbackLeg[],
   width: number = 794,
   height: number = 280,
@@ -109,17 +109,4 @@ export function generateFallbackMapSVG(
   const svg = buildFallbackMapSvgMarkup(legs, width, height)
   if (!svg) return null
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
-}
-
-export async function generateFallbackMapPng(
-  legs: FallbackLeg[],
-  width: number = 794,
-  height: number = 280,
-): Promise<string | null> {
-  const svg = buildFallbackMapSvgMarkup(legs, width, height)
-  if (!svg) return null
-
-  const sharp = (await import('sharp')).default
-  const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer()
-  return `data:image/png;base64,${pngBuffer.toString('base64')}`
 }
