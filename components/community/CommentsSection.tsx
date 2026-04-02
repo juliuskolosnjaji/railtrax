@@ -61,25 +61,31 @@ export function CommentsSection({
       if (!res.ok) throw new Error('Failed')
       return res.json()
     },
-    onSuccess: (data, commentId) => {
-      const liked = data.data?.liked ?? false
+    onMutate: async (commentId) => {
+      const previous = [...comments]
       setComments((prev) =>
         prev.map((c) => {
           if (c.id !== commentId) return c
-          const currentLiked = c.likes?.some((l) => l.userId === user?.id) ?? false
+          const wasLiked = c.likes?.some((l) => l.userId === user?.id) ?? false
           return {
             ...c,
             _count: {
-              likes: liked
-                ? (c._count?.likes ?? 0) + (currentLiked ? 0 : 1)
-                : Math.max(0, (c._count?.likes ?? 0) - (currentLiked ? 1 : 0)),
+              likes: wasLiked
+                ? Math.max(0, (c._count?.likes ?? 0) - 1)
+                : (c._count?.likes ?? 0) + 1,
             },
+            likes: wasLiked
+              ? c.likes?.filter((l) => l.userId !== user?.id) ?? []
+              : [...(c.likes ?? []), { userId: user?.id ?? '' }],
           }
         }),
       )
-      qc.invalidateQueries({
-        queryKey: ['community-trip', communityTripId],
-      })
+      return { previous }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        setComments(context.previous)
+      }
     },
   })
 

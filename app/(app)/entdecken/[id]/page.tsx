@@ -61,38 +61,63 @@ export default function CommunityTripDetailPage() {
   })
 
   const rateMutation = useMutation({
-    mutationFn: (rating: number) =>
-      fetch(`/api/community/trips/${id}/rate`, {
+    mutationFn: async (rating: number) => {
+      const res = await fetch(`/api/community/trips/${id}/rate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rating }),
-      }),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ['community-trip', id] }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      return res.json()
+    },
+    onMutate: async (rating) => {
+      await qc.cancelQueries({ queryKey: ['community-trip', id] })
+      const previous = qc.getQueryData(['community-trip', id]) as any
+      qc.setQueryData(['community-trip', id], (old: any) => {
+        if (!old) return old
+        return { ...old, userRating: rating }
+      })
+      return { previous }
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) {
+        qc.setQueryData(['community-trip', id], context.previous)
+      }
+    },
   })
 
   const likeMutation = useMutation({
-    mutationFn: () =>
-      fetch(`/api/community/trips/${id}/like`, { method: 'POST' }),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ['community-trip', id] })
-      res.json().then((data) => {
-        // Update local trip data immediately
-        qc.setQueryData(['community-trip', id], (old: any) => {
-          if (!old) return old
-          const liked = data.data?.liked ?? !trip.userLiked
-          return {
-            ...old,
-            userLiked: liked,
-            _count: {
-              ...old._count,
-              likes: liked
-                ? (old._count?.likes ?? 0) + 1
-                : Math.max(0, (old._count?.likes ?? 0) - 1),
-            },
-          }
-        })
-      }).catch(() => {})
+    mutationFn: async () => {
+      const res = await fetch(`/api/community/trips/${id}/like`, { method: 'POST' })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed')
+      }
+      return res.json()
+    },
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ['community-trip', id] })
+      const previous = qc.getQueryData(['community-trip', id]) as any
+      qc.setQueryData(['community-trip', id], (old: any) => {
+        if (!old) return old
+        const wasLiked = old.userLiked ?? false
+        return {
+          ...old,
+          userLiked: !wasLiked,
+          _count: {
+            ...old._count,
+            likes: wasLiked
+              ? Math.max(0, (old._count?.likes ?? 0) - 1)
+              : (old._count?.likes ?? 0) + 1,
+          },
+        }
+      })
+      return { previous }
+    },
+    onError: (_err, _vars, context: any) => {
+      if (context?.previous) {
+        qc.setQueryData(['community-trip', id], context.previous)
+      }
     },
   })
 

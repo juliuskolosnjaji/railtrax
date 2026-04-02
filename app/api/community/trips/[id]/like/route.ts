@@ -31,7 +31,8 @@ export async function POST(
       })
       return NextResponse.json({ data: { liked: true } })
     }
-  } catch {
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 })
+  } catch (err) {
+    console.error('Like toggle error:', err)
+    return NextResponse.json({ error: 'internal_error', details: err instanceof Error ? err.message : 'unknown' }, { status: 500 })
   }
 }
