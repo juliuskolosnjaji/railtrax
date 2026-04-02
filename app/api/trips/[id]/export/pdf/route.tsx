@@ -2,7 +2,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { fetchRouteMapImage } from '@/lib/export/mapImage'
-import { generateFallbackMapSVG } from '@/lib/export/fallbackMap'
+import { generateFallbackMapPng } from '@/lib/export/fallbackMap'
 import { TripDocument } from '@/lib/export/TripDocument'
 
 export const dynamic = 'force-dynamic'
@@ -61,14 +61,14 @@ export async function GET(
       polyline: l.polyline,
       operator: l.operator,
     })),
-    794,
-    280
+    1588,
+    560
   )
 
-  // Fallback to SVG map if Geoapify fails
+  // Fallback to rasterized SVG map if Geoapify fails
   let finalMapImage = mapImage
   if (!mapImage) {
-    const fallbackMap = generateFallbackMapSVG(
+    const fallbackMap = await generateFallbackMapPng(
       legs.map((l: any) => ({
         origin_lat: l.originLat,
         origin_lon: l.originLon,
@@ -76,8 +76,8 @@ export async function GET(
         destination_lon: l.destLon,
         operator: l.operator,
       })),
-      794,
-      280
+      1588,
+      560
     )
     finalMapImage = fallbackMap
   }

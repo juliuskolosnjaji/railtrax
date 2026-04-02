@@ -1,13 +1,15 @@
-export function generateFallbackMapSVG(
-  legs: Array<{
-    origin_lat: number | null
-    origin_lon: number | null
-    destination_lat: number | null
-    destination_lon: number | null
-    operator?: string | null
-  }>,
+type FallbackLeg = {
+  origin_lat: number | null
+  origin_lon: number | null
+  destination_lat: number | null
+  destination_lon: number | null
+  operator?: string | null
+}
+
+function buildFallbackMapSvgMarkup(
+  legs: FallbackLeg[],
   width: number = 794,
-  height: number = 280
+  height: number = 280,
 ): string | null {
   const validLegs = legs.filter(
     (leg) =>
@@ -55,7 +57,6 @@ export function generateFallbackMapSVG(
     return { x, y }
   }
 
-  // Generate SVG paths
   let paths = ''
   let markers = ''
   const stationSet = new Set<string>()
@@ -64,16 +65,13 @@ export function generateFallbackMapSVG(
     const start = project(leg.origin_lat!, leg.origin_lon!)
     const end = project(leg.destination_lat!, leg.destination_lon!)
 
-    // Get operator color
     const color = leg.operator === 'DB' ? '#E32228'
-              : leg.operator === 'SBB' ? '#EB0000'
-              : leg.operator === 'ÖBB' ? '#C8102E'
-              : '#4f8ef7'
+      : leg.operator === 'SBB' ? '#EB0000'
+      : leg.operator === 'ÖBB' ? '#C8102E'
+      : '#4f8ef7'
 
-    // Draw line
     paths += `<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${color}" stroke-width="3" stroke-linecap="round" />`
 
-    // Add station markers
     const startKey = `${leg.origin_lat},${leg.origin_lon}`
     const endKey = `${leg.destination_lat},${leg.destination_lon}`
 
@@ -88,14 +86,40 @@ export function generateFallbackMapSVG(
     }
   })
 
-  // Generate complete SVG
-  const svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+  return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
     <rect width="100%" height="100%" fill="#0a1628"/>
     <g>
       ${paths}
       ${markers}
     </g>
   </svg>`
+}
 
+export function generateFallbackMapSVG(
+  legs: Array<{
+    origin_lat: number | null
+    origin_lon: number | null
+    destination_lat: number | null
+    destination_lon: number | null
+    operator?: string | null
+  }>,
+  width: number = 794,
+  height: number = 280
+): string | null {
+  const svg = buildFallbackMapSvgMarkup(legs, width, height)
+  if (!svg) return null
   return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+}
+
+export async function generateFallbackMapPng(
+  legs: FallbackLeg[],
+  width: number = 794,
+  height: number = 280,
+): Promise<string | null> {
+  const svg = buildFallbackMapSvgMarkup(legs, width, height)
+  if (!svg) return null
+
+  const sharp = (await import('sharp')).default
+  const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer()
+  return `data:image/png;base64,${pngBuffer.toString('base64')}`
 }

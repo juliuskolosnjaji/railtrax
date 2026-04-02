@@ -140,18 +140,31 @@ export async function exportTripAsImage(
   mapContainer: HTMLElement | null,
 ): Promise<void> {
   const legs = trip.legs
+  const EXPORT_SCALE = 2
+  const EXPORT_W = 1200
+  const EXPORT_H = 630
 
   // Step 1: get map image.
-  // Priority: live MapLibre canvas → SVG from coordinates → dark placeholder
+  // Priority: high-res server preview → live MapLibre canvas → SVG from coordinates → dark placeholder
   let mapImageSrc: string | null = null
 
-  // Try the MapLibre canvas rendered on the page (requires preserveDrawingBuffer: true)
+  try {
+    const mapPreviewRes = await fetch(`/api/trips/${trip.id}/map-preview?width=${660 * EXPORT_SCALE}&height=${630 * EXPORT_SCALE}`, {
+      credentials: 'same-origin',
+    })
+    if (mapPreviewRes.ok) {
+      const payload = await mapPreviewRes.json()
+      if (payload?.mapBase64) mapImageSrc = payload.mapBase64
+    }
+  } catch {
+    // Fall through to local canvas/fallback rendering
+  }
+
   const mapCanvas = mapContainer ? getMapCanvas(mapContainer) : null
-  if (mapCanvas && mapCanvas.width > 0 && mapCanvas.height > 0) {
+  if (!mapImageSrc && mapCanvas && mapCanvas.width > 0 && mapCanvas.height > 0) {
     try { mapImageSrc = mapCanvas.toDataURL('image/png') } catch { /* tainted/cross-origin */ }
   }
 
-  // If canvas unavailable, generate an SVG route map from coordinates
   if (!mapImageSrc) {
     const { generateFallbackMapSVG } = await import('./fallbackMap')
     mapImageSrc = generateFallbackMapSVG(
@@ -162,15 +175,16 @@ export async function exportTripAsImage(
         destination_lon: l.destLon,
         operator: l.operator,
       })),
-      660,
-      630,
+      660 * EXPORT_SCALE,
+      630 * EXPORT_SCALE,
     )
   }
 
   const canvas = document.createElement('canvas')
-  canvas.width = 1200
-  canvas.height = 630
+  canvas.width = EXPORT_W * EXPORT_SCALE
+  canvas.height = EXPORT_H * EXPORT_SCALE
   const ctx = canvas.getContext('2d')!
+  ctx.scale(EXPORT_SCALE, EXPORT_SCALE)
 
   const MAP_W = 660
   const MAP_H = 630
@@ -183,7 +197,7 @@ export async function exportTripAsImage(
 
   // ── Background ──────────────────────────────────────────────────────────────
   ctx.fillStyle = '#080d1a'
-  ctx.fillRect(0, 0, 1200, 630)
+  ctx.fillRect(0, 0, EXPORT_W, EXPORT_H)
 
   // ── Left: map image ─────────────────────────────────────────────────────────
   ctx.fillStyle = '#0a1628'
