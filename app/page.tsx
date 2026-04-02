@@ -220,6 +220,17 @@ export default function HomePage() {
             <Logo size="sm" />
             <span className="text-muted-foreground text-sm">European Rail Planner</span>
           </div>
+          <div className="flex items-center gap-5">
+            <Link href="/impressum" className="text-muted-foreground text-sm hover:text-foreground transition-colors">
+              Impressum
+            </Link>
+            <Link href="/datenschutz" className="text-muted-foreground text-sm hover:text-foreground transition-colors">
+              Datenschutz
+            </Link>
+            <Link href="/nutzungsbedingungen" className="text-muted-foreground text-sm hover:text-foreground transition-colors">
+              AGB
+            </Link>
+          </div>
           <p className="text-muted-foreground text-sm m-0">
             © {new Date().getFullYear()} Railtrax
           </p>

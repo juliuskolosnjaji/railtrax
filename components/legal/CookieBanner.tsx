@@ -23,48 +23,22 @@ export function CookieBanner() {
     <div
       role="dialog"
       aria-label="Cookie-Hinweis"
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        background: '#0a1628',
-        borderTop: '1px solid #1e3a6e',
-        padding: '16px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 16,
-        flexWrap: 'wrap',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
-      }}
+      className="fixed bottom-0 left-0 right-0 z-[9999] bg-card border-t border-border px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_-4px_24px_rgba(0,0,0,0.4)] cookie-banner"
     >
-      <p style={{ fontSize: 13, color: '#8ba3c7', margin: 0, maxWidth: 720, lineHeight: 1.65 }}>
+      <p className="text-sm text-muted-foreground leading-relaxed max-w-[720px] m-0">
         Wir verwenden ausschließlich technisch notwendige Cookies für die Anmeldung und
         Sitzungsverwaltung. Weitere Cookies oder Tracking-Technologien setzen wir nicht ein.{' '}
-        <Link href="/datenschutz" style={{ color: '#4f8ef7', textDecoration: 'none' }}>
+        <Link href="/datenschutz" className="text-primary hover:underline">
           Datenschutzerklärung
         </Link>{' '}
         ·{' '}
-        <Link href="/impressum" style={{ color: '#4f8ef7', textDecoration: 'none' }}>
+        <Link href="/impressum" className="text-primary hover:underline">
           Impressum
         </Link>
       </p>
       <button
         onClick={accept}
-        style={{
-          background: '#4f8ef7',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          padding: '9px 22px',
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: 'pointer',
-          flexShrink: 0,
-          whiteSpace: 'nowrap',
-        }}
+        className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-md px-5 h-10 text-sm cursor-pointer flex-shrink-0 transition-colors"
       >
         Verstanden
       </button>
