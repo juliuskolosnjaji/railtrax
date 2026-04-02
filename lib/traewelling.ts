@@ -159,12 +159,10 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
 
     // Numeric only: "RE12" → "12", "ICE521" → "521"
     const legNum  = legNorm.replace(/[^0-9]/g, '')
-    const depNum  = depNorm.replace(/[^0-9]/g, '')
     const depFNum = depFNorm.replace(/[^0-9]/g, '')
 
     // Alphabetic prefix: "RE12" → "RE"
     const legPrefix = legNorm.replace(/[0-9]/g, '').toUpperCase()
-    const depPrefix = depNorm.replace(/[0-9]/g, '').toUpperCase()
 
     // s1: exact full match "re12" === "re12"
     const s1 = !!(legNorm && depNorm === legNorm)
@@ -224,14 +222,9 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
       const trip = Array.isArray(tripDetail.data) ? tripDetail.data[0] : tripDetail.data
 
       console.log('Full trip response keys:', Object.keys(tripDetail?.data ?? tripDetail ?? {}))
-
-      // Get dataSource UUID
-      if (trip?.dataSource?.id) {
-        tripIdForCheckin = trip.dataSource.id
-        console.log('Using dataSource UUID:', tripIdForCheckin)
-      } else {
-        console.log('No dataSource UUID, using hafasTripId:', tripIdForCheckin)
-      }
+      // tripIdForCheckin stays as matchingDep.tripId (HAFAS trip ID or MOTIS UUID) —
+      // trip.dataSource is the MotisSourceLicense attribution, not the trip identifier.
+      console.log('Using tripId from departures board:', tripIdForCheckin)
 
       const stopovers: any[] = trip?.stopovers ?? trip?.stops ?? []
       console.log('Trip stopovers count:', stopovers.length)
