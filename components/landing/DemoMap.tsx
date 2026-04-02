@@ -33,10 +33,10 @@ export default function DemoMap() {
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle="https://tiles.openfreemap.org/styles/fiord"
-        scrollZoom={true}
-        dragPan={true}
+        scrollZoom={false}
+        dragPan={false}
         dragRotate={false}
-        touchZoomRotate={true}
+        touchZoomRotate={false}
         attributionControl={false}
       >
         {/* Route line */}
@@ -106,33 +106,6 @@ export default function DemoMap() {
           </Source>
         ))}
       </Map>
-
-      {/* Route info overlay bottom-left */}
-      <div style={{
-        position: 'absolute', bottom: 12, left: 12,
-        background: 'rgba(8,13,26,0.85)',
-        border: '1px solid #1e2d4a',
-        borderRadius: '8px',
-        padding: '8px 14px',
-        display: 'flex', gap: '20px',
-        backdropFilter: 'blur(4px)',
-      }}>
-        {[
-          { label: 'STRECKE', value: '1.428 km' },
-          { label: 'DAUER', value: '13h 28m' },
-          { label: 'ZÜGE', value: '2' },
-          { label: 'CO₂ GESPART', value: '314 kg', color: '#3ecf6e' },
-        ].map(stat => (
-          <div key={stat.label} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 10, color: '#4a6a9a', letterSpacing: '1px' }}>
-              {stat.label}
-            </div>
-            <div style={{ fontSize: 14, fontWeight: 500, color: stat.color ?? '#ffffff' }}>
-              {stat.value}
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* Train badges top-right */}
       <div style={{

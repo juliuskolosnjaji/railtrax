@@ -50,13 +50,21 @@ export default function HomePage() {
             <a href="#features" className="hover:text-foreground transition-colors">Features</a>
             <a href="#züge" className="hover:text-foreground transition-colors">Züge</a>
           </nav>
-          <Link
-            href="/signup"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium rounded-md px-5 h-10 inline-flex items-center transition-colors"
-          >
-            <span className="hidden sm:inline">Kostenlos starten</span>
-            <span className="sm:hidden">Starten</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Anmelden
+            </Link>
+            <Link
+              href="/signup"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium rounded-md px-5 h-10 inline-flex items-center transition-colors"
+            >
+              <span className="hidden sm:inline">Kostenlos starten</span>
+              <span className="sm:hidden">Starten</span>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -75,16 +83,16 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center animate-fade-in-delay">
             <Link
-              href="/search"
+              href="/signup"
               className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-md px-7 h-11 inline-flex items-center gap-2 transition-colors text-sm"
             >
-              Verbindungen suchen →
+              Kostenlos starten →
             </Link>
             <Link
-              href="/login"
+              href="/search"
               className="border border-input bg-background hover:bg-accent hover:text-accent-foreground font-medium rounded-md px-6 h-11 inline-flex items-center gap-2 transition-colors text-sm"
             >
-              Reisen planen — kostenlos
+              Verbindungen suchen
             </Link>
           </div>
         </div>
@@ -151,18 +159,18 @@ export default function HomePage() {
           <p className="text-center text-muted-foreground text-sm md:text-base mb-12 md:mb-14">
             Von der Planung bis zum Reisebericht — alles in einer App.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-[600px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {FEATURES.map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
-                className="glass-panel rounded-xl p-5 flex flex-col gap-3 hover:border-primary/40 transition-colors"
+                className="glass-panel rounded-xl p-6 flex flex-col gap-3 hover:border-primary/40 transition-colors"
               >
-                <div className="w-7 h-7 bg-primary/10 rounded-md flex items-center justify-center tap-small">
+                <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center tap-small">
                   <Icon size={18} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-1">{title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                  <h3 className="text-sm font-semibold mb-1.5">{title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
                 </div>
               </div>
             ))}
@@ -215,10 +223,7 @@ export default function HomePage() {
       {/* ── Footer ── */}
       <footer className="border-t border-border py-8 px-5">
         <div className="max-w-[1100px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Logo size="sm" />
-            <span className="text-muted-foreground text-sm">European Rail Planner</span>
-          </div>
+          <Logo size="sm" />
           <div className="flex items-center gap-5">
             <Link href="/impressum" className="text-muted-foreground text-sm hover:text-foreground transition-colors">
               Impressum
