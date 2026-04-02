@@ -385,7 +385,10 @@ export async function checkin(token: string, leg: Leg): Promise<{ statusId: stri
     throw new TraewellingError('api_error', `Träwelling Fehler: ${msg}`)
   }
 
-  const statusId = checkinData?.data?.id ?? checkinData?.id
+  const statusId =
+    checkinData?.data?.status?.id ??
+    checkinData?.data?.id ??
+    checkinData?.id
   if (!statusId) {
     console.error('No statusId in response:', checkinData)
     throw new TraewellingError(
