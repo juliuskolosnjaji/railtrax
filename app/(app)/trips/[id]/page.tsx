@@ -14,6 +14,7 @@ import { ShareButton } from '@/components/trips/ShareButton'
 import { TrainDetailSheet } from '@/components/trains/TrainDetailSheet'
 const JournalEditor = dynamic(() => import('@/components/journal/JournalEditor').then(m => m.JournalEditor), { ssr: false })
 import { useTrip, useDeleteTrip, useShareTrip, useUnshareTrip } from '@/hooks/useTrips'
+import { useTraewellingAutoCheckin } from '@/hooks/useTraewelling'
 import { useJournalEntries, type JournalEntry } from '@/hooks/useJournal'
 import { TripRouteCard } from '@/components/trips/TripRouteCard'
 import { PublishTripModal } from '@/components/community/PublishTripModal'
@@ -55,6 +56,8 @@ export default function TripDetailPage() {
   const [detailTrain, setDetailTrain] = useState<{ trainNumber: string; departure?: string; operator?: string | null } | null>(null)
   const [expandedLeg, setExpandedLeg] = useState<string | null>(null)
   const [publishOpen, setPublishOpen] = useState(false)
+
+  useTraewellingAutoCheckin(id, trip?.legs ?? [])
 
   const toggleLeg = (legId: string) =>
     setExpandedLeg(prev => prev === legId ? null : legId)

@@ -91,23 +91,39 @@ export function ConnectionsClient({
         </CardHeader>
         <CardContent>
           {username ? (
-            <div className="flex items-center justify-between p-3 rounded-lg bg-surface border border-border">
-              <div className="flex items-center gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
-                <span className="text-sm text-foreground">
-                  Verbunden als <strong className="text-foreground">@{username}</strong>
-                </span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-surface border border-border">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
+                  <span className="text-sm text-foreground">
+                    Verbunden als <strong className="text-foreground">@{username}</strong>
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDisconnect}
+                  disabled={isLoading}
+                  className="text-muted-foreground hover:text-destructive hover:border-destructive/50 h-8 text-xs gap-1.5"
+                >
+                  {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Unplug className="h-3 w-3" />}
+                  Trennen
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDisconnect}
-                disabled={isLoading}
-                className="text-muted-foreground hover:text-destructive hover:border-destructive/50 h-8 text-xs gap-1.5"
-              >
-                {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Unplug className="h-3 w-3" />}
-                Trennen
-              </Button>
+
+              <div className="flex items-center justify-between px-1 py-0.5">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Automatisch einchecken</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Checkt dich bis zu {20} Minuten vor Abfahrt automatisch ein.
+                  </p>
+                </div>
+                <Switch
+                  checked={autoCheckinQuery.data?.autoCheckin ?? false}
+                  onCheckedChange={(val) => autoCheckinMutation.mutate(val)}
+                  disabled={autoCheckinMutation.isPending}
+                />
+              </div>
             </div>
           ) : (
             <form onSubmit={handleConnect} className="space-y-3">
