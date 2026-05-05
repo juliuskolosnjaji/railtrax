@@ -36,8 +36,38 @@ const spec = {
           status: { type: 'string', enum: ['planned', 'active', 'completed'] },
           startDate: { type: 'string', format: 'date-time', nullable: true },
           endDate: { type: 'string', format: 'date-time', nullable: true },
+          isWorkTrip: { type: 'boolean' },
+          recurrenceTimezone: { type: 'string', nullable: true },
+          recurrenceRule: {
+            nullable: true,
+            oneOf: [
+              { type: 'null' },
+              {
+                type: 'object',
+                properties: {
+                  daysOfWeek: { type: 'array', items: { type: 'integer', minimum: 1, maximum: 7 } },
+                  startsOn: { type: 'string', format: 'date' },
+                  endsOn: { type: 'string', format: 'date' },
+                  timezone: { type: 'string' },
+                },
+              },
+            ],
+          },
           createdAt: { type: 'string', format: 'date-time' },
           _count: { type: 'object', properties: { legs: { type: 'integer' } } },
+        },
+      },
+      WorkTripOccurrence: {
+        type: 'object',
+        properties: {
+          type: { type: 'string', enum: ['single', 'recurring'] },
+          status: { type: 'string', enum: ['upcoming', 'active', 'completed'] },
+          timezone: { type: 'string' },
+          date: { type: 'string', format: 'date' },
+          plannedDeparture: { type: 'string', format: 'date-time' },
+          plannedArrival: { type: 'string', format: 'date-time' },
+          durationMinutes: { type: 'integer' },
+          legs: { type: 'array', items: { $ref: '#/components/schemas/Leg' } },
         },
       },
       Leg: {
@@ -96,7 +126,7 @@ const spec = {
       post: {
         summary: 'Create a trip',
         tags: ['Trips'],
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['title'], properties: { title: { type: 'string' }, description: { type: 'string' }, startDate: { type: 'string', format: 'date-time' }, endDate: { type: 'string', format: 'date-time' } } } } } },
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['title'], properties: { title: { type: 'string' }, description: { type: 'string' }, startDate: { type: 'string', format: 'date-time' }, endDate: { type: 'string', format: 'date-time' }, isWorkTrip: { type: 'boolean' }, recurrence: { $ref: '#/components/schemas/Trip/properties/recurrenceRule' } } } } } },
         responses: {
           200: { description: 'Created trip', content: { 'application/json': { schema: { type: 'object', properties: { data: { $ref: '#/components/schemas/Trip' } } } } } },
           401: { description: 'Unauthorized' },
@@ -106,7 +136,7 @@ const spec = {
     },
     '/trips/{id}': {
       get: { summary: 'Get a trip', tags: ['Trips'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { 200: { description: 'Trip with legs' }, 404: { description: 'Not found' } } },
-      put: { summary: 'Update a trip', tags: ['Trips'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { 200: { description: 'Updated trip' }, 404: { description: 'Not found' } } },
+      put: { summary: 'Update a trip', tags: ['Trips'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: { title: { type: 'string' }, description: { type: 'string' }, startDate: { type: 'string', format: 'date-time' }, endDate: { type: 'string', format: 'date-time' }, status: { type: 'string' }, isWorkTrip: { type: 'boolean' }, recurrence: { $ref: '#/components/schemas/Trip/properties/recurrenceRule' } } } } } }, responses: { 200: { description: 'Updated trip' }, 404: { description: 'Not found' } } },
       delete: { summary: 'Delete a trip', tags: ['Trips'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { 200: { description: 'Deleted' }, 404: { description: 'Not found' } } },
     },
     '/legs': {
@@ -168,6 +198,53 @@ const spec = {
     },
     '/app': {
       get: { summary: 'App configuration (no auth required)', tags: ['App'], security: [], responses: { 200: { description: 'App config, feature flags, VAPID public key' } } },
+    },
+    '/work-trips': {
+      get: {
+        summary: 'List work trips with resolved occurrences',
+        tags: ['Work Trips'],
+        parameters: [
+          { name: 'from', in: 'query', schema: { type: 'string', format: 'date' } },
+          { name: 'days', in: 'query', schema: { type: 'integer', default: 7, minimum: 1, maximum: 31 } },
+          { name: 'at', in: 'query', schema: { type: 'string', format: 'date-time' } },
+        ],
+        responses: { 200: { description: 'Work trips and their resolved occurrences' } },
+      },
+    },
+    '/work-trips/current': {
+      get: {
+        summary: 'Get the current active or next upcoming work trip',
+        tags: ['Work Trips'],
+        parameters: [{ name: 'at', in: 'query', schema: { type: 'string', format: 'date-time' } }],
+        responses: {
+          200: {
+            description: 'Current or next work trip',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    data: {
+                      nullable: true,
+                      oneOf: [
+                        { type: 'null' },
+                        {
+                          type: 'object',
+                          properties: {
+                            trip: { $ref: '#/components/schemas/Trip' },
+                            occurrence: { $ref: '#/components/schemas/WorkTripOccurrence' },
+                            activeLegId: { type: 'string', nullable: true },
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
   },
 }

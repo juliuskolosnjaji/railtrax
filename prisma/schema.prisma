@@ -50,6 +50,9 @@ model Trip {
   startDate       DateTime? @map("start_date") @db.Date
   endDate         DateTime? @map("end_date") @db.Date
   isPublic        Boolean   @default(false) @map("is_public")
+  isWorkTrip      Boolean   @default(false) @map("is_work_trip")
+  recurrenceRule  Json?     @map("recurrence_rule")
+  recurrenceTimezone String? @map("recurrence_timezone")
   shareToken      String?   @unique @map("share_token")
   interrailPassId String?   @map("interrail_pass_id") @db.Uuid
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz

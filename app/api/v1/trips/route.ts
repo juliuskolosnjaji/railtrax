@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { authenticateRequest, v1Ok, v1Error } from '@/lib/api/v1/middleware'
 import { prisma } from '@/lib/prisma'
 import { createTripSchema } from '@/lib/validators/trip'
@@ -43,7 +44,17 @@ export async function POST(req: NextRequest) {
   }
 
   const trip = await prisma().trip.create({
-    data: { ...parsed.data, userId: auth.userId },
+    data: {
+      userId: auth.userId,
+      title: parsed.data.title,
+      description: parsed.data.description,
+      status: parsed.data.status,
+      startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : null,
+      endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
+      isWorkTrip: parsed.data.isWorkTrip ?? false,
+      recurrenceRule: parsed.data.recurrence ?? Prisma.DbNull,
+      recurrenceTimezone: parsed.data.recurrence?.timezone ?? null,
+    },
     include: { _count: { select: { legs: true } } },
   })
 

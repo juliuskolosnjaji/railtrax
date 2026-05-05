@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { createTripSchema } from '@/lib/validators/trip'
@@ -98,6 +99,9 @@ export async function POST(req: NextRequest) {
         status: parsed.data.status,
         startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : null,
         endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
+        isWorkTrip: parsed.data.isWorkTrip ?? false,
+        recurrenceRule: parsed.data.recurrence ?? Prisma.DbNull,
+        recurrenceTimezone: parsed.data.recurrence?.timezone ?? null,
       },
     })
     return NextResponse.json({ data: trip }, { status: 201 })

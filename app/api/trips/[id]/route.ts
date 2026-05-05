@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { prisma } from '@/lib/prisma'
 import { updateTripSchema } from '@/lib/validators/trip'
@@ -78,6 +79,11 @@ export async function handleUpdateTrip(req: NextRequest, { params }: Params, dep
         }),
         ...(parsed.data.endDate !== undefined && {
           endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
+        }),
+        ...(parsed.data.isWorkTrip !== undefined && { isWorkTrip: parsed.data.isWorkTrip }),
+        ...(parsed.data.recurrence !== undefined && {
+          recurrenceRule: parsed.data.recurrence ?? Prisma.DbNull,
+          recurrenceTimezone: parsed.data.recurrence?.timezone ?? null,
         }),
       },
     })
